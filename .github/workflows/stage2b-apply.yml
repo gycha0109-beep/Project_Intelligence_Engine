@@ -32,3 +32,5 @@ jobs:
           git add src/review_system/github_connector.py tests/test_github_connector.py
           git commit -m "extract GitHub CLI runner and retry policy"
           git push origin HEAD:agent/stage-2b-github-runner-extraction
+
+# Triggered after workflow registration.
