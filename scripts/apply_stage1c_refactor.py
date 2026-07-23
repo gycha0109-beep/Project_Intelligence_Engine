@@ -117,5 +117,21 @@ new_approve = '''def cmd_approve_rule(args: argparse.Namespace) -> int:
 if old_approve not in text:
     raise SystemExit("approve rule block not found")
 text = text.replace(old_approve, new_approve, 1)
-
 path.write_text(text, encoding="utf-8")
+
+learning_path = Path("src/review_system/intelligence_learning.py")
+learning = learning_path.read_text(encoding="utf-8")
+old_candidate_update = '''        "rules": [
+            ({**rule, "status": "approved", "promoted_at": timestamp} if rule.get("id") == candidate_id else rule)
+            for rule in candidate_rules
+        ],
+'''
+new_candidate_update = '''        "rules": [
+            ({**promoted, "promoted_at": timestamp} if rule.get("id") == candidate_id else rule)
+            for rule in candidate_rules
+        ],
+'''
+if old_candidate_update not in learning:
+    raise SystemExit("candidate approval persistence block not found")
+learning = learning.replace(old_candidate_update, new_candidate_update, 1)
+learning_path.write_text(learning, encoding="utf-8")
