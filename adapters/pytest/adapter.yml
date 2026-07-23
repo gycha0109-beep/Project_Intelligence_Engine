@@ -1,0 +1,14 @@
+{
+  "adapter_id": "pytest",
+  "detect": [
+    "pyproject.toml",
+    "pytest.ini"
+  ],
+  "commands": [
+    "python -m pytest"
+  ],
+  "evidence": [
+    "exit_code",
+    "junit_xml"
+  ]
+}

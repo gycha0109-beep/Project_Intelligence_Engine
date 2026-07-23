@@ -1,0 +1,16 @@
+{
+  "adapter_id": "gradle",
+  "detect": [
+    "gradlew",
+    "build.gradle",
+    "build.gradle.kts"
+  ],
+  "commands": [
+    "./gradlew test",
+    "./gradlew check"
+  ],
+  "evidence": [
+    "exit_code",
+    "test_reports"
+  ]
+}

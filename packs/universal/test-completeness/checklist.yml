@@ -1,0 +1,84 @@
+{
+  "checks": [
+    {
+      "id": "TEST-001",
+      "title": "Oracle specificity",
+      "question": "Can a test pass when the wrong result, exception, or side effect occurs?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TEST-002",
+      "title": "Scenario completeness",
+      "question": "Can a required scenario be absent while the suite still reports success?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TEST-003",
+      "title": "False-positive classification",
+      "question": "Can unrelated failures be classified as expected behavior?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TEST-004",
+      "title": "Representative runtime",
+      "question": "Do mocks or in-memory substitutes hide production-stack behavior?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TEST-005",
+      "title": "Boundary and negative cases",
+      "question": "Are null, empty, duplicate, tie, retry, authorization, and failure boundaries covered where applicable?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

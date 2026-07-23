@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/project-profile.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project",
+    "technology",
+    "scope",
+    "review",
+    "gate",
+    "constraints"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "repository_root",
+        "baseline_branch"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "repository_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_branch": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "inherits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "uniqueItems": true
+    },
+    "technology": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "include",
+        "exclude"
+      ],
+      "properties": {
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "protected_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "packs"
+      ],
+      "properties": {
+        "packs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "gate": {
+      "type": "object",
+      "required": [
+        "block_on",
+        "require"
+      ],
+      "properties": {
+        "block_on": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "P0",
+              "P1",
+              "P2",
+              "P3"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "require": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "constraints": {
+      "type": "object"
+    },
+    "resolved_inherits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": true
+}

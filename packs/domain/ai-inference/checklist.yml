@@ -1,0 +1,84 @@
+{
+  "checks": [
+    {
+      "id": "AI-001",
+      "title": "Input contract",
+      "question": "Are required model inputs validated, bounded, normalized, and versioned?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AI-002",
+      "title": "Provider fallback",
+      "question": "Can provider or model fallback silently change output contracts?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AI-003",
+      "title": "Prompt and model provenance",
+      "question": "Can an output be tied to prompt, model, parameters, and input versions?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AI-004",
+      "title": "Unsafe persistence",
+      "question": "Can sensitive prompts, images, embeddings, or model outputs be retained beyond policy?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AI-005",
+      "title": "Nondeterminism handling",
+      "question": "Are retries, comparison, caching, and evaluation designed for nondeterministic outputs?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

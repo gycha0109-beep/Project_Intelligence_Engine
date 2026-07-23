@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "REQ-001",
+      "title": "Requirement implementation mapping",
+      "question": "Does every in-scope invariant map to an implementation path?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "title": "Requirement test mapping",
+      "question": "Does every critical invariant map to at least one meaningful oracle?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "title": "Undocumented behavior",
+      "question": "Does implemented policy exist without a documented requirement or accepted decision?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "title": "Conflicting authorities",
+      "question": "Do code, schema, tests, and documentation disagree on the authoritative rule?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

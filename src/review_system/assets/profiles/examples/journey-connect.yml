@@ -1,0 +1,56 @@
+schema_version: "1.0"
+project:
+  id: journey-connect
+  name: Journey Connect
+  type: backend-platform
+  repository_root: "."
+  baseline_branch: main
+inherits: [spring-postgres]
+technology:
+  languages: [java, kotlin, sql]
+  frameworks: [spring-boot]
+  database:
+    engine: postgresql
+    migration_tool: flyway
+scope:
+  include:
+    - ".github/workflows/**"
+    - "database/**"
+    - "jc-backend/src/**"
+    - "jc-*/**"
+    - "docs/**"
+    - "verification/**"
+    - "tools/**"
+  exclude:
+    - "**/build/**"
+    - "**/generated/**"
+protected_paths:
+  - "database/journey-connect-db-v2.7/0[1-9]_*"
+  - "database/journey-connect-db-v2.7/1[0-9]_*"
+  - "database/journey-connect-db-v2.7/2[0-9]_*"
+  - "database/journey-connect-db-v2.7/3[0-4]_*"
+commands:
+  baseline: ["./jc-backend/gradlew -p jc-backend test"]
+  integration: ["./jc-backend/gradlew -p jc-backend :jc-data-contracts:check"]
+  lint: ["./jc-backend/gradlew -p jc-backend check"]
+review:
+  packs:
+    - universal.architecture
+    - universal.requirements-traceability
+    - universal.test-completeness
+    - data.relational-integrity
+    - data.migration-safety
+    - data.transactionality
+    - runtime.retries-idempotency
+    - domain.recommendation
+    - domain.search
+gate:
+  block_on: [P0, P1]
+  require:
+    baseline_tests: true
+    regression_tests: true
+    confirmed_findings_resolved: true
+constraints:
+  production_changes_allowed: false
+  hosted_database_changes_allowed: false
+  external_network_allowed: false

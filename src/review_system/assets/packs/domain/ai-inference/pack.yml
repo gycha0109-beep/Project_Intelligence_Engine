@@ -1,0 +1,13 @@
+{
+  "pack_id": "domain.ai-inference",
+  "version": "1.0.0",
+  "category": "domain",
+  "requires": [
+    "repository_map"
+  ],
+  "outputs": [
+    "findings",
+    "evidence",
+    "residual_risks"
+  ]
+}

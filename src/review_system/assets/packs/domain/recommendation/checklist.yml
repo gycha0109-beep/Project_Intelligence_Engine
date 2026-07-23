@@ -1,0 +1,100 @@
+{
+  "checks": [
+    {
+      "id": "REC-001",
+      "title": "Candidate eligibility",
+      "question": "Can deleted, private, blocked, moderated, or otherwise ineligible items enter the candidate set?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REC-002",
+      "title": "Signal normalization",
+      "question": "Can missing, stale, extreme, or differently scaled signals distort scoring?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REC-003",
+      "title": "Ranking determinism",
+      "question": "Are ordering and cursor continuation deterministic under complete ties?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REC-004",
+      "title": "Cold start",
+      "question": "Are new users and new items handled without accidental exclusion or runaway defaults?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REC-005",
+      "title": "Exposure integrity",
+      "question": "Does recorded exposure match what the user was actually eligible to see?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "REC-006",
+      "title": "Replay determinism",
+      "question": "Can the same input and snapshot reproduce the same result?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

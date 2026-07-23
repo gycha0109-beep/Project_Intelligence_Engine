@@ -1,0 +1,21 @@
+{
+  "workflow": "security-review",
+  "description": "Focused security and trust-boundary review.",
+  "lifecycle": [
+    "intake",
+    "baseline",
+    "map",
+    "review",
+    "challenge",
+    "verify",
+    "regression",
+    "gate",
+    "archive"
+  ],
+  "packs": [
+    "application.authentication",
+    "application.authorization",
+    "data.rls",
+    "data.privacy"
+  ]
+}

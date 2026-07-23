@@ -1,0 +1,15 @@
+{
+  "adapter_id": "supabase-cli",
+  "detect": [
+    "supabase/config.toml"
+  ],
+  "commands": [
+    "supabase db reset",
+    "supabase test db"
+  ],
+  "evidence": [
+    "exit_code",
+    "migration_output",
+    "service_versions"
+  ]
+}

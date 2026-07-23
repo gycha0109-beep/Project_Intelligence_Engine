@@ -1,0 +1,19 @@
+schema_version: "1.0"
+graph:
+  max_file_size_bytes: 1000000
+components:
+  - id: decision-timeline
+    name: Decision Timeline
+    paths: ["src/**/decision*/**", "src/**/timeline*/**", "docs/**/decision*", "docs/**/timeline*"]
+  - id: change-card
+    name: Change Card and Review
+    paths: ["src/**/change*card*/**", "src/**/review*/**"]
+  - id: public-feedback
+    name: Public Project and Feedback
+    paths: ["src/**/public*/**", "src/**/feedback*/**"]
+  - id: database-security
+    name: Supabase Database and Security
+    paths: ["supabase/migrations/**", "supabase/tests/**", "supabase/functions/**"]
+  - id: verification
+    name: Scripts and Tests
+    paths: ["scripts/**", "tests/**"]

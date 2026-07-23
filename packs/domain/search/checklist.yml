@@ -1,0 +1,100 @@
+{
+  "checks": [
+    {
+      "id": "SEARCH-001",
+      "title": "Normalization authority",
+      "question": "Are query normalization rules single-source and deterministic?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "SEARCH-002",
+      "title": "Filter semantics",
+      "question": "Do combined filters preserve documented AND/OR and visibility semantics?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "SEARCH-003",
+      "title": "Ranking stability",
+      "question": "Can equivalent scores produce unstable ordering or cursor gaps?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "SEARCH-004",
+      "title": "Visibility enforcement",
+      "question": "Can search exposure bypass access controls applied elsewhere?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "SEARCH-005",
+      "title": "Index freshness behavior",
+      "question": "Are stale, missing, or partially updated indexes handled explicitly?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "SEARCH-006",
+      "title": "Replay and evidence",
+      "question": "Can search inputs, policy versions, and result decisions be reconstructed?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

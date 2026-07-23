@@ -1,0 +1,53 @@
+{
+  "graph_stats": {
+    "files": 661,
+    "symbols": 744,
+    "components": 6,
+    "database_objects": 311,
+    "edges": 3839
+  },
+  "graph_warnings": 8,
+  "core": {
+    "impacted": 122,
+    "structural_plus_rule": 1,
+    "packs": [
+      "domain.recommendation",
+      "universal.requirements-traceability",
+      "universal.test-completeness"
+    ],
+    "required_tests": 18,
+    "xml_test_reports_recommended": 0
+  },
+  "db": {
+    "impacted": 1,
+    "packs": [
+      "data.migration-safety",
+      "data.relational-integrity",
+      "data.transactionality",
+      "domain.recommendation",
+      "universal.test-completeness"
+    ],
+    "missing": []
+  },
+  "comparison": [
+    {
+      "left": "JC-P2-CORE",
+      "right": "JC-P2-DB",
+      "risk_score": 23,
+      "risk_level": "medium",
+      "direct_file_overlap": [],
+      "impact_overlap": [],
+      "component_overlap": [],
+      "review_pack_overlap": [
+        "domain.recommendation",
+        "universal.test-completeness"
+      ],
+      "matched_rule_overlap": [],
+      "base_revision_mismatch": false,
+      "reasons": [
+        "shared review domain"
+      ],
+      "advisory": "Review merge order or rebase requirements."
+    }
+  ]
+}

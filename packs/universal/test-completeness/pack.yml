@@ -1,0 +1,13 @@
+{
+  "pack_id": "universal.test-completeness",
+  "version": "1.0.0",
+  "category": "universal",
+  "requires": [
+    "repository_map"
+  ],
+  "outputs": [
+    "findings",
+    "evidence",
+    "residual_risks"
+  ]
+}

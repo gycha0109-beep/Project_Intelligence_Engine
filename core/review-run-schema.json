@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/review-run.schema.json",
+  "type": "object",
+  "required": [
+    "run_id",
+    "project_id",
+    "mode",
+    "metrics"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "change",
+        "risk",
+        "release",
+        "incident"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "review_system_version": {
+      "type": "string"
+    },
+    "selected_packs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "gate_config": {
+      "type": "object",
+      "properties": {
+        "block_on": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "P0",
+              "P1",
+              "P2",
+              "P3"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "require": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "baseline_test_status",
+        "protected_baseline_modified",
+        "required_integration_test_not_run",
+        "migration_replay_required",
+        "migration_replay_verified",
+        "accepted_residual_risk_count",
+        "required_runtime_evidence_missing",
+        "required_tests_passed"
+      ],
+      "properties": {
+        "open_confirmed_p0": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_confirmed_p1": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_confirmed_p2": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_confirmed_p3": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_supported_p0": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_supported_p1": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_supported_p2": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_supported_p3": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_confirmed_blocking_fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_confirmed_blocking_hold": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_supported_blockers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixed_unverified_blockers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "baseline_test_status": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "protected_baseline_modified": {
+          "type": "boolean"
+        },
+        "required_integration_test_not_run": {
+          "type": "boolean"
+        },
+        "migration_replay_required": {
+          "type": "boolean"
+        },
+        "migration_replay_verified": {
+          "type": "boolean"
+        },
+        "accepted_residual_risk_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "required_runtime_evidence_missing": {
+          "type": "boolean"
+        },
+        "required_tests_passed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": true
+}

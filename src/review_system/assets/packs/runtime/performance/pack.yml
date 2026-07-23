@@ -1,0 +1,13 @@
+{
+  "pack_id": "runtime.performance",
+  "version": "1.0.0",
+  "category": "runtime",
+  "requires": [
+    "repository_map"
+  ],
+  "outputs": [
+    "findings",
+    "evidence",
+    "residual_risks"
+  ]
+}

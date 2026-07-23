@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/intelligence-config.schema.json",
+  "type": "object",
+  "required": ["schema_version", "components"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "graph": {
+      "type": "object",
+      "properties": {
+        "max_file_size_bytes": {"type": "integer", "minimum": 1024, "maximum": 10000000}
+      },
+      "additionalProperties": true
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "paths"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+          "name": {"type": "string"},
+          "paths": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

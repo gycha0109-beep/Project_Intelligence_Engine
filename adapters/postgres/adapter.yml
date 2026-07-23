@@ -1,0 +1,14 @@
+{
+  "adapter_id": "postgres",
+  "detect": [
+    "*.sql"
+  ],
+  "commands": [
+    "psql -v ON_ERROR_STOP=1"
+  ],
+  "evidence": [
+    "exit_code",
+    "query_output",
+    "server_version"
+  ]
+}

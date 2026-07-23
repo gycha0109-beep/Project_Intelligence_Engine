@@ -1,0 +1,18 @@
+{
+  "workflow": "full-review",
+  "description": "Complete baseline audit across all configured packs.",
+  "lifecycle": [
+    "intake",
+    "baseline",
+    "map",
+    "review",
+    "challenge",
+    "verify",
+    "regression",
+    "gate",
+    "archive"
+  ],
+  "packs": [
+    "configured project packs"
+  ]
+}

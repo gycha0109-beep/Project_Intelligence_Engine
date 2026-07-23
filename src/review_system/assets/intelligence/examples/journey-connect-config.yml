@@ -1,0 +1,25 @@
+schema_version: "1.0"
+graph:
+  max_file_size_bytes: 1000000
+components:
+  - id: recommendation
+    name: Recommendation Domain
+    paths: ["**/recommend*/**", "**/*recommend*", "**/*RECOMMENDATION*"]
+  - id: search
+    name: Search Domain
+    paths: ["jc-backend/src/**/search*/**", "jc-search-*/**", "docs/**/*search*", "docs/**/*SEARCH*"]
+  - id: backend-api
+    name: Backend API
+    paths: ["jc-backend/src/main/**", "jc-backend/src/test/**"]
+  - id: database
+    name: Canonical Database
+    paths: ["database/**"]
+  - id: data-contracts
+    name: Event and Data Contracts
+    paths: ["jc-data-contracts/**"]
+  - id: verification-ci
+    name: Verification and CI
+    paths: [".github/workflows/**", "verification/**", "**/src/test/**"]
+  - id: documentation
+    name: Architecture and Contracts
+    paths: ["docs/**", "**/*.md"]

@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "RLS-001",
+      "title": "Default deny",
+      "question": "Is access denied when no explicit policy matches?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RLS-002",
+      "title": "Role separation",
+      "question": "Can public, authenticated, service, and admin roles cross intended boundaries?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RLS-003",
+      "title": "View/function bypass",
+      "question": "Can views, RPCs, definer functions, or storage paths bypass row policy?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RLS-004",
+      "title": "Mutation ownership",
+      "question": "Are INSERT, UPDATE, and DELETE checks independently correct?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

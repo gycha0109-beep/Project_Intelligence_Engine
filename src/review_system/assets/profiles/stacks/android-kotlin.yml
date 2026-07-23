@@ -1,0 +1,16 @@
+stack_id: android-kotlin
+fragment_version: "1.0"
+technology:
+  languages: [kotlin]
+  frameworks: [android]
+  build:
+    tool: gradle
+commands:
+  build: ["./gradlew assembleDebug"]
+  baseline: ["./gradlew test"]
+  integration: ["./gradlew connectedAndroidTest"]
+review:
+  packs:
+    - universal.architecture
+    - universal.test-completeness
+    - runtime.performance

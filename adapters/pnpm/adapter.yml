@@ -1,0 +1,17 @@
+{
+  "adapter_id": "pnpm",
+  "detect": [
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "commands": [
+    "pnpm install --frozen-lockfile",
+    "pnpm test",
+    "pnpm build"
+  ],
+  "evidence": [
+    "exit_code",
+    "test_reports",
+    "build_output"
+  ]
+}

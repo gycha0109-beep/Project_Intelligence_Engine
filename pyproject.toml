@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "project-intelligence-engine"
+version = "0.3.0"
+description = "Project-aware change intelligence and evidence-driven review framework"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "PyYAML>=6.0.3",
+  "jsonschema>=4.26.0",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[project.scripts]
+pie = "review_system.cli:main"
+urs = "review_system.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+review_system = ["assets/**/*", "assets/**/**/*", "assets/**/**/**/*", "assets/**/**/**/**/*"]

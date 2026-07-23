@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "ARCH-001",
+      "title": "Entrypoint coverage",
+      "question": "Are externally or asynchronously reachable entrypoints mapped to their downstream components?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "ARCH-002",
+      "title": "Trust-boundary clarity",
+      "question": "Are authentication, authorization, and data-trust transitions explicit?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "ARCH-003",
+      "title": "Responsibility cohesion",
+      "question": "Do components avoid mixing transport, domain, persistence, and policy responsibilities without a justified boundary?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "ARCH-004",
+      "title": "Dependency direction",
+      "question": "Do domain rules depend on infrastructure details or create cycles that increase change risk?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

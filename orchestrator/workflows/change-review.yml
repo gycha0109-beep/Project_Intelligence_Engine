@@ -1,0 +1,19 @@
+{
+  "workflow": "change-review",
+  "description": "Impact-scoped review of changed files and affected paths.",
+  "lifecycle": [
+    "intake",
+    "baseline",
+    "map",
+    "review",
+    "challenge",
+    "verify",
+    "regression",
+    "gate",
+    "archive"
+  ],
+  "packs": [
+    "diff-selected packs",
+    "universal.test-completeness"
+  ]
+}

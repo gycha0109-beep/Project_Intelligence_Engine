@@ -1,0 +1,59 @@
+schema_version: "1.0"
+graph:
+  max_file_size_bytes: 1000000
+components:
+  - id: facelab
+    name: Face Lab
+    paths:
+      - "src/**/face*lab*/**"
+      - "app/**/face*lab*/**"
+      - "lib/**/face*lab*/**"
+      - "**/*face*lab*"
+  - id: survey-profile
+    name: Survey and Skin Profile
+    paths:
+      - "src/**/survey*/**"
+      - "app/**/survey*/**"
+      - "lib/**/skin*profile*/**"
+  - id: recommendation
+    name: Recommendation Engine
+    paths:
+      - "src/**/recommend*/**"
+      - "lib/**/recommend*/**"
+      - "scripts/**/recommend*"
+      - "components/**/*recommend*"
+      - "components/**/*Recommendation*"
+  - id: ai-inference
+    name: AI Inference and Prompting
+    paths:
+      - "src/**/prompt*/**"
+      - "lib/**/prompt*/**"
+      - "src/**/vision*/**"
+      - "lib/**/vision*/**"
+      - "app/api/analyze/**"
+      - "app/api/face-reading/**"
+      - "**/*hosted-evaluation*"
+  - id: database-security
+    name: Supabase Database and Security
+    paths:
+      - "supabase/**"
+      - "lib/supabase/**"
+      - "**/*db*evidence*"
+  - id: auth
+    name: Authentication and Request Guards
+    paths:
+      - "src/**/auth*/**"
+      - "app/**/auth*/**"
+      - "components/auth/**"
+      - "lib/auth/**"
+      - "lib/**/*session*"
+      - "middleware.*"
+  - id: verification-ci
+    name: Verification and CI
+    paths:
+      - ".github/workflows/**"
+      - "scripts/verify-*"
+      - "scripts/run-*-verifier*"
+      - "scripts/*-test*"
+      - "tests/**"
+      - "security-tests/**"

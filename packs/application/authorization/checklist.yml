@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "AUTHZ-001",
+      "title": "Object authorization",
+      "question": "Is access checked against the target object rather than only endpoint authentication?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AUTHZ-002",
+      "title": "Privilege escalation",
+      "question": "Can mutable request fields, role claims, or indirect references raise privilege?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AUTHZ-003",
+      "title": "Cross-layer consistency",
+      "question": "Do API, service, database, and background-job authorization rules agree?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AUTHZ-004",
+      "title": "Information disclosure",
+      "question": "Can error behavior or list endpoints reveal inaccessible resources?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

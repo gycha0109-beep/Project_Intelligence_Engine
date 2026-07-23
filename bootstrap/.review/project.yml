@@ -1,0 +1,28 @@
+schema_version: "1.0"
+project:
+  id: replace-me
+  name: Replace Me
+  type: application
+  repository_root: "."
+  baseline_branch: main
+technology:
+  languages: []
+scope:
+  include: ["**"]
+  exclude: ["node_modules/**", "build/**", "dist/**", "generated/**"]
+protected_paths: []
+commands:
+  baseline: ["REPLACE_WITH_TEST_COMMAND"]
+review:
+  packs:
+    - universal.architecture
+    - universal.requirements-traceability
+    - universal.test-completeness
+gate:
+  block_on: [P0, P1]
+  require:
+    baseline_tests: true
+    regression_tests: true
+constraints:
+  production_changes_allowed: false
+  external_network_allowed: false

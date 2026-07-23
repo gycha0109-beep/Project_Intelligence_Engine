@@ -1,0 +1,29 @@
+schema_version: "1.0"
+rules:
+  - id: BJ_CANDIDATE_001
+    title: Review recommendation input when Face Lab or survey contracts change
+    status: candidate
+    trigger:
+      paths_any:
+        - "src/**/face*lab*/**"
+        - "lib/**/skin*profile*/**"
+        - "src/**/survey*/**"
+    impact:
+      components: [recommendation, ai-inference]
+      paths:
+        - "src/**/recommend*/**"
+        - "lib/**/recommend*/**"
+        - "src/**/prompt*/**"
+        - "lib/**/prompt*/**"
+    review:
+      packs:
+        - domain.recommendation
+        - domain.ai-inference
+        - universal.test-completeness
+      required_tests: []
+    rationale: Candidate only. Promote after Bejewely maintainers confirm this boundary from actual history.
+    evidence:
+      sample_count: 1
+      confidence: 0.0
+      support: 0.0
+      method: design hypothesis

@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "TX-001",
+      "title": "Partial write safety",
+      "question": "Can failure between related writes leave externally visible partial state?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TX-002",
+      "title": "Retry idempotency",
+      "question": "Can the same command or event be retried without duplicate effects?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TX-003",
+      "title": "Commit-response ambiguity",
+      "question": "Can a successful commit followed by response failure cause duplicate processing?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "TX-004",
+      "title": "Concurrent mutation",
+      "question": "Can concurrent execution violate invariants or last-write expectations?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

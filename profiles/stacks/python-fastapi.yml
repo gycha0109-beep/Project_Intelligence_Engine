@@ -1,0 +1,16 @@
+stack_id: python-fastapi
+fragment_version: "1.0"
+technology:
+  languages: [python, sql]
+  frameworks: [fastapi]
+  build:
+    tool: python
+commands:
+  baseline: ["python -m pytest"]
+  lint: ["ruff check ."]
+review:
+  packs:
+    - application.authentication
+    - application.authorization
+    - data.relational-integrity
+    - universal.test-completeness

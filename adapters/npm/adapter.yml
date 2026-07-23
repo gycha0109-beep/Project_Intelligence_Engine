@@ -1,0 +1,17 @@
+{
+  "adapter_id": "npm",
+  "detect": [
+    "package.json",
+    "package-lock.json"
+  ],
+  "commands": [
+    "npm ci",
+    "npm test",
+    "npm run build"
+  ],
+  "evidence": [
+    "exit_code",
+    "test_reports",
+    "build_output"
+  ]
+}

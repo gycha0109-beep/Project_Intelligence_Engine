@@ -1,0 +1,19 @@
+schema_version: "1.0"
+change_sets:
+  - id: PR-101
+    base_revision: abc123
+    changed_files:
+      - "src/features/facelab/profile.ts"
+    impacted_files:
+      - "src/lib/recommendation/input.ts"
+    components: [facelab]
+    review_packs: [domain.recommendation, domain.ai-inference]
+    matched_rules: [BJ_FACELAB_RECOMMENDATION]
+  - id: PR-102
+    base_revision: abc123
+    changed_files:
+      - "src/lib/recommendation/input.ts"
+    impacted_files: []
+    components: [recommendation]
+    review_packs: [domain.recommendation]
+    matched_rules: []

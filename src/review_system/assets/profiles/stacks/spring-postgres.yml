@@ -1,0 +1,21 @@
+stack_id: spring-postgres
+fragment_version: "1.0"
+technology:
+  languages: [java, kotlin, sql]
+  frameworks: [spring-boot]
+  database:
+    engine: postgresql
+  build:
+    tool: gradle
+commands:
+  build: ["./gradlew clean build"]
+  baseline: ["./gradlew test"]
+  integration: ["./gradlew integrationTest"]
+review:
+  packs:
+    - application.authentication
+    - application.authorization
+    - data.relational-integrity
+    - data.transactionality
+    - runtime.retries-idempotency
+    - universal.test-completeness

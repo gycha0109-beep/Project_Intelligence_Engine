@@ -1,0 +1,47 @@
+version: "1.1"
+fail:
+  - id: G-F001
+    expression: open_confirmed_blocking_fail > 0
+    message: Confirmed fail-level blocking findings remain open.
+  - id: G-F002
+    expression: baseline_test_status == "failed"
+    message: Baseline tests failed.
+  - id: G-F003
+    expression: protected_baseline_modified == true
+    message: A protected baseline path was modified.
+hold:
+  - id: G-H001
+    expression: open_confirmed_blocking_hold > 0
+    message: Confirmed blocking findings remain open.
+  - id: G-H002
+    expression: required_integration_test_not_run == true
+    message: Required integration evidence was not executed.
+  - id: G-H003
+    expression: migration_replay_required == true and migration_replay_verified == false
+    message: Required migration replay is not verified.
+  - id: G-H004
+    expression: fixed_unverified_blockers > 0
+    message: Blocking findings are marked fixed without E5 resolution evidence.
+conditional_pass:
+  - id: G-C001
+    expression: open_supported_blockers > 0
+    message: Supported blocking findings remain unresolved.
+  - id: G-C002
+    expression: accepted_residual_risk_count > 0
+    message: Accepted residual risks remain.
+  - id: G-C003
+    expression: required_runtime_evidence_missing == true
+    message: Some required runtime evidence is unavailable.
+pass:
+  - id: G-P001
+    expression: required_tests_passed == true
+    message: Required test suites passed.
+  - id: G-P002
+    expression: open_confirmed_blocking_fail == 0 and open_confirmed_blocking_hold == 0
+    message: No confirmed blocking findings remain.
+  - id: G-P003
+    expression: fixed_unverified_blockers == 0
+    message: No blocking fix remains unverified.
+  - id: G-P004
+    expression: protected_baseline_modified == false
+    message: Protected baselines are intact.

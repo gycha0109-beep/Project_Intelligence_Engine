@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "DATA-001",
+      "title": "Key integrity",
+      "question": "Are primary, foreign, unique, and check constraints aligned with invariants?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "DATA-002",
+      "title": "Null semantics",
+      "question": "Can null or sentinel values bypass domain rules?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "DATA-003",
+      "title": "Deletion integrity",
+      "question": "Can deletion leave forbidden or misleading references?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "DATA-004",
+      "title": "Ordering integrity",
+      "question": "Does persisted ordering use deterministic unique tie-breakers?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

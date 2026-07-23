@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "MIG-001",
+      "title": "Replay safety",
+      "question": "Can migrations replay from the supported baseline in the real engine?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "MIG-002",
+      "title": "Backward compatibility",
+      "question": "Can application and schema rollout order create a breaking window?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "MIG-003",
+      "title": "Destructive operation guard",
+      "question": "Are destructive transformations explicit, backed up, and reversible where required?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "MIG-004",
+      "title": "Environment drift",
+      "question": "Can hosted, local, test, or generated schemas diverge undetected?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

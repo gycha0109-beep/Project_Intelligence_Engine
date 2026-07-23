@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/project-rule.schema.json",
+  "type": "object",
+  "required": ["schema_version", "rules"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "trigger", "impact", "review", "rationale"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]{2,63}$"},
+          "status": {"enum": ["candidate", "approved", "rejected", "retired"]},
+          "trigger": {
+            "type": "object",
+            "properties": {
+              "paths_any": {"type": "array", "items": {"type": "string"}},
+              "paths_all": {"type": "array", "items": {"type": "string"}}
+            },
+            "additionalProperties": false
+          },
+          "impact": {"type": "object"},
+          "review": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

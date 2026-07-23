@@ -1,0 +1,52 @@
+{
+  "checks": [
+    {
+      "id": "AUTHN-001",
+      "title": "Session validation",
+      "question": "Are token signature, issuer, audience, expiry, and revocation semantics enforced?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AUTHN-002",
+      "title": "Credential exposure",
+      "question": "Can credentials, reset tokens, or session artifacts leak through logs or responses?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "AUTHN-003",
+      "title": "Account lifecycle",
+      "question": "Are disabled, deleted, unverified, or locked accounts handled consistently?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

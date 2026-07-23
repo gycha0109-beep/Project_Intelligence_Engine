@@ -1,0 +1,51 @@
+[
+  {
+    "id": "SAMPLE-REC-001",
+    "title": "Cursor omits a unique tie-break field",
+    "category": "domain.recommendation.pagination",
+    "severity": "P1",
+    "confidence": "CONFIRMED",
+    "status": "OPEN",
+    "scope": {
+      "files": [
+        "src/RecommendationCursor.java"
+      ],
+      "symbols": [
+        "RecommendationCursor#from"
+      ]
+    },
+    "evidence": [
+      {
+        "level": "E1",
+        "type": "code",
+        "location": "RecommendationCursor.java:41-58",
+        "summary": "Cursor contains score and timestamp but no unique identifier."
+      },
+      {
+        "level": "E3",
+        "type": "test",
+        "command": "./gradlew test --tests CursorTieTest",
+        "result": "failed before remediation",
+        "summary": "Equal score and timestamp cause duplicate or missing continuation."
+      }
+    ],
+    "reproduction": {
+      "preconditions": [
+        "Two items share score and timestamp"
+      ],
+      "steps": [
+        "Fetch page one",
+        "Use cursor",
+        "Fetch page two"
+      ],
+      "observed": "Duplicate or missing item",
+      "expected": "Stable non-overlapping continuation"
+    },
+    "impact": "Pagination integrity is not guaranteed under complete ties.",
+    "recommended_action": "Add a stable unique key to ordering and cursor serialization.",
+    "verification": [
+      "./gradlew test --tests CursorTieTest",
+      "./gradlew test"
+    ]
+  }
+]

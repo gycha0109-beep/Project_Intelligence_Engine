@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "RETRY-001",
+      "title": "Stable operation identity",
+      "question": "Is there a stable key for repeated commands, jobs, or webhooks?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RETRY-002",
+      "title": "Duplicate side effects",
+      "question": "Can retries duplicate storage, notifications, billing, or external calls?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RETRY-003",
+      "title": "Poison retry behavior",
+      "question": "Are permanent failures distinguished from retryable failures?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "RETRY-004",
+      "title": "Replay evidence",
+      "question": "Can a previous operation be safely replayed and audited?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+stack_id: nextjs-supabase
+fragment_version: "1.0"
+technology:
+  languages: [typescript, sql]
+  frameworks: [nextjs, supabase]
+  database:
+    engine: postgresql
+  build:
+    tool: pnpm
+commands:
+  install: ["pnpm install --frozen-lockfile"]
+  build: ["pnpm build"]
+  baseline: ["pnpm test"]
+  migration_replay: ["supabase db reset"]
+review:
+  packs:
+    - application.authentication
+    - application.authorization
+    - data.rls
+    - data.migration-safety
+    - data.relational-integrity
+    - universal.test-completeness

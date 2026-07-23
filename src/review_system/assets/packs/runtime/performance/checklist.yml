@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "id": "PERF-001",
+      "title": "Query amplification",
+      "question": "Can request size or list size cause N+1 or unbounded database calls?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "PERF-002",
+      "title": "Unbounded materialization",
+      "question": "Can the system load or sort the entire candidate set before limiting?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "PERF-003",
+      "title": "Index alignment",
+      "question": "Do filter and order paths have representative index support?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    },
+    {
+      "id": "PERF-004",
+      "title": "Complexity guard",
+      "question": "Are expensive paths bounded, measured, and observable?",
+      "evidence_required": [
+        "scope",
+        "reachable_path",
+        "impact"
+      ],
+      "false_positive_guards": [
+        "check_existing_controls",
+        "check_reachability",
+        "check_intended_behavior",
+        "check_scope"
+      ]
+    }
+  ]
+}

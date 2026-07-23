@@ -1,0 +1,14 @@
+schema_version: "1.0"
+change_sets:
+  - id: PR-001
+    changed_files:
+      - "src/features/facelab/profile-a.ts"
+      - "src/lib/recommendation/input-a.ts"
+  - id: PR-002
+    changed_files:
+      - "src/features/facelab/profile-b.ts"
+      - "src/lib/recommendation/input-b.ts"
+  - id: PR-003
+    changed_files:
+      - "src/features/facelab/profile-c.ts"
+      - "src/lib/recommendation/input-c.ts"

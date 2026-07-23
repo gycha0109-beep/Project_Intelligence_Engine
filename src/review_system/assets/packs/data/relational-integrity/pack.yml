@@ -1,0 +1,13 @@
+{
+  "pack_id": "data.relational-integrity",
+  "version": "1.0.0",
+  "category": "data",
+  "requires": [
+    "repository_map"
+  ],
+  "outputs": [
+    "findings",
+    "evidence",
+    "residual_risks"
+  ]
+}

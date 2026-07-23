@@ -1,0 +1,17 @@
+{
+  "adapter_id": "docker",
+  "detect": [
+    "Dockerfile",
+    "docker-compose.yml",
+    "compose.yml"
+  ],
+  "commands": [
+    "docker compose config",
+    "docker compose up --build"
+  ],
+  "evidence": [
+    "exit_code",
+    "container_logs",
+    "image_ids"
+  ]
+}

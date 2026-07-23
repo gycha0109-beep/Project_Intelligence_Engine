@@ -1,0 +1,15 @@
+{
+  "adapter_id": "github-actions",
+  "detect": [
+    ".github/workflows/*.yml"
+  ],
+  "commands": [
+    "gh run view",
+    "gh pr checks"
+  ],
+  "evidence": [
+    "workflow_run_id",
+    "check_status",
+    "logs"
+  ]
+}

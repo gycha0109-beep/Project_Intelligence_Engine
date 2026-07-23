@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e .
+      - run: python scripts/sync_package_assets.py
+      - run: python -m unittest discover -s tests -v
+      - run: urs version
+      - run: urs validate-profile profiles/examples/journey-connect.yml
+      - run: urs validate-profile profiles/examples/bejewely.yml
+      - run: urs validate-profile profiles/examples/buildmap.yml
+      - run: urs validate-profile profiles/examples/generic-webapp.yml
+      - run: urs validate-findings examples/findings.sample.json
+      - run: pip wheel . --no-deps --wheel-dir dist-ci
