@@ -1,0 +1,38 @@
+name: Stage 1 Apply
+
+on:
+  push:
+    branches:
+      - agent/stage-1-application-boundary
+    paths:
+      - scripts/apply_stage1_refactor.py
+      - .github/workflows/stage1-apply.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-1-application-boundary
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/apply_stage1_refactor.py
+      - run: pip install -e .
+      - run: python -m compileall -q src tests
+      - run: python -m unittest discover -s tests -v
+      - name: Commit verified refactor
+        shell: bash
+        run: |
+          rm scripts/apply_stage1_refactor.py
+          rm .github/workflows/stage1-apply.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "extract analyze-pr application boundary"
+          git push origin HEAD:agent/stage-1-application-boundary
