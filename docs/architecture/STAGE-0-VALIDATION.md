@@ -2,146 +2,127 @@
 
 기준일: 2026-07-23  
 기준선: `main@c8578aa2c8096b3f0fa7652248c078702a94d023`  
-작업 브랜치: `agent/stage-0-architecture-baseline`
+작업 브랜치: `agent/stage-0-architecture-baseline`  
+최종 검증 대상: `e3f82ebed9084b2285470f9ae45ca6a8f22862b1`
 
 ## 1. 목적
 
-Stage 0의 수행 절차와 검증 근거를 보존한다.
+Stage 0은 PIE v0.3.0의 실제 구조를 고정하고, 기존 검증 코어를 보존하면서 Project Intelligence Control Plane으로 확장할 단계와 경계를 정의한다.
+
+수행 순서:
 
 ```text
 상세 설계
 → 설계 리뷰
-→ 문서 구현
+→ 구현
 → 구현 리뷰
-→ 정적 검증
-→ GitHub PR CI
+→ 실패 진단
+→ 최소 보완
+→ 전체 검증
 ```
 
-제품 코드, schema, package version, CLI behavior는 변경하지 않는다.
+원래 Stage 0 범위는 문서화뿐이었으나, 전체 CI 검증에서 Python 3.11 지원 계약을 위반하는 기존 경로 glob 결함이 발견됐다. 검증을 통과한 척하지 않고 근본 원인을 수정하고 회귀 테스트를 추가했다.
 
 ## 2. 기준선 확인
 
-| 항목 | 확인 결과 |
+| 항목 | 결과 |
 |---|---|
 | Repository | `gycha0109-beep/Project_Intelligence_Engine` |
 | Default branch | `main` |
 | Baseline commit | `c8578aa2c8096b3f0fa7652248c078702a94d023` |
-| Version | `0.3.0` |
-| Runtime | Python `>=3.11` |
+| Product version | `0.3.0` |
+| Runtime contract | Python `>=3.11` |
 | Runtime dependencies | PyYAML, jsonschema |
 | CLI entrypoints | `pie`, `urs` → `review_system.cli:main` |
-| Reported regression baseline | 79 tests PASS |
-| Baseline PR workflow evidence | GitHub connector 조회에서 확인되지 않음 |
+| CLI subcommands | 29 |
+| Stored v0.3.0 report | 79 tests PASS |
+| Current discovered suite before fix | 96 tests |
+| Current suite after new regression tests | 98 tests |
+
+기존 문서의 79개는 v0.3.0 구현 시점의 저장된 검증 결과다. 현재 repository의 실제 unittest discovery 결과는 96개였으며, Stage 0에서 호환성 테스트 2개를 추가해 98개가 됐다.
 
 ## 3. 설계 산출물
 
 | 문서 | 역할 |
 |---|---|
-| `CURRENT-STATE.md` | 실제 v0.3.0 구현·계약·저장·검증 구조 |
-| `TARGET-STATE.md` | 목표 Control Plane, 도메인 모델, 안전 원칙 |
-| `GAP-ANALYSIS.md` | 보존·추출·확장·신규·보류 영역 |
-| `MIGRATION-PLAN.md` | 선행 조건과 검증 Gate를 포함한 단계별 이행 순서 |
-| `README.md` | 문서 권위·진입점·다음 Stage |
+| `CURRENT-STATE.md` | 실제 v0.3.0 코드·계약·저장·검증 구조 |
+| `TARGET-STATE.md` | 목표 Control Plane과 도메인·저장 원칙 |
+| `GAP-ANALYSIS.md` | READY·EXTEND·EXTRACT·NEW·DEFER 판정 |
+| `MIGRATION-PLAN.md` | 선행 조건과 완료 Gate가 있는 단계별 이행 계획 |
+| `README.md` | 아키텍처 문서 권위와 진입점 |
+| `STAGE-0-VALIDATION.md` | 설계·리뷰·구현·검증 기록 |
 
-## 4. 설계 리뷰
+## 4. 설계 리뷰 결과
 
 ### DR-01 — Greenfield 재작성 위험
 
 **발견**
 
-초기 아이디어를 그대로 적용하면 기존 URS, Gate, Graph, GitHub Intake를 새 플랫폼으로 다시 만들 가능성이 있었다.
+새 플랫폼 개념을 그대로 구현하면 현재 URS, Gate, Graph, Rule Learning과 GitHub Intake를 중복 구축할 가능성이 있었다.
 
-**조치**
+**결정**
 
-- 기존 v0.3.0 계약을 호환 기준선으로 고정
-- 파일 artifact를 권위 원본으로 유지
-- 새 기능은 projection과 관계 계층으로 추가
-
-**상태**: CLOSED
-
-### DR-02 — Ledger 선구현에 따른 결합 위험
-
-**발견**
-
-현재 `cli.py`가 application orchestration을 담당하는 상태에서 SQLite를 직접 붙이면 새 저장 계층이 CLI와 강결합된다.
-
-**조치**
-
-- Stage 1을 `Application Boundary Extraction`으로 지정
-- Evidence Ledger는 application boundary 이후로 이동
+- PIE v0.3.0을 확장 기준선으로 유지
+- 기존 CLI·schema·artifact·Gate 계약 보존
+- 새 기능은 application boundary와 projection 계층으로 추가
 
 **상태**: CLOSED
 
-### DR-03 — 외부 Event Bus 과설계
+### DR-02 — Ledger 선구현 결합 위험
 
 **발견**
 
-현재 PIE는 단일 프로세스 CLI이며 worker service나 장시간 queue가 없다.
+`cli.py`가 orchestration까지 담당하는 상태에서 SQLite를 붙이면 Ledger가 CLI에 직접 결합된다.
 
-**조치**
+**결정**
 
-- 외부 broker를 P3로 보류
-- 필요한 경우 in-process event interface만 먼저 도입
+- Stage 1: Application Boundary Extraction
+- Stage 2: GitHub Integration Extraction
+- Ledger는 위 경계가 안정된 뒤 구현
 
 **상태**: CLOSED
 
-### DR-04 — File과 DB 권위 충돌
+### DR-03 — 권위 원본 충돌
 
 **발견**
 
-Ledger가 artifact 원문을 대체하면 현재의 재현성과 archive 계약을 약화할 수 있다.
+Ledger가 기존 파일 artifact를 대체하면 archive·hash·재현 계약이 약해진다.
 
-**조치**
+**결정**
 
 ```text
-Filesystem = 권위 원본
-SQLite = 관계·검색·상태 index
+Filesystem Artifact = 권위 원본
+SQLite Ledger        = 재구축 가능한 관계·검색·상태 index
 ```
 
-Ledger rebuild를 필수 완료 조건으로 정의했다.
+**상태**: CLOSED
+
+### DR-04 — 조기 과설계
+
+**보류 항목**
+
+- 외부 Event Bus
+- Web UI
+- graph database
+- namespace 전면 rename
+- multi-agent runtime
+- 단일 AI trust score
+
+현재 단일 프로세스 CLI에서 필요한 것은 in-process 경계와 안정된 데이터 계약이다.
 
 **상태**: CLOSED
 
-### DR-05 — Namespace rename 조기 수행
+### DR-05 — Rule confidence 의미 혼동
 
-**발견**
+현재 Rule Candidate의 `confidence`는 공동 변경 association이다. defect detection precision·recall이 아니다.
 
-`review_system`을 즉시 `pie`로 변경하면 `urs` 호환, package data, import test와 installed CLI가 동시에 흔들린다.
+**결정**
 
-**조치**
-
-- 첫 단계 namespace rename 금지
-- 내부 application/domain/infrastructure 경계부터 추출
+Rule Evaluation을 별도 Stage로 두고 baseline/challenger, labeled dataset, holdout과 repeatability를 승인 근거로 사용한다.
 
 **상태**: CLOSED
 
-### DR-06 — Trust Engine 선행 조건 누락
-
-**발견**
-
-Evidence Ledger와 Evaluation 없이 trust score를 구현하면 검증되지 않은 점수 체계가 된다.
-
-**조치**
-
-- Trust Gate를 Ledger·Defect·Evaluation·Reground 이후로 이동
-- 단일 AI 신뢰도 대신 task-class 기준을 사용
-
-**상태**: CLOSED
-
-### DR-07 — Rule confidence 의미 혼동
-
-**발견**
-
-현재 Rule Candidate의 confidence는 co-change association이며 defect detection precision이 아니다.
-
-**조치**
-
-- Evaluation Lab을 별도 Stage로 정의
-- baseline/challenger와 holdout을 승인 근거로 사용
-
-**상태**: CLOSED
-
-## 5. 구현 범위
+## 5. 초기 구현
 
 ### 생성
 
@@ -160,98 +141,48 @@ docs/architecture/STAGE-0-VALIDATION.md
 README.md
 ```
 
-변경 내용:
-
 - architecture baseline 링크 추가
-- UTF-16/NUL 형태로 남아 있던 깨진 trailing repository title 제거
-- 기존 설치·사용·안전 경계 보존
+- NUL/UTF-16 형태의 깨진 후행 repository title 제거
+- 기존 설치·사용·안전 설명 보존
 
-### 변경하지 않음
-
-- `src/`
-- `tests/`
-- `core/`
-- `schemas/`
-- `packs/`
-- `profiles/`
-- `.github/workflows/`
-- `VERSION`
-- `pyproject.toml`
-
-## 6. 구현 리뷰
+## 6. 구현 리뷰 결과
 
 ### IR-01 — CLI 명령 수 오기
 
-**발견**
+초안의 24개·28개 집계를 `build_parser()`와 대조해 29개로 교정했다.
 
-Current State 초안에서 CLI 명령을 24개 및 28개로 잘못 집계했다.
+후속 개선:
 
-**원인**
-
-기능 그룹을 수동 집계하면서 GitHub Intake와 검증 명령 일부를 누락했다.
-
-**검증**
-
-`src/review_system/cli.py`의 `build_parser()`에서 `sub.add_parser(...)`를 대조했다.
-
-**수정**
-
-- 현재 command 수를 29개로 교정
-- 기능별 표에 29개 전체 반영
-- 후속 Stage에서 CLI manifest 자동 생성을 개선 과제로 등록
+- CLI manifest 자동 생성
+- 문서 수동 집계 제거
 
 **상태**: CLOSED
 
-### IR-02 — README 후행 인코딩 오염
-
-**발견**
-
-기존 README 마지막에 NUL 문자가 섞인 repository title이 추가되어 있었다.
-
-**수정**
-
-- UTF-8 정상 Markdown으로 전체 README 정리
-- 기존 v0.3.0 사용 계약 보존
-
-**상태**: CLOSED
-
-### IR-03 — 이전 설계 문서와 현재 구현 충돌
-
-**발견**
+### IR-02 — 버전 문서 간 충돌
 
 v0.2 설계 문서는 GitHub PR 수집을 제외 범위로 기록하지만 v0.3에서 이미 구현됐다.
 
-**수정**
+**조치**
 
-- `docs/architecture/README.md`에 현재 architecture baseline 우선 규칙 명시
-- 이전 문서는 역사 기록으로 분류
-
-**상태**: CLOSED
-
-### IR-04 — Stage 분할 불충분
-
-**발견**
-
-Application 추출과 GitHub connector 분리를 같은 Stage에 넣으면 diff가 커지고 source hash 회귀 원인 격리가 어렵다.
-
-**수정**
-
-- Stage 1: Application Boundary Extraction
-- Stage 2: GitHub Integration Extraction
-
-으로 분리했다.
+`docs/architecture/README.md`에 현재 architecture baseline 우선 규칙을 명시했다. 이전 버전 문서는 역사 기록으로 유지한다.
 
 **상태**: CLOSED
 
-### IR-05 — DB 초기 schema 과대 설계
+### IR-03 — Stage 분할 부족
 
-**발견**
+Application 추출과 GitHub connector 분리를 한 Stage에 넣으면 source hash 회귀 원인 격리가 어려웠다.
 
-Ledger 최초 migration에 Run, Artifact, Claim, Evidence, Finding, Defect, Rule, Reground를 모두 넣으면 첫 schema가 검증되기 전에 고정된다.
+**조치**
 
-**수정**
+두 Stage로 분리했다.
 
-최초 Ledger schema를 다음으로 제한했다.
+**상태**: CLOSED
+
+### IR-04 — 최초 Ledger schema 과대 설계
+
+Finding·Defect·Policy·Reground를 첫 migration에 모두 넣지 않는다.
+
+최초 Ledger 범위:
 
 ```text
 schema_migrations
@@ -264,98 +195,200 @@ decisions
 policy_snapshots
 ```
 
-Defect는 다음 Stage로 분리했다.
-
 **상태**: CLOSED
 
-## 7. 정적 검증
+## 7. CI에서 발견된 기준선 결함
 
-### 7.1 원본 대조
+### DEF-STAGE0-001 — Python 3.11 trailing recursive glob incompatibility
 
-| 검증 항목 | 원본 | 결과 |
-|---|---|---|
-| 제품명·버전 | `README.md`, `VERSION`, `pyproject.toml` | PASS |
-| entrypoint | `pyproject.toml` | PASS |
-| CLI 명령 29개 | `src/review_system/cli.py::build_parser` | PASS |
-| source module 책임 | `src/review_system/*.py` | PASS |
-| GitHub PR flow | `cmd_analyze_pr`, `github_connector.py` | PASS |
-| Rule Candidate flow | `intelligence_learning.py` | PASS |
-| schema inventory | `core/*.json`, `schemas/*.json` | PASS |
-| packaged asset sync | `scripts/sync_package_assets.py` | PASS |
-| CI matrix | `.github/workflows/ci.yml` | PASS |
-| reported 79-test baseline | `docs/PIE-v0.3.0-IMPLEMENTATION-REVIEW-KO.md` | PASS |
+**증상**
 
-### 7.2 문서 간 일관성
+Python 3.11 matrix에서 96개 테스트 중 6개 실패:
 
-| 규칙 | 결과 |
-|---|---|
-| Stage 1이 Application Boundary임 | PASS |
-| Ledger가 Stage 1 이후임 | PASS |
-| Event Bus와 UI가 보류됨 | PASS |
-| namespace rename이 첫 단계에서 금지됨 | PASS |
-| Filesystem이 권위 원본임 | PASS |
-| BuildMap은 export부터 시작함 | PASS |
-| Trust Gate가 Evaluation 이후임 | PASS |
-| 기존 v0.3.0 계약 보존이 모든 문서에 반영됨 | PASS |
+1. protected baseline 수정·추가·삭제 미탐지
+2. `src/**` project graph가 파일 0개로 생성
+3. Python import edge 누락
+4. TypeScript import edge 누락
+5. Markdown documents edge 누락
+6. PR impact dependent file 누락
 
-### 7.3 변경 범위 검증
+Python 3.13과 3.14에서는 동일 테스트가 통과했다.
 
-비교 기준:
+**근본 원인**
+
+`pathlib.Path.glob()`의 버전별 trailing `/**` 동작 차이다.
+
+```text
+src/**
+protected/**
+docs/**
+```
+
+Python 3.11에서는 위 패턴이 디렉터리는 반환하지만 기대한 descendant file을 모두 반환하지 않았다. 결과적으로 Graph와 protected snapshot이 비어 있거나 불완전했다.
+
+**수정**
+
+공통 helper를 추가했다.
+
+```text
+src/review_system/path_globs.py
+```
+
+trailing recursive pattern을 다음 두 패턴으로 확장한다.
+
+```text
+src/**
+src/**/*
+```
+
+적용 위치:
+
+- `baseline.collect_protected_files`
+- `intelligence_graph._iter_files`
+
+기존 `seen` set이 중복 파일을 제거하며, 원래 패턴도 유지하므로 symlink directory 차단 경로를 약화하지 않는다.
+
+**회귀 테스트**
+
+```text
+tests/test_path_globs.py
+```
+
+- trailing `/**`가 explicit descendant pattern을 추가하는지 검증
+- `**/*`와 같은 비대상 패턴은 변경하지 않는지 검증
+- 기존 graph·baseline·PR end-to-end 테스트가 Python 3.11 실제 동작을 검증
+
+**상태**: RESOLVED
+
+## 8. 진단 절차와 정리
+
+GitHub Actions log 출력이 커넥터 표시 한계로 잘렸기 때문에 Python 3.11 unittest 원문을 일시적으로 workflow artifact로 수집했다.
+
+진단 후:
+
+- 원인 확인
+- 최소 수정 적용
+- 회귀 테스트 추가
+- 임시 artifact upload step 제거
+- `.github/workflows/ci.yml`을 기준선과 동일한 내용으로 복원
+
+최종 diff에는 진단용 workflow 변경이 남아 있지 않다.
+
+## 9. 최종 변경 범위
+
+기준 비교:
 
 ```text
 c8578aa2c8096b3f0fa7652248c078702a94d023
 ...
-agent/stage-0-architecture-baseline
+e3f82ebed9084b2285470f9ae45ca6a8f22862b1
 ```
 
-검증 결과:
-
-- architecture Markdown 6개 생성
-- root README 1개 수정
-- 제품 코드 변경 0
-- test 변경 0
-- workflow 변경 0
-- dependency 변경 0
-- schema 변경 0
-
-**결과**: PASS
-
-## 8. 실행 검증 제한
-
-작업 실행 환경에서 `github.com` DNS 접근이 차단되어 local clone과 직접 Python test 실행은 수행할 수 없었다.
-
-대체 검증:
-
-- GitHub connector로 baseline commit과 파일을 직접 조회
-- branch 파일을 다시 fetch하여 반영 내용 확인
-- commit compare로 변경 범위 확인
-- PR 생성 후 repository CI를 권위 실행 검증으로 사용
-
-이 제한은 숨기지 않으며, 원격 CI가 실패하면 Stage 0은 완료로 판정하지 않는다.
-
-## 9. 현재 Gate
+최종 변경 파일 11개:
 
 ```text
-STATIC REVIEW: PASS
-SCOPE INTEGRITY: PASS
-REMOTE CI: PENDING
-FINAL STAGE 0: HOLD
+README.md
+docs/architecture/CURRENT-STATE.md
+docs/architecture/GAP-ANALYSIS.md
+docs/architecture/MIGRATION-PLAN.md
+docs/architecture/README.md
+docs/architecture/STAGE-0-VALIDATION.md
+docs/architecture/TARGET-STATE.md
+src/review_system/baseline.py
+src/review_system/intelligence_graph.py
+src/review_system/path_globs.py
+tests/test_path_globs.py
 ```
 
-원격 PR CI 통과 후 Final Stage 0을 PASS로 갱신한다.
+변경 없음:
 
-## 10. 다음 작업
+- public schema
+- package version
+- runtime dependency
+- CLI command와 syntax
+- Gate policy
+- GitHub source schema와 hash contract
+- Review Pack
+- preset
+- workflow 최종 내용
 
-Stage 0 PASS 이후:
+## 10. 최종 검증
+
+GitHub Actions run: `29987144496`
+
+각 matrix에서 다음 전체 단계를 실행했다.
 
 ```text
-Stage 1 — Application Boundary Extraction
+pip install -e .
+python scripts/sync_package_assets.py
+python -m unittest discover -s tests -v
+urs version
+urs validate-profile journey-connect
+urs validate-profile bejewely
+urs validate-profile buildmap
+urs validate-profile generic-webapp
+urs validate-findings examples/findings.sample.json
+pip wheel . --no-deps --wheel-dir dist-ci
+```
+
+### 결과
+
+| Python | 98 tests | Asset sync | CLI smoke | Profile/Finding validation | Wheel |
+|---|---:|---:|---:|---:|---:|
+| 3.11 | PASS | PASS | PASS | PASS | PASS |
+| 3.13 | PASS | PASS | PASS | PASS | PASS |
+| 3.14 | PASS | PASS | PASS | PASS | PASS |
+
+### 무결성 확인
+
+- Python 3.11 재현 실패 6개 모두 해소
+- Python 3.13·3.14 회귀 없음
+- 임시 workflow 진단 변경 제거
+- changed files가 문서 7개, source 3개, test 1개로 제한됨
+- dependency·schema·version 변경 없음
+
+## 11. 실행 환경 제한
+
+현재 작업 환경에서는 `github.com` DNS 접근이 차단되어 local clone 기반 전체 실행이 불가능했다.
+
+대체 절차:
+
+- GitHub connector로 기준선·파일·commit 직접 확인
+- GitHub Actions artifact로 실패 원문 수집
+- 원격 CI matrix를 권위 실행 증거로 사용
+- branch compare로 최종 범위 확인
+
+이 제한 때문에 검증을 생략하지 않았으며, 실제 repository runner에서 전체 패키지 경로를 실행했다.
+
+## 12. 최종 Gate
+
+```text
+DESIGN REVIEW:          PASS
+IMPLEMENTATION REVIEW:  PASS
+SCOPE INTEGRITY:        PASS
+PYTHON 3.11:            PASS
+PYTHON 3.13:            PASS
+PYTHON 3.14:            PASS
+CLI / ASSET / WHEEL:    PASS
+FINAL STAGE 0:          PASS
+```
+
+## 13. 다음 작업
+
+Stage 1:
+
+```text
+Application Boundary Extraction
 ```
 
 첫 상세 설계 대상:
 
-- `cmd_analyze_pr` characterisation test
-- request/result DTO
-- application use case
-- exact artifact/hash/output compatibility
-- failure cleanup과 rollback
+1. `cmd_analyze_pr` characterisation test 보강
+2. request/result DTO
+3. `application/analyze_pr.py` use case 추출
+4. CLI adapter 축소
+5. source JSON·diff·impact·report의 exact compatibility
+6. mismatch·dirty worktree·head mismatch failure path
+7. output collision과 partial-write cleanup
+
+Stage 1에서도 동일하게 상세 설계 → 리뷰 → 구현 → 리뷰 → 전체 matrix 검증 순서를 적용한다.
