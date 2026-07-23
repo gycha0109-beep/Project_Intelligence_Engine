@@ -27,9 +27,11 @@ new_imports = '''from .application import (
     index_project,
 )
 '''
-if old_imports not in text:
+if old_imports in text:
+    text = text.replace(old_imports, new_imports, 1)
+elif new_imports not in text:
     raise SystemExit("application import block not found")
-text = text.replace(old_imports, new_imports, 1)
+
 text = text.replace("from .gate import calculate_gate_from_run\n", "", 1)
 text = text.replace(
     "from .io import dump_json, dump_yaml, dump_yaml_pair_atomic, load_data\n",
@@ -75,9 +77,10 @@ new_gate = '''def cmd_calculate_gate(args: argparse.Namespace) -> int:
     print(json.dumps(result.gate, indent=2, ensure_ascii=False))
     return 0 if result.gate["decision"] in {"PASS", "CONDITIONAL_PASS"} else 3
 '''
-if old_gate not in text:
+if old_gate in text:
+    text = text.replace(old_gate, new_gate, 1)
+elif new_gate not in text:
     raise SystemExit("calculate gate block not found")
-text = text.replace(old_gate, new_gate, 1)
 
 old_approve = '''def cmd_approve_rule(args: argparse.Namespace) -> int:
     try:
@@ -114,9 +117,11 @@ new_approve = '''def cmd_approve_rule(args: argparse.Namespace) -> int:
     print(f"APPROVED rule: {args.rule_id}; approved_file={args.approved}")
     return 0
 '''
-if old_approve not in text:
+if old_approve in text:
+    text = text.replace(old_approve, new_approve, 1)
+elif new_approve not in text:
     raise SystemExit("approve rule block not found")
-text = text.replace(old_approve, new_approve, 1)
+
 path.write_text(text, encoding="utf-8")
 
 learning_path = Path("src/review_system/intelligence_learning.py")
@@ -131,7 +136,8 @@ new_candidate_update = '''        "rules": [
             for rule in candidate_rules
         ],
 '''
-if old_candidate_update not in learning:
+if old_candidate_update in learning:
+    learning = learning.replace(old_candidate_update, new_candidate_update, 1)
+elif new_candidate_update not in learning:
     raise SystemExit("candidate approval persistence block not found")
-learning = learning.replace(old_candidate_update, new_candidate_update, 1)
 learning_path.write_text(learning, encoding="utf-8")
