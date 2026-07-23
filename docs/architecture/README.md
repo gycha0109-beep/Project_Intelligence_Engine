@@ -15,6 +15,7 @@
 4. [MIGRATION-PLAN.md](MIGRATION-PLAN.md) — 기존 계약을 보존하는 단계별 구현 순서
 5. [STAGE-0-VALIDATION.md](STAGE-0-VALIDATION.md) — Stage 0 설계·구현 리뷰와 검증 결과
 6. [STAGE-1-APPLICATION-BOUNDARY.md](STAGE-1-APPLICATION-BOUNDARY.md) — AnalyzePullRequest application boundary 설계·리뷰·검증
+7. [STAGE-1B-INDEX-ANALYZE-BOUNDARY.md](STAGE-1B-INDEX-ANALYZE-BOUNDARY.md) — IndexProject·AnalyzeChange application boundary 설계·리뷰·검증
 
 ## 권위 규칙
 
@@ -27,8 +28,9 @@
 ## 현재 진행 상태
 
 - Stage 0: `PASS`, PR #1 검토 대기
-- Stage 1A — AnalyzePullRequest Application Boundary: PR #2 검증 완료 단계
+- Stage 1A — AnalyzePullRequest Application Boundary: `PASS`, PR #2 검토 대기
+- Stage 1B — IndexProject / AnalyzeChange Application Boundaries: 구현 리뷰 완료, 최종 검증 진행
 
 ## 다음 단계
 
-PR #1과 stacked PR #2가 병합된 뒤 Stage 1B에서 `IndexProject`와 `AnalyzeChange` application boundary를 같은 호환성 원칙으로 추출한다.
+Stage 1B 승인 후 Stage 1C에서 `ApproveRule`과 `CalculateGate` application boundary를 같은 호환성 원칙으로 추출한다.
