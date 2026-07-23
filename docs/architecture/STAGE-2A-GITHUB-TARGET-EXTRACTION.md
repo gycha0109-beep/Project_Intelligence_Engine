@@ -3,7 +3,8 @@
 기준일: 2026-07-24  
 선행 기준선: PR #6 HEAD `3eb4991d59e3ed209392f48fdc30f1fa91365e3a`  
 작업 브랜치: `agent/stage-2a-github-target-extraction`  
-상태: `IMPLEMENTATION_REVIEW_PASS / FINAL_VERIFICATION_PENDING`
+Stacked PR: `#7`  
+상태: `PASS`
 
 ## 1. 목적
 
@@ -104,20 +105,21 @@ def repository_argument(hostname: str, repository: str) -> str: ...
 
 **상태:** CLOSED
 
-## 7. 테스트
+## 7. 검증
 
-추가 검증:
+GitHub Actions run `30034585443`에서 Python 3.11·3.13·3.14 모두 통과했다.
 
-1. 숫자 PR target 반환값
-2. GitHub·Enterprise HTTPS PR URL
-3. 기존 unsafe·ambiguous target 거부
-4. repository 세 입력 형식 정규화
-5. `.git`, whitespace, default hostname 처리
-6. 기존 module과 새 module의 export identity
-7. public·enterprise `gh --repo` argument
-8. 기존 collector metadata·diff·discussion·hash 회귀
+각 job은 다음을 완료했다.
 
-최종 PR matrix에서 Python 3.11·3.13·3.14, package asset sync, CLI/profile/finding smoke, wheel build를 검증한다.
+- editable package install
+- package asset synchronization
+- 전체 unit/regression tests
+- `urs version`
+- 4개 profile validation
+- finding validation
+- wheel build
+
+추가 characterisation test는 숫자·URL target, Enterprise hostname, 기존 거부 입력, repository 정규화, compatibility export와 `gh --repo` argument를 검증한다.
 
 ## 8. Rollback
 
@@ -125,7 +127,7 @@ Stage 2A 변경을 revert하면 target parsing이 다시 `github_connector.py` �
 
 ## 9. Exit Criteria
 
-- target parsing 책임이 별도 모듈로 이동한다.
-- 기존 import와 collector 결과가 동일하다.
-- 신규 characterisation test와 기존 전체 회귀가 통과한다.
-- 최종 diff에 임시 적용 workflow·script가 남지 않는다.
+- target parsing 책임이 별도 모듈로 이동한다. `PASS`
+- 기존 import와 collector 결과가 동일하다. `PASS`
+- 신규 characterisation test와 기존 전체 회귀가 통과한다. `PASS`
+- 최종 diff에 임시 적용 workflow·script가 남지 않는다. `PASS`
