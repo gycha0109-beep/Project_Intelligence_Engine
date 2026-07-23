@@ -1,0 +1,39 @@
+name: Stage 2A Apply
+
+on:
+  push:
+    branches:
+      - agent/stage-2a-github-target-extraction
+    paths:
+      - scripts/apply_stage2a_refactor.py
+      - .github/workflows/stage2a-apply.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-2a-github-target-extraction
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/apply_stage2a_refactor.py
+      - run: pip install -e .
+      - run: python -m compileall -q src tests
+      - run: python -m unittest discover -s tests -v
+      - name: Commit verified extraction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/review_system/github/__init__.py \
+            src/review_system/github/target.py \
+            src/review_system/github_connector.py \
+            tests/test_github_target.py \
+            docs/architecture/README.md
+          git commit -m "extract GitHub target parsing"
+          git push origin HEAD:agent/stage-2a-github-target-extraction
