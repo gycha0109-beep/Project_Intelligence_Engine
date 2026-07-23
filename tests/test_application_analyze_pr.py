@@ -84,6 +84,23 @@ class AnalyzePullRequestApplicationTests(unittest.TestCase):
 
             self.assertFalse(output.exists())
 
+    def test_empty_output_directory_uses_default_pr_artifact_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._project(root)
+
+            result = analyze_pull_request(
+                AnalyzePullRequestRequest(
+                    pull_request="https://github.com/demo/repo/pull/7",
+                    repository_root=root,
+                    output_dir="",
+                ),
+                github_cli=StubGitHubCLI(),
+            )
+
+            self.assertEqual((root / ".pie" / "pr-7").resolve(), result.output_dir)
+            self.assertTrue(result.source_path.is_file())
+
     def test_cli_maps_arguments_and_delegates_to_use_case(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -152,6 +169,7 @@ class AnalyzePullRequestApplicationTests(unittest.TestCase):
             self.assertEqual(5, request.max_depth)
             self.assertEqual(str(output), request.output_dir)
             self.assertIs(github_cli, use_case.call_args.kwargs["github_cli"])
+            self.assertTrue(callable(use_case.call_args.kwargs["capture_state"]))
 
 
 if __name__ == "__main__":
