@@ -245,3 +245,5 @@ readme = readme.replace(
     1,
 )
 readme_path.write_text(readme, encoding="utf-8")
+
+# Trigger after workflow registration.
