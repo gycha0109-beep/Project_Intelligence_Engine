@@ -255,6 +255,8 @@ Implementation matrix run: `29989642844`
 | Finding validation | PASS | PASS | PASS |
 | Wheel build | PASS | PASS | PASS |
 
+최종 판정의 권위 근거는 위 implementation matrix와 함께 **PR #2 최신 HEAD에 연결된 GitHub PR check**다. 문서에 특정 최종 HEAD SHA를 고정해 다시 stale하게 만들지 않으며, 이후 commit이 추가되면 PR check를 다시 통과해야 한다.
+
 Stacked base 대비 최종 변경 범위:
 
 ```text
