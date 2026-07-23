@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 from .intelligence_config import normalize_path
+from .path_globs import expand_trailing_recursive_glob
 
 
 _TEXT_EXTENSIONS = {
@@ -89,16 +90,17 @@ def _iter_files(root: Path, include: list[str], exclude: list[str]) -> Iterable[
     built_in_excludes = [".git/**", ".hg/**", ".svn/**", ".venv/**", "**/__pycache__/**"]
     safe_excludes = [normalize_path(pattern) for pattern in [*exclude, *built_in_excludes]]
     for pattern in safe_patterns:
-        for candidate in root.glob(pattern):
-            if candidate in seen:
-                continue
-            seen.add(candidate)
-            if not _safe_file(root, candidate):
-                continue
-            relative = _normalized(candidate.resolve().relative_to(root))
-            if safe_excludes and _matches(relative, safe_excludes):
-                continue
-            yield candidate
+        for expanded_pattern in expand_trailing_recursive_glob(pattern):
+            for candidate in root.glob(expanded_pattern):
+                if candidate in seen:
+                    continue
+                seen.add(candidate)
+                if not _safe_file(root, candidate):
+                    continue
+                relative = _normalized(candidate.resolve().relative_to(root))
+                if safe_excludes and _matches(relative, safe_excludes):
+                    continue
+                yield candidate
 
 
 def _read_record(root: Path, path: Path, max_file_size_bytes: int) -> tuple[FileRecord | None, str | None]:
