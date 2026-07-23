@@ -29,7 +29,7 @@
 
 - Stage 0: `PASS`, PR #1 검토 대기
 - Stage 1A — AnalyzePullRequest Application Boundary: `PASS`, PR #2 검토 대기
-- Stage 1B — IndexProject / AnalyzeChange Application Boundaries: 구현 리뷰 완료, 최종 검증 진행
+- Stage 1B — IndexProject / AnalyzeChange Application Boundaries: `PASS`, PR #4 검토 대기
 
 ## 다음 단계
 
