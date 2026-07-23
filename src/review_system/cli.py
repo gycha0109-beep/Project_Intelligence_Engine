@@ -5,22 +5,28 @@ import json
 import sys
 from pathlib import Path
 
-from .application import AnalyzePullRequestRequest, analyze_pull_request
+from .application import (
+    AnalyzeChangeRequest,
+    AnalyzePullRequestRequest,
+    IndexProjectRequest,
+    analyze_project_change,
+    analyze_pull_request,
+    index_project,
+)
 from .baseline import verify_snapshot_file, write_snapshot
 from .gate import calculate_gate_from_run
 from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
 from .io import dump_json, dump_yaml, dump_yaml_pair_atomic, load_data
 from .intelligence_config import (
-    load_intelligence_config,
     load_rules,
     validate_intelligence_config,
     validate_rules,
 )
-from .intelligence_graph import build_project_graph, validate_project_graph
-from .intelligence_impact import analyze_change, compare_change_sets
+from .intelligence_graph import validate_project_graph
+from .intelligence_impact import compare_change_sets
 from .intelligence_learning import approve_candidate_rule, discover_rule_candidates, merge_rule_candidates
-from .intelligence_report import comparison_markdown, impact_markdown
+from .intelligence_report import comparison_markdown
 from .intelligence_state import capture_project_state, git_changed_files
 from .merge import merge_findings
 from .packs import select_packs_with_reasons
@@ -294,69 +300,54 @@ def _profile_and_root(profile_path: str, repository_root: str | None = None) -> 
     return profile, root
 
 
+
 def cmd_index_project(args: argparse.Namespace) -> int:
     try:
-        profile, root = _profile_and_root(args.profile, args.repository_root)
-        config = load_intelligence_config(args.config)
-        graph_config = config.get("graph", {})
-        graph = build_project_graph(
-            root,
-            include=profile.get("scope", {}).get("include", ["**/*"]),
-            exclude=profile.get("scope", {}).get("exclude", []),
-            components=config.get("components", []),
-            max_file_size_bytes=int(graph_config.get("max_file_size_bytes", 1_000_000)),
+        result = index_project(
+            IndexProjectRequest(
+                profile=args.profile,
+                config=args.config,
+                output=args.output,
+                repository_root=args.repository_root,
+            )
         )
-        dump_json(args.output, graph)
     except Exception as exc:
         return _error(exc)
-    print(f"INDEXED project: files={graph['stats']['files']}; edges={graph['stats']['edges']}; warnings={len(graph['warnings'])}; output={args.output}")
+    graph = result.graph
+    print(
+        f"INDEXED project: files={graph['stats']['files']}; edges={graph['stats']['edges']}; "
+        f"warnings={len(graph['warnings'])}; output={args.output}"
+    )
     return 0
-
-
-def _read_changed_files(args: argparse.Namespace, root: Path) -> list[str]:
-    if args.files:
-        return [line.strip() for line in Path(args.files).read_text(encoding="utf-8").splitlines() if line.strip()]
-    if args.base:
-        return git_changed_files(root, args.base, args.head)
-    raise ValueError("provide --files or --base")
 
 
 def cmd_analyze_change(args: argparse.Namespace) -> int:
     try:
-        profile, root = _profile_and_root(args.profile, args.repository_root)
-        graph = load_data(args.graph)
-        if not isinstance(graph, dict):
-            raise ValueError("graph must be an object")
-        graph_errors = validate_project_graph(graph)
-        if graph_errors:
-            raise ValueError("invalid graph: " + "; ".join(graph_errors))
-        if args.approved_rules and not Path(args.approved_rules).is_file():
-            raise ValueError(f"approved rules file does not exist: {args.approved_rules}")
-        rules = load_rules(args.approved_rules, required_status="approved") if args.approved_rules else {"rules": []}
-        changed_files = _read_changed_files(args, root)
-        result = analyze_change(
-            graph,
-            changed_files,
-            configured_packs=profile.get("review", {}).get("packs", []),
-            approved_rules=rules.get("rules", []),
-            max_depth=args.max_depth,
-            change_id=args.change_id,
-            base_revision=args.base,
-            head_revision=args.head if args.base else None,
+        result = analyze_project_change(
+            AnalyzeChangeRequest(
+                profile=args.profile,
+                graph=args.graph,
+                approved_rules=args.approved_rules,
+                files=args.files,
+                base=args.base,
+                head=args.head,
+                change_id=args.change_id,
+                max_depth=args.max_depth,
+                repository_root=args.repository_root,
+                output=args.output,
+                markdown_output=args.markdown_output,
+            ),
+            git_diff_reader=git_changed_files,
         )
-        dump_json(args.output, result)
-        if args.markdown_output:
-            target = Path(args.markdown_output)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(impact_markdown(result), encoding="utf-8")
     except Exception as exc:
         return _error(exc)
+    analysis = result.analysis
     print(
-        f"ANALYZED change: direct={len(result['change']['changed_files'])}; "
-        f"impacted={len(result['impact']['dependent_files'])}; packs={len(result['review']['selected_packs'])}; output={args.output}"
+        f"ANALYZED change: direct={len(analysis['change']['changed_files'])}; "
+        f"impacted={len(analysis['impact']['dependent_files'])}; "
+        f"packs={len(analysis['review']['selected_packs'])}; output={args.output}"
     )
     return 0
-
 
 def cmd_compare_changes(args: argparse.Namespace) -> int:
     try:
