@@ -208,7 +208,7 @@ def analyze_pull_request(
 
     output_dir = (
         Path(request.output_dir).resolve()
-        if request.output_dir is not None
+        if request.output_dir
         else (project_root / ".pie" / f"pr-{pr_number}").resolve()
     )
     output_dir.mkdir(parents=True, exist_ok=True)
