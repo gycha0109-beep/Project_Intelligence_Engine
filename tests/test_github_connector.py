@@ -165,7 +165,7 @@ class GitHubCollectionTests(unittest.TestCase):
 
     def test_real_runner_uses_argument_vector(self):
         completed = SimpleNamespace(returncode=0, stdout="ok", stderr="")
-        with patch("review_system.github_connector.subprocess.run", return_value=completed) as runner:
+        with patch("review_system.github.runner.subprocess.run", return_value=completed) as runner:
             result = GitHubCLI("gh-test").run(["literal;not-shell", "$(echo nope)"])
         self.assertEqual(0, result.returncode)
         self.assertEqual(("gh-test", "literal;not-shell", "$(echo nope)"), runner.call_args.args[0])
@@ -174,8 +174,8 @@ class GitHubCollectionTests(unittest.TestCase):
     def test_rate_limit_is_retried_and_actionable(self):
         limited = SimpleNamespace(returncode=1, stdout="", stderr="HTTP 429: API rate limit exceeded")
         with (
-            patch("review_system.github_connector.subprocess.run", return_value=limited) as runner,
-            patch("review_system.github_connector.time.sleep"),
+            patch("review_system.github.runner.subprocess.run", return_value=limited) as runner,
+            patch("review_system.github.runner.time.sleep"),
         ):
             with self.assertRaisesRegex(GitHubCLIError, "gh api rate_limit"):
                 GitHubCLI("gh-test").run(["api", "repos/demo/repo"])
