@@ -21,8 +21,6 @@ from .github.target import (
 )
 
 
-_GITHUB_PR_RE = re.compile(r"^/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/(?P<number>[1-9][0-9]*)(?:/.*)?$")
-_REPOSITORY_RE = re.compile(r"^(?:(?P<host>[A-Za-z0-9.-]+)/)?(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+)$")
 _PR_JSON_FIELDS = (
     "additions",
     "author",
