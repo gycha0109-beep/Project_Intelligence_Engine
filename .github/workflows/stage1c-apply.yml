@@ -1,0 +1,34 @@
+name: Stage 1C Apply
+
+on:
+  push:
+    branches:
+      - agent/stage-1c-rule-gate-boundary
+    paths:
+      - scripts/apply_stage1c_refactor.py
+      - .github/workflows/stage1c-apply.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-1c-rule-gate-boundary
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/apply_stage1c_refactor.py
+      - run: pip install -e .
+      - run: python -m compileall -q src tests
+      - run: python -m unittest discover -s tests -v
+      - name: Commit verified CLI refactor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/review_system/cli.py
+          git commit -m "extract rule approval and gate application boundaries"
+          git push origin HEAD:agent/stage-1c-rule-gate-boundary
