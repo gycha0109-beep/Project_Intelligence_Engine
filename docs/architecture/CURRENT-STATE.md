@@ -37,7 +37,7 @@ urs = "review_system.cli:main"
 
 `pie`는 제품 기본 명령이며 `urs`는 기존 계약 호환 별칭이다.
 
-### 3.1 현재 CLI 명령 24개
+### 3.1 현재 CLI 명령 29개
 
 | 영역 | 명령 |
 |---|---|
@@ -48,9 +48,7 @@ urs = "review_system.cli:main"
 | Rule Learning | `discover-rule-candidates`, `approve-rule` |
 | GitHub Intake | `validate-github-source`, `init-project`, `github-doctor`, `analyze-pr` |
 
-위 표는 기능상 분류이며 실제 parser에는 총 28개 subcommand가 존재한다. 제품 문서에서 기능 그룹을 설명할 때는 개별 명령 수를 자동 산출하거나 parser 기준으로 갱신해야 한다.
-
-> Stage 0 리뷰에서 수동 집계 오류 가능성을 확인했다. 후속 단계에서는 CLI manifest를 코드에서 생성해 문서와 구현의 불일치를 제거한다.
+위 표는 `build_parser()`에 선언된 subcommand를 기능별로 분류한 것이다. 후속 단계에서는 CLI manifest를 코드에서 생성해 문서와 구현의 수동 집계 불일치를 제거한다.
 
 ## 4. 소스 모듈 구조
 
