@@ -33,8 +33,8 @@
 - Stage 1A — AnalyzePullRequest Application Boundary: `PASS`, PR #2 검토 대기
 - Stage 1B — IndexProject / AnalyzeChange Application Boundaries: `PASS`, PR #4 검토 대기
 - Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
-- Stage 2A — GitHub Target Parsing Extraction: 구현 리뷰 진행
+- Stage 2A — GitHub Target Parsing Extraction: `PASS`, PR #7 검토 대기
 
 ## 다음 단계
 
-Stage 2A 승인 후 GitHub CLI command runner와 retry 책임을 별도 모듈로 추출한다.
+Stage 2B에서 GitHub CLI command runner와 retry 책임을 별도 모듈로 추출한다.
