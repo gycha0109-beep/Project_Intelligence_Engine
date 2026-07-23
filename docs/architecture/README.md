@@ -17,6 +17,7 @@
 6. [STAGE-1-APPLICATION-BOUNDARY.md](STAGE-1-APPLICATION-BOUNDARY.md) — AnalyzePullRequest application boundary 설계·리뷰·검증
 7. [STAGE-1B-INDEX-ANALYZE-BOUNDARY.md](STAGE-1B-INDEX-ANALYZE-BOUNDARY.md) — IndexProject·AnalyzeChange application boundary 설계·리뷰·검증
 8. [STAGE-1C-RULE-GATE-BOUNDARY.md](STAGE-1C-RULE-GATE-BOUNDARY.md) — ApproveRule·CalculateGate application boundary 설계·리뷰·검증
+9. [STAGE-2A-GITHUB-TARGET-EXTRACTION.md](STAGE-2A-GITHUB-TARGET-EXTRACTION.md) — GitHub target·repository parser 분리 설계·리뷰·검증
 
 ## 권위 규칙
 
@@ -32,7 +33,8 @@
 - Stage 1A — AnalyzePullRequest Application Boundary: `PASS`, PR #2 검토 대기
 - Stage 1B — IndexProject / AnalyzeChange Application Boundaries: `PASS`, PR #4 검토 대기
 - Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
+- Stage 2A — GitHub Target Parsing Extraction: 구현 리뷰 진행
 
 ## 다음 단계
 
-남은 CLI orchestration을 점검해 Application Boundary Extraction을 동결한 뒤 Evidence Ledger 단계로 진입한다.
+Stage 2A 승인 후 GitHub CLI command runner와 retry 책임을 별도 모듈로 추출한다.
