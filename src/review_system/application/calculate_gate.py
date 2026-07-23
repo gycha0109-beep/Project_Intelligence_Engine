@@ -4,7 +4,7 @@ from pathlib import Path
 from ..gate import calculate_gate_from_run
 from ..io import dump_json, load_data
 from ..paths import asset
-from ..validate import validate_review_run_file
+from ..validation import validate_review_run_file
 
 
 class ReviewRunValidationError(ValueError):
