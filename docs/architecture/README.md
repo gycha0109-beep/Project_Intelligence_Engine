@@ -31,8 +31,8 @@
 - Stage 0: `PASS`, PR #1 검토 대기
 - Stage 1A — AnalyzePullRequest Application Boundary: `PASS`, PR #2 검토 대기
 - Stage 1B — IndexProject / AnalyzeChange Application Boundaries: `PASS`, PR #4 검토 대기
-- Stage 1C — ApproveRule / CalculateGate Application Boundaries: 구현 리뷰 완료, 최종 검증 진행
+- Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
 
 ## 다음 단계
 
-Stage 1C 승인 후 남은 CLI orchestration을 정리하고 Evidence Ledger 도입 전 application boundary를 동결한다.
+남은 CLI orchestration을 점검해 Application Boundary Extraction을 동결한 뒤 Evidence Ledger 단계로 진입한다.
