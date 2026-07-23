@@ -24,13 +24,25 @@ jobs:
       - run: python scripts/apply_stage1c_refactor.py
       - run: pip install -e .
       - run: python -m compileall -q src tests
-      - run: python -m unittest discover -s tests -v
-      - name: Commit verified CLI refactor
+      - name: Run tests and capture result
+        run: |
+          set +e
+          python -m unittest discover -s tests -v > stage1c-unittest-output.txt 2>&1
+          status=$?
+          echo "$status" > stage1c-unittest-status.txt
+          cat stage1c-unittest-output.txt
+          exit 0
+      - name: Commit result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/review_system/cli.py
-          git commit -m "extract rule approval and gate application boundaries"
+          status=$(cat stage1c-unittest-status.txt)
+          if [ "$status" = "0" ]; then
+            git add src/review_system/cli.py
+            git commit -m "extract rule approval and gate application boundaries"
+          else
+            git add stage1c-unittest-output.txt stage1c-unittest-status.txt
+            git commit -m "capture Stage 1C test failure"
+          fi
           git push origin HEAD:agent/stage-1c-rule-gate-boundary
-
-# Triggered after workflow registration.
+          exit "$status"
