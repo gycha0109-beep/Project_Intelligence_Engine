@@ -58,6 +58,7 @@ def cmd_analyze_pr(args: argparse.Namespace) -> int:
                 executable=args.gh_executable,
                 timeout_seconds=args.timeout,
             ),
+            capture_state=capture_project_state,
         )
     except Exception as exc:
         return _error(exc)
