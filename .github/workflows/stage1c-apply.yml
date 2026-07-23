@@ -32,3 +32,5 @@ jobs:
           git add src/review_system/cli.py
           git commit -m "extract rule approval and gate application boundaries"
           git push origin HEAD:agent/stage-1c-rule-gate-boundary
+
+# Triggered after workflow registration.
