@@ -38,7 +38,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           status=$(cat stage1c-unittest-status.txt)
           if [ "$status" = "0" ]; then
-            git add src/review_system/cli.py
+            git add src/review_system/cli.py src/review_system/intelligence_learning.py
             git commit -m "extract rule approval and gate application boundaries"
           else
             git add stage1c-unittest-output.txt stage1c-unittest-status.txt
