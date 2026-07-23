@@ -18,6 +18,7 @@
 7. [STAGE-1B-INDEX-ANALYZE-BOUNDARY.md](STAGE-1B-INDEX-ANALYZE-BOUNDARY.md) — IndexProject·AnalyzeChange application boundary 설계·리뷰·검증
 8. [STAGE-1C-RULE-GATE-BOUNDARY.md](STAGE-1C-RULE-GATE-BOUNDARY.md) — ApproveRule·CalculateGate application boundary 설계·리뷰·검증
 9. [STAGE-2A-GITHUB-TARGET-EXTRACTION.md](STAGE-2A-GITHUB-TARGET-EXTRACTION.md) — GitHub target·repository parser 분리 설계·리뷰·검증
+10. [STAGE-2B-GITHUB-RUNNER-EXTRACTION.md](STAGE-2B-GITHUB-RUNNER-EXTRACTION.md) — GitHub CLI runner·retry 분리 설계·리뷰·검증
 
 ## 권위 규칙
 
@@ -34,7 +35,8 @@
 - Stage 1B — IndexProject / AnalyzeChange Application Boundaries: `PASS`, PR #4 검토 대기
 - Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
 - Stage 2A — GitHub Target Parsing Extraction: `PASS`, PR #7 검토 대기
+- Stage 2B — GitHub CLI Runner Extraction: 구현 리뷰 완료, 최종 검증 진행
 
 ## 다음 단계
 
-Stage 2B에서 GitHub CLI command runner와 retry 책임을 별도 모듈로 추출한다.
+Stage 2B 승인 후 repository binding과 PR collector 책임을 분리하기 전에 characterisation 범위를 다시 고정한다.
