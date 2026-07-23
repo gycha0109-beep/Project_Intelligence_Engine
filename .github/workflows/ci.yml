@@ -15,27 +15,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: Run unit tests
-        id: unit-tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          python -m unittest discover -s tests -v 2>&1 | tee unittest-output.txt
-      - name: Upload Python 3.11 diagnostics
-        if: always() && matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-3.11-diagnostics
-          path: |
-            unittest-output.txt
-            src/review_system/intelligence_graph.py
-            src/review_system/baseline.py
-            tests/test_intelligence_graph.py
-            tests/test_baseline.py
-      - name: Enforce unit-test result
-        if: steps.unit-tests.outcome == 'failure'
-        run: exit 1
+      - run: python -m unittest discover -s tests -v
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
       - run: urs validate-profile profiles/examples/bejewely.yml
