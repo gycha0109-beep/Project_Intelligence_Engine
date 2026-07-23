@@ -3,6 +3,7 @@ import io
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from dataclasses import FrozenInstanceError
 from pathlib import Path
 from unittest.mock import patch
 
@@ -27,6 +28,11 @@ class AnalyzePullRequestApplicationTests(unittest.TestCase):
             encoding="utf-8",
         )
         initialize_project(root, preset="generic-webapp")
+
+    def test_request_contract_is_immutable(self):
+        request = AnalyzePullRequestRequest(pull_request="7")
+        with self.assertRaises(FrozenInstanceError):
+            request.max_depth = 5
 
     def test_direct_use_case_preserves_artifact_and_hash_contracts(self):
         with tempfile.TemporaryDirectory() as tmp:
