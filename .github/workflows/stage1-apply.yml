@@ -7,6 +7,12 @@ on:
     paths:
       - scripts/apply_stage1_refactor.py
       - .github/workflows/stage1-apply.yml
+  pull_request:
+    branches:
+      - agent/stage-0-architecture-baseline
+    paths:
+      - scripts/apply_stage1_refactor.py
+      - .github/workflows/stage1-apply.yml
 
 permissions:
   contents: write
