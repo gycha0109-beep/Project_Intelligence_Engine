@@ -22,12 +22,17 @@ jobs:
         run: |
           set -o pipefail
           python -m unittest discover -s tests -v 2>&1 | tee unittest-output.txt
-      - name: Upload Python 3.11 unit-test diagnostics
+      - name: Upload Python 3.11 diagnostics
         if: always() && matrix.python-version == '3.11'
         uses: actions/upload-artifact@v4
         with:
-          name: unittest-output-python-3.11
-          path: unittest-output.txt
+          name: python-3.11-diagnostics
+          path: |
+            unittest-output.txt
+            src/review_system/intelligence_graph.py
+            src/review_system/baseline.py
+            tests/test_intelligence_graph.py
+            tests/test_baseline.py
       - name: Enforce unit-test result
         if: steps.unit-tests.outcome == 'failure'
         run: exit 1
