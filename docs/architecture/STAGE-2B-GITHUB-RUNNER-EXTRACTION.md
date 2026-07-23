@@ -3,7 +3,8 @@
 기준일: 2026-07-24  
 선행 기준선: PR #7 HEAD `03d4b01fecff4ab34c1291d172147829328d3ce0`  
 작업 브랜치: `agent/stage-2b-github-runner-extraction`  
-상태: `IMPLEMENTATION_REVIEW_PASS / FINAL_VERIFICATION_PENDING`
+Stacked PR: `#8`  
+상태: `PASS`
 
 ## 1. 목적
 
@@ -151,7 +152,14 @@ collector의 command argument, 인증 확인, pagination, discussion 수집, sou
 11. missing executable 동작
 12. 기존 collector 회귀
 
-Python 3.11 적용 검증에서 전체 테스트가 통과했다. 최종 PR HEAD에서 Python 3.11·3.13·3.14, package asset sync, CLI/profile/finding smoke, wheel build를 다시 검증한다.
+GitHub Actions run `30048882262`에서 Python 3.11·3.13·3.14 모두 다음 검증을 통과했다.
+
+- 전체 unit/regression suite
+- package asset synchronization
+- CLI version smoke
+- 4개 profile validation
+- finding validation
+- wheel build
 
 ## 8. Rollback
 
@@ -159,7 +167,7 @@ Stage 2B 변경을 revert하면 runner 구현이 다시 `github_connector.py` �
 
 ## 9. Exit Criteria
 
-- command runner와 retry 정책이 별도 모듈에 존재한다.
-- legacy import와 collector 동작이 동일하다.
-- characterisation tests와 전체 회귀가 통과한다.
-- 최종 diff에 임시 script·workflow·diagnostic 파일이 남지 않는다.
+- command runner와 retry 정책이 별도 모듈에 존재한다. `PASS`
+- legacy import와 collector 동작이 동일하다. `PASS`
+- characterisation tests와 전체 회귀가 통과한다. `PASS`
+- 최종 diff에 임시 script·workflow·diagnostic 파일이 남지 않는다. `PASS`
