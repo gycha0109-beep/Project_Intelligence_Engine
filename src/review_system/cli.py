@@ -8,16 +8,20 @@ from pathlib import Path
 from .application import (
     AnalyzeChangeRequest,
     AnalyzePullRequestRequest,
+    ApproveRuleRequest,
+    CalculateGateRequest,
     IndexProjectRequest,
+    ReviewRunValidationError,
     analyze_project_change,
     analyze_pull_request,
+    approve_rule,
+    calculate_review_gate,
     index_project,
 )
 from .baseline import verify_snapshot_file, write_snapshot
-from .gate import calculate_gate_from_run
 from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
-from .io import dump_json, dump_yaml, dump_yaml_pair_atomic, load_data
+from .io import dump_json, dump_yaml, load_data
 from .intelligence_config import (
     load_rules,
     validate_intelligence_config,
@@ -25,7 +29,7 @@ from .intelligence_config import (
 )
 from .intelligence_graph import validate_project_graph
 from .intelligence_impact import compare_change_sets
-from .intelligence_learning import approve_candidate_rule, discover_rule_candidates, merge_rule_candidates
+from .intelligence_learning import discover_rule_candidates, merge_rule_candidates
 from .intelligence_report import comparison_markdown
 from .intelligence_state import capture_project_state, git_changed_files
 from .merge import merge_findings
@@ -164,19 +168,22 @@ def cmd_merge_findings(args: argparse.Namespace) -> int:
 
 
 def cmd_calculate_gate(args: argparse.Namespace) -> int:
-    run, errors = validate_review_run_file(args.run)
-    if errors:
-        _print_errors(errors)
-        return 2
     try:
-        policy = load_data(args.policy or asset("core/default-gate-policy.yml"))
-        result = calculate_gate_from_run(run, policy, trust_metrics=args.trust_metrics)
+        result = calculate_review_gate(
+            CalculateGateRequest(
+                run=args.run,
+                policy=args.policy,
+                output=args.output,
+                trust_metrics=args.trust_metrics,
+            )
+        )
+    except ReviewRunValidationError as exc:
+        _print_errors(list(exc.errors))
+        return 2
     except Exception as exc:
         return _error(exc)
-    if args.output:
-        dump_json(args.output, result)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if result["decision"] in {"PASS", "CONDITIONAL_PASS"} else 3
+    print(json.dumps(result.gate, indent=2, ensure_ascii=False))
+    return 0 if result.gate["decision"] in {"PASS", "CONDITIONAL_PASS"} else 3
 
 
 def cmd_calculate_gate_dir(args: argparse.Namespace) -> int:
@@ -409,17 +416,16 @@ def cmd_discover_rule_candidates(args: argparse.Namespace) -> int:
 
 def cmd_approve_rule(args: argparse.Namespace) -> int:
     try:
-        candidates = load_rules(args.candidates)
-        approved = load_rules(args.approved, required_status="approved")
-        updated_candidates, updated_approved = approve_candidate_rule(
-            candidates,
-            approved,
-            args.rule_id,
-            approved_by=args.approved_by,
-            approved_at=args.approved_at,
-            rationale=args.rationale,
+        approve_rule(
+            ApproveRuleRequest(
+                candidates=args.candidates,
+                approved=args.approved,
+                rule_id=args.rule_id,
+                approved_by=args.approved_by,
+                approved_at=args.approved_at,
+                rationale=args.rationale,
+            )
         )
-        dump_yaml_pair_atomic(args.approved, updated_approved, args.candidates, updated_candidates)
     except Exception as exc:
         return _error(exc)
     print(f"APPROVED rule: {args.rule_id}; approved_file={args.approved}")
