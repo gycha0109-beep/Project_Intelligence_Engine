@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -68,6 +69,7 @@ def analyze_pull_request(
     request: AnalyzePullRequestRequest,
     *,
     github_cli: GitHubCLI,
+    capture_state: Callable[..., dict[str, Any]] = capture_project_state,
 ) -> AnalyzePullRequestResult:
     requested_root = Path(request.repository_root).resolve()
     if not requested_root.is_dir():
@@ -131,7 +133,7 @@ def analyze_pull_request(
         )
     source["local_repository_verification"] = verification
 
-    state = capture_project_state(project_root, project_id=profile["project"]["id"])
+    state = capture_state(project_root, project_id=profile["project"]["id"])
     source["local_project_state"] = state["repository"]
     remote_head = source["pull_request"].get("head_oid")
     local_head = state["repository"].get("head_revision")
