@@ -7,13 +7,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .github.binding import resolve_repository_binding
 from .github.runner import CommandResult, GitHubCLI, GitHubCLIError
-from .github.target import (
-    PullRequestTarget,
-    normalize_repository,
-    parse_pr_target,
-    repository_argument as _repo_argument,
-)
+from .github.target import PullRequestTarget, normalize_repository, parse_pr_target
 
 
 _PR_JSON_FIELDS = (
@@ -171,22 +167,14 @@ def collect_pull_request(
     include_discussion: bool = True,
 ) -> tuple[dict[str, Any], str | None]:
     target = parse_pr_target(target_value)
-    repo_hostname: str
-    repo_name: str
-
-    if repository:
-        repo_hostname, repo_name = normalize_repository(repository, default_hostname=target.hostname)
-        if target.repository and target.repository.lower() != repo_name.lower():
-            raise ValueError(f"PR URL repository {target.repository} does not match --repo {repo_name}")
-        if target.hostname != repo_hostname and target.repository:
-            raise ValueError(f"PR URL hostname {target.hostname} does not match --repo hostname {repo_hostname}")
-    elif target.repository:
-        repo_hostname, repo_name = target.hostname, target.repository
-    else:
-        current = cli.current_repository(cwd)
-        if not current:
-            raise GitHubCLIError("cannot determine repository for a PR number; run inside a Git repository or provide --repo OWNER/REPO")
-        repo_hostname, repo_name = current["hostname"], current["name_with_owner"]
+    binding = resolve_repository_binding(
+        cli,
+        target,
+        cwd=cwd,
+        repository=repository,
+    )
+    repo_hostname = binding.hostname
+    repo_name = binding.name_with_owner
 
     auth = cli.auth_status(repo_hostname)
     if not auth["authenticated"]:
@@ -194,7 +182,7 @@ def collect_pull_request(
             f"GitHub CLI is not authenticated for {repo_hostname}; run 'gh auth login --hostname {repo_hostname}'"
         )
 
-    repo_arg = _repo_argument(repo_hostname, repo_name)
+    repo_arg = binding.gh_repo_argument
     view_result = cli.run(
         ["pr", "view", target.gh_target, "--repo", repo_arg, "--json", ",".join(_PR_JSON_FIELDS)],
         cwd=cwd,

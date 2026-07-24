@@ -36,7 +36,8 @@
 - Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
 - Stage 2A — GitHub Target Parsing Extraction: `PASS`, PR #7 검토 대기
 - Stage 2B — GitHub CLI Runner Extraction: `PASS`, PR #8 검토 대기
+- Stage 2C — Repository Binding Extraction: 구현 리뷰 진행
 
 ## 다음 단계
 
-Stage 2C에서 repository binding과 PR collector 책임의 경계를 먼저 설계하고 characterisation 범위를 고정한다.
+Stage 2C 승인 후 PR collector의 pagination·discussion·artifact 조립 책임을 별도 모듈로 분리한다.
