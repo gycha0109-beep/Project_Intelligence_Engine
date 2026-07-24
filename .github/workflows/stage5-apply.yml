@@ -8,6 +8,10 @@ on:
       - scripts/apply_stage5_defect_registry.py
       - .github/workflows/stage5-apply.yml
       - docs/architecture/.stage5-apply-trigger
+  pull_request:
+    branches:
+      - agent/stage-4-evidence-ledger-foundation
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
