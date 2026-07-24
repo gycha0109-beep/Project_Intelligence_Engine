@@ -43,6 +43,9 @@
 32. [STAGE-8-REGROUND-FOUNDATION.md](STAGE-8-REGROUND-FOUNDATION.md) — Graph·Ledger freshness와 impacted recheck 설계
 33. [STAGE-8-IMPLEMENTATION-REVIEW.md](STAGE-8-IMPLEMENTATION-REVIEW.md) — Stage 8 구현 리뷰와 보완
 34. [STAGE-8-VALIDATION.md](STAGE-8-VALIDATION.md) — Stage 8 검증 결과
+35. [STAGE-9-BUILDMAP-EXPORT.md](STAGE-9-BUILDMAP-EXPORT.md) — BuildMap metadata reference export와 redaction 설계
+36. [STAGE-9-IMPLEMENTATION-REVIEW.md](STAGE-9-IMPLEMENTATION-REVIEW.md) — Stage 9 구현 리뷰와 보완
+37. [STAGE-9-VALIDATION.md](STAGE-9-VALIDATION.md) — Stage 9 검증 결과
 
 ## 권위 규칙
 
@@ -68,7 +71,8 @@
 - Stage 6 — Evaluation Lab: `PASS`, PR #14 검토 대기
 - Stage 7 — Policy Registry: `PASS`, PR #15 검토 대기
 - Stage 8 — Reground Foundation: `PASS`, PR #16 검토 대기
+- Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 
 ## 다음 단계
 
-Stage 9 BuildMap Export에서 PIE의 결정 근거를 중복 저장 없이 참조할 schema와 stable export identity를 설계한다.
+Stage 10 Trust Gate는 Ledger 운영 경험, Reground false-positive 측정과 task class 정의가 선행돼야 한다. 다음 작업은 자동 승인 구현이 아니라 Stage 10 readiness evidence와 report-only risk band를 설계하는 것이다.
