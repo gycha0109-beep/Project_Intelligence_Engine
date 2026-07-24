@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 
+from review_system.cli import main as pie_main
 from review_system.defects import create_defect, initialize_defect_registry
 from review_system.intelligence_graph import calculate_graph_sha256
 from review_system.io import dump_json, dump_yaml, load_data
@@ -323,6 +324,29 @@ class TrustReadinessTests(unittest.TestCase):
             stdout = io.StringIO()
             with redirect_stdout(stdout):
                 code = trust_main(["verify-report", "--report", str(output)])
+            self.assertEqual(0, code)
+            self.assertTrue(json.loads(stdout.getvalue())["valid"])
+
+    def test_main_pie_cli_delegates_to_trust_adapter(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = TrustReadinessFixture(Path(tmp))
+            output = Path(tmp) / "pie-trust-report.json"
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = pie_main(
+                    [
+                        "trust-assess",
+                        "--request", str(fixture.request),
+                        "--profile", str(fixture.profile),
+                        "--output", str(output),
+                        "--generated-at", "2026-07-25T02:00:00Z",
+                    ]
+                )
+            self.assertEqual(0, code)
+            self.assertEqual("NOT_READY", json.loads(stdout.getvalue())["readiness"])
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = pie_main(["validate-trust-report", str(output)])
             self.assertEqual(0, code)
             self.assertTrue(json.loads(stdout.getvalue())["valid"])
 
