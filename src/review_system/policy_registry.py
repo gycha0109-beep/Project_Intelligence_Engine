@@ -62,6 +62,44 @@ def _semver(value: str) -> str:
     return text
 
 
+def _semver_tuple(value: str) -> tuple[int, int, int]:
+    text = _semver(value)
+    major, minor, patch = text.split(".")
+    return int(major), int(minor), int(patch)
+
+
+def _expected_registry_id(project_id: str) -> str:
+    return f"policy-registry-{canonical_json_sha256({'project_id': project_id})[:24]}"
+
+
+def _expected_policy_id(
+    *,
+    project_id: str,
+    version: str,
+    parent_policy_id: str | None,
+    ruleset_sha256: str,
+    evaluation_id: str,
+) -> str:
+    key = {
+        "project_id": project_id,
+        "version": version,
+        "parent_policy_id": parent_policy_id,
+        "ruleset_sha256": ruleset_sha256,
+        "evaluation_id": evaluation_id,
+    }
+    return f"policy-{canonical_json_sha256(key)[:32]}"
+
+
+def _safe_reference(value: Any, field: str) -> str:
+    raw = _required_text(value, field).replace("\\", "/")
+    if raw.startswith("/") or re.match(r"^[A-Za-z]:/", raw):
+        raise PolicyRegistryError(f"{field} must be relative")
+    parts = [part for part in PurePosixPath(raw).parts if part not in {"", "."}]
+    if not parts or any(part == ".." for part in parts):
+        raise PolicyRegistryError(f"{field} contains an unsafe relative path")
+    return PurePosixPath(*parts).as_posix()
+
+
 def _path_has_symlink(path: Path) -> bool:
     absolute = path.expanduser().absolute()
     current = Path(absolute.anchor)
@@ -96,7 +134,7 @@ def _relative_reference(registry_path: Path, source: Path, field: str) -> str:
         raise PolicyRegistryError(
             f"{field} must be stored under the Policy Registry directory: {source}"
         ) from exc
-    return PurePosixPath(relative).as_posix()
+    return _safe_reference(PurePosixPath(relative).as_posix(), field)
 
 
 def _policy_payload(policy: dict[str, Any]) -> dict[str, Any]:
@@ -133,15 +171,17 @@ def _append_event(
 ) -> None:
     if event_type not in _EVENT_TYPES:
         raise PolicyRegistryError(f"unsupported Policy event: {event_type}")
+    timestamp = _timestamp(at, "event timestamp")
     events = policy.setdefault("events", [])
-    previous = events[-1]["event_sha256"] if events else None
+    if events and timestamp < events[-1]["at"]:
+        raise PolicyRegistryError("Policy event timestamp cannot precede the previous event")
     event = {
         "sequence": len(events) + 1,
         "type": event_type,
         "actor": _required_text(actor, "event actor"),
-        "at": _timestamp(at, "event timestamp"),
+        "at": timestamp,
         "details": deepcopy(details or {}),
-        "previous_event_sha256": previous,
+        "previous_event_sha256": events[-1]["event_sha256"] if events else None,
     }
     event["event_id"] = f"policy-event-{canonical_json_sha256(event)[:24]}"
     event["event_sha256"] = canonical_json_sha256(event)
@@ -210,7 +250,7 @@ def _empty_registry(project_id: str) -> dict[str, Any]:
     project = _required_text(project_id, "project_id")
     registry = {
         "schema_version": POLICY_REGISTRY_SCHEMA_VERSION,
-        "registry_id": f"policy-registry-{canonical_json_sha256({'project_id': project})[:24]}",
+        "registry_id": _expected_registry_id(project),
         "project_id": project,
         "active_policy_id": None,
         "policies": [],
@@ -225,14 +265,14 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
     errors: list[str] = []
     if registry.get("schema_version") != POLICY_REGISTRY_SCHEMA_VERSION:
         errors.append(f"schema_version must be {POLICY_REGISTRY_SCHEMA_VERSION!r}")
-    for field in ("registry_id", "project_id"):
-        if not isinstance(registry.get(field), str) or not registry[field].strip():
-            errors.append(f"{field} is required")
-    recorded_registry_hash = registry.get("registry_sha256")
-    if (
-        not isinstance(recorded_registry_hash, str)
-        or recorded_registry_hash != canonical_json_sha256(_registry_payload(registry))
-    ):
+    project_id = registry.get("project_id")
+    if not isinstance(project_id, str) or not project_id.strip():
+        errors.append("project_id is required")
+    if not isinstance(registry.get("registry_id"), str) or not registry["registry_id"].strip():
+        errors.append("registry_id is required")
+    elif isinstance(project_id, str) and registry["registry_id"] != _expected_registry_id(project_id):
+        errors.append("registry_id mismatch")
+    if registry.get("registry_sha256") != canonical_json_sha256(_registry_payload(registry)):
         errors.append("registry_sha256 mismatch")
 
     policies = registry.get("policies")
@@ -264,8 +304,13 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
             errors.append(f"duplicate policy version: {version}")
         else:
             versions.add(version)
-        if policy.get("project_id") != registry.get("project_id"):
+        if policy.get("project_id") != project_id:
             errors.append(f"{prefix}.project_id does not match registry")
+        try:
+            _required_text(policy.get("created_by"), f"{prefix}.created_by")
+            _timestamp(policy.get("created_at"), f"{prefix}.created_at")
+        except PolicyRegistryError as exc:
+            errors.append(str(exc))
         status = policy.get("status")
         if status not in POLICY_STATUSES:
             errors.append(f"{prefix}.status is invalid")
@@ -277,7 +322,11 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
             errors.append(f"{prefix}.ruleset must be an object")
             ruleset = {}
         rules = ruleset.get("rules")
-        rule_errors = validate_rules(rules, required_status="approved") if isinstance(rules, dict) else ["rules must be an object"]
+        rule_errors = (
+            validate_rules(rules, required_status="approved")
+            if isinstance(rules, dict)
+            else ["rules must be an object"]
+        )
         errors.extend(f"{prefix}.ruleset.{error}" for error in rule_errors)
         expected_rules_hash = canonical_json_sha256(rules) if isinstance(rules, dict) else None
         if ruleset.get("sha256") != expected_rules_hash:
@@ -294,12 +343,35 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
         for field in ("evaluation_id", "report", "report_sha256"):
             if not isinstance(evaluation.get(field), str) or not evaluation[field]:
                 errors.append(f"{prefix}.evaluation.{field} is required")
+        try:
+            _safe_reference(evaluation.get("report"), f"{prefix}.evaluation.report")
+        except PolicyRegistryError as exc:
+            errors.append(str(exc))
+        if all(
+            isinstance(value, str) and value
+            for value in (
+                policy.get("project_id"),
+                version,
+                ruleset.get("sha256"),
+                evaluation.get("evaluation_id"),
+            )
+        ):
+            expected_id = _expected_policy_id(
+                project_id=policy["project_id"],
+                version=version,
+                parent_policy_id=policy.get("parent_policy_id"),
+                ruleset_sha256=ruleset["sha256"],
+                evaluation_id=evaluation["evaluation_id"],
+            )
+            if policy_id != expected_id:
+                errors.append(f"{prefix}.policy_id mismatch")
 
         events = policy.get("events")
         if not isinstance(events, list) or not events:
             errors.append(f"{prefix}.events must be a non-empty array")
             events = []
-        previous: str | None = None
+        previous_hash: str | None = None
+        previous_at: str | None = None
         projected_status = "DRAFT"
         for event_index, event in enumerate(events):
             event_prefix = f"{prefix}.events[{event_index}]"
@@ -308,7 +380,7 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
                 continue
             if event.get("sequence") != event_index + 1:
                 errors.append(f"{event_prefix}.sequence mismatch")
-            if event.get("previous_event_sha256") != previous:
+            if event.get("previous_event_sha256") != previous_hash:
                 errors.append(f"{event_prefix}.previous_event_sha256 mismatch")
             expected_event_id = f"policy-event-{canonical_json_sha256(_event_base(event))[:24]}"
             if event.get("event_id") != expected_event_id:
@@ -316,19 +388,25 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
             expected_event_hash = canonical_json_sha256(_event_hash_payload(event))
             if event.get("event_sha256") != expected_event_hash:
                 errors.append(f"{event_prefix}.event_sha256 mismatch")
-            previous = event.get("event_sha256") if isinstance(event.get("event_sha256"), str) else None
+            previous_hash = event.get("event_sha256") if isinstance(event.get("event_sha256"), str) else None
             event_type = event.get("type")
             if event_type not in _EVENT_TYPES:
                 errors.append(f"{event_prefix}.type is invalid")
                 continue
             try:
-                _timestamp(event.get("at"), f"{event_prefix}.at")
+                event_at = _timestamp(event.get("at"), f"{event_prefix}.at")
                 _required_text(event.get("actor"), f"{event_prefix}.actor")
+                if previous_at is not None and event_at < previous_at:
+                    errors.append(f"{event_prefix}.at precedes the previous event")
+                previous_at = event_at
             except PolicyRegistryError as exc:
                 errors.append(str(exc))
             if event_index == 0 and event_type != "BUILT":
                 errors.append(f"{event_prefix} first event must be BUILT")
-            if event_type == "APPROVED":
+            if event_type == "BUILT":
+                if event_index != 0:
+                    errors.append(f"{event_prefix} BUILT may only be the first event")
+            elif event_type == "APPROVED":
                 if projected_status != "DRAFT":
                     errors.append(f"{event_prefix} APPROVED transition is invalid")
                 projected_status = "APPROVED"
@@ -349,30 +427,47 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
         elif projected_status != status:
             errors.append(f"{prefix}.status does not match lifecycle events")
 
+        if status == "DRAFT":
+            if any(policy.get(field) is not None for field in ("approval", "effective_at", "superseded_by", "retirement")):
+                errors.append(f"{prefix} DRAFT lifecycle projection contains terminal metadata")
         if status in {"ACTIVE", "SUPERSEDED", "RETIRED"}:
             approval = policy.get("approval")
+            approved_events = [event for event in events if isinstance(event, dict) and event.get("type") == "APPROVED"]
             if not isinstance(approval, dict):
                 errors.append(f"{prefix}.approval is required")
-            else:
-                for field in ("approved_by", "approved_at"):
-                    if not isinstance(approval.get(field), str) or not approval[field]:
-                        errors.append(f"{prefix}.approval.{field} is required")
-            if not isinstance(policy.get("effective_at"), str):
-                errors.append(f"{prefix}.effective_at is required")
-        if status == "SUPERSEDED" and not isinstance(policy.get("superseded_by"), str):
-            errors.append(f"{prefix}.superseded_by is required")
+            elif len(approved_events) != 1:
+                errors.append(f"{prefix} must contain exactly one APPROVED event")
+            elif (
+                approval.get("approved_by") != approved_events[0].get("actor")
+                or approval.get("approved_at") != approved_events[0].get("at")
+            ):
+                errors.append(f"{prefix}.approval does not match APPROVED event")
+            activated_events = [event for event in events if isinstance(event, dict) and event.get("type") == "ACTIVATED"]
+            if len(activated_events) != 1 or policy.get("effective_at") != activated_events[0].get("at"):
+                errors.append(f"{prefix}.effective_at does not match ACTIVATED event")
+        if status == "SUPERSEDED":
+            superseded_events = [event for event in events if isinstance(event, dict) and event.get("type") == "SUPERSEDED"]
+            if not isinstance(policy.get("superseded_by"), str):
+                errors.append(f"{prefix}.superseded_by is required")
+            elif len(superseded_events) != 1 or superseded_events[0].get("details", {}).get("superseded_by") != policy.get("superseded_by"):
+                errors.append(f"{prefix}.superseded_by does not match SUPERSEDED event")
         if status == "RETIRED":
             retirement = policy.get("retirement")
+            retired_events = [event for event in events if isinstance(event, dict) and event.get("type") == "RETIRED"]
             if not isinstance(retirement, dict):
                 errors.append(f"{prefix}.retirement is required")
             elif not all(isinstance(retirement.get(field), str) and retirement[field] for field in ("retired_by", "retired_at", "reason")):
                 errors.append(f"{prefix}.retirement is incomplete")
+            elif len(retired_events) != 1:
+                errors.append(f"{prefix} must contain exactly one RETIRED event")
+            elif (
+                retirement["retired_by"] != retired_events[0].get("actor")
+                or retirement["retired_at"] != retired_events[0].get("at")
+                or retirement["reason"] != retired_events[0].get("details", {}).get("reason")
+            ):
+                errors.append(f"{prefix}.retirement does not match RETIRED event")
 
-        recorded_policy_hash = policy.get("policy_sha256")
-        if (
-            not isinstance(recorded_policy_hash, str)
-            or recorded_policy_hash != canonical_json_sha256(_policy_payload(policy))
-        ):
+        if policy.get("policy_sha256") != canonical_json_sha256(_policy_payload(policy)):
             errors.append(f"{prefix}.policy_sha256 mismatch")
 
     active_id = registry.get("active_policy_id")
@@ -396,6 +491,12 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
             errors.append(f"Policy {policy_id} references missing parent {parent}")
         elif parent == policy_id:
             errors.append(f"Policy {policy_id} cannot parent itself")
+        elif isinstance(parent, str) and parent in policy_map:
+            try:
+                if _semver_tuple(policy["version"]) <= _semver_tuple(policy_map[parent]["version"]):
+                    errors.append(f"Policy {policy_id} version must be greater than its parent")
+            except (KeyError, PolicyRegistryError):
+                pass
         superseded_by = policy.get("superseded_by")
         if isinstance(superseded_by, str):
             child = policy_map.get(superseded_by)
@@ -412,8 +513,8 @@ def verify_policy_registry_data(registry: Any) -> list[str]:
                 errors.append(f"Policy parent cycle detected at {policy_id}")
                 break
             seen.add(cursor)
-            parent_value = policy_map.get(cursor, {}).get("parent_policy_id")
-            cursor = parent_value if isinstance(parent_value, str) else None
+            parent = policy_map.get(cursor, {}).get("parent_policy_id")
+            cursor = parent if isinstance(parent, str) else None
 
     return sorted(set(errors))
 
@@ -462,6 +563,8 @@ def build_policy(
     policy_map = {item["policy_id"]: item for item in updated["policies"]}
     if parent_policy_id is not None and parent_policy_id not in policy_map:
         raise PolicyRegistryError(f"parent Policy not found: {parent_policy_id}")
+    if parent_policy_id is not None and _semver_tuple(semantic_version) <= _semver_tuple(policy_map[parent_policy_id]["version"]):
+        raise PolicyRegistryError("Policy version must be greater than its parent version")
     if any(item["version"] == semantic_version for item in updated["policies"]):
         raise PolicyRegistryError(f"Policy version already exists: {semantic_version}")
 
@@ -482,14 +585,13 @@ def build_policy(
         raise PolicyRegistryError("evaluation challenger Policy hash does not match approved Rule set")
     report_reference = _relative_reference(registry_path, report_path, "evaluation report")
 
-    key = {
-        "project_id": project,
-        "version": semantic_version,
-        "parent_policy_id": parent_policy_id,
-        "ruleset_sha256": ruleset_hash,
-        "evaluation_id": report["evaluation_id"],
-    }
-    policy_id = f"policy-{canonical_json_sha256(key)[:32]}"
+    policy_id = _expected_policy_id(
+        project_id=project,
+        version=semantic_version,
+        parent_policy_id=parent_policy_id,
+        ruleset_sha256=ruleset_hash,
+        evaluation_id=report["evaluation_id"],
+    )
     if policy_id in policy_map:
         raise PolicyRegistryError(f"Policy already exists: {policy_id}")
 
@@ -525,7 +627,7 @@ def build_policy(
     _append_event(policy, "BUILT", actor=actor, at=timestamp, details={"version": semantic_version})
     _rehash_policy(policy)
     updated["policies"].append(policy)
-    updated["policies"] = sorted(updated["policies"], key=lambda item: (item["version"], item["policy_id"]))
+    updated["policies"] = sorted(updated["policies"], key=lambda item: (_semver_tuple(item["version"]), item["policy_id"]))
     _rehash_registry(updated)
     _write_registry(registry_path, updated)
     return deepcopy(policy)
@@ -548,6 +650,9 @@ def approve_policy(
     effective_time = _timestamp(effective_at or approval_time, "effective_at")
     if effective_time > approval_time:
         raise PolicyRegistryError("future effective_at is not supported in Stage 7")
+    if effective_time != approval_time:
+        raise PolicyRegistryError("effective_at must equal approved_at for immediate activation")
+
     updated = deepcopy(current)
     policy_map = {item["policy_id"]: item for item in updated["policies"]}
     selected = policy_map.get(policy_id)
@@ -555,6 +660,8 @@ def approve_policy(
         raise PolicyRegistryError(f"Policy not found: {policy_id}")
     if selected["status"] != "DRAFT":
         raise PolicyRegistryError(f"Policy is not DRAFT: {policy_id}")
+    if approval_time < selected["events"][-1]["at"]:
+        raise PolicyRegistryError("approved_at cannot precede Policy creation")
 
     active_id = updated.get("active_policy_id")
     if active_id is None:
@@ -566,15 +673,11 @@ def approve_policy(
         active = policy_map[active_id]
         if active["status"] != "ACTIVE":
             raise PolicyRegistryError("active Policy projection is invalid")
+        if approval_time < active["events"][-1]["at"]:
+            raise PolicyRegistryError("approved_at cannot precede active Policy history")
         active["status"] = "SUPERSEDED"
         active["superseded_by"] = policy_id
-        _append_event(
-            active,
-            "SUPERSEDED",
-            actor=actor,
-            at=approval_time,
-            details={"superseded_by": policy_id},
-        )
+        _append_event(active, "SUPERSEDED", actor=actor, at=approval_time, details={"superseded_by": policy_id})
         _rehash_policy(active)
 
     selected["approval"] = {
@@ -593,12 +696,10 @@ def approve_policy(
     errors = verify_policy_registry_data(updated)
     if errors:
         raise PolicyRegistryVerificationError(errors)
-    _atomic_write(
-        [
-            (registry_path, _serialize_registry(updated)),
-            (materialized_path, _serialize_rules(selected["ruleset"]["rules"])),
-        ]
-    )
+    _atomic_write([
+        (registry_path, _serialize_registry(updated)),
+        (materialized_path, _serialize_rules(selected["ruleset"]["rules"])),
+    ])
     return deepcopy(selected)
 
 
@@ -622,6 +723,8 @@ def retire_policy(
         raise PolicyRegistryError(f"Policy not found: {policy_id}")
     if selected["status"] not in {"ACTIVE", "SUPERSEDED"}:
         raise PolicyRegistryError(f"Policy cannot be retired from {selected['status']}")
+    if timestamp < selected["events"][-1]["at"]:
+        raise PolicyRegistryError("retired_at cannot precede Policy history")
     was_active = updated.get("active_policy_id") == policy_id
     if was_active and materialized_rules is None:
         raise PolicyRegistryError("retiring the active Policy requires materialized_rules")
@@ -644,17 +747,12 @@ def retire_policy(
     payloads = [(registry_path, _serialize_registry(updated))]
     if was_active and materialized_rules is not None:
         materialized_path = _safe_target(materialized_rules, "materialized approved Rule file")
-        payloads.append(
-            (materialized_path, _serialize_rules({"schema_version": "1.0", "rules": []}))
-        )
+        payloads.append((materialized_path, _serialize_rules({"schema_version": "1.0", "rules": []})))
     _atomic_write(payloads)
     return deepcopy(selected)
 
 
-def materialize_active_policy(
-    registry: str | Path,
-    output: str | Path,
-) -> Path:
+def materialize_active_policy(registry: str | Path, output: str | Path) -> Path:
     _, data = load_policy_registry(registry)
     active_id = data.get("active_policy_id")
     if not isinstance(active_id, str):
@@ -665,11 +763,7 @@ def materialize_active_policy(
     return target
 
 
-def compare_policies(
-    registry: str | Path,
-    left_policy_id: str,
-    right_policy_id: str,
-) -> dict[str, Any]:
+def compare_policies(registry: str | Path, left_policy_id: str, right_policy_id: str) -> dict[str, Any]:
     _, data = load_policy_registry(registry)
     policy_map = {item["policy_id"]: item for item in data["policies"]}
     left = policy_map.get(left_policy_id)
@@ -680,22 +774,19 @@ def compare_policies(
         raise PolicyRegistryError(f"Policy not found: {right_policy_id}")
     left_rules = {item["id"]: item for item in left["ruleset"]["rules"].get("rules", [])}
     right_rules = {item["id"]: item for item in right["ruleset"]["rules"].get("rules", [])}
-    added = sorted(set(right_rules) - set(left_rules))
-    removed = sorted(set(left_rules) - set(right_rules))
-    changed = sorted(
-        rule_id
-        for rule_id in set(left_rules) & set(right_rules)
-        if canonical_json_sha256(left_rules[rule_id]) != canonical_json_sha256(right_rules[rule_id])
-    )
     return {
         "schema_version": "1.0",
         "left_policy_id": left_policy_id,
         "right_policy_id": right_policy_id,
         "left_version": left["version"],
         "right_version": right["version"],
-        "added_rule_ids": added,
-        "removed_rule_ids": removed,
-        "changed_rule_ids": changed,
+        "added_rule_ids": sorted(set(right_rules) - set(left_rules)),
+        "removed_rule_ids": sorted(set(left_rules) - set(right_rules)),
+        "changed_rule_ids": sorted(
+            rule_id
+            for rule_id in set(left_rules) & set(right_rules)
+            if canonical_json_sha256(left_rules[rule_id]) != canonical_json_sha256(right_rules[rule_id])
+        ),
         "same_ruleset": left["ruleset"]["sha256"] == right["ruleset"]["sha256"],
     }
 
@@ -717,8 +808,8 @@ def verify_policy_registry_file(
 
     if verify_evaluation_reports:
         for policy in data["policies"]:
-            reference = policy["evaluation"]["report"]
             try:
+                reference = _safe_reference(policy["evaluation"]["report"], "evaluation report")
                 report_path = _safe_source(registry_path.parent / reference, "evaluation report")
                 _, report = load_evaluation_report(report_path)
                 if report["report_sha256"] != policy["evaluation"]["report_sha256"]:
@@ -761,7 +852,7 @@ def list_policies(registry: str | Path) -> list[dict[str, Any]]:
             "evaluation_id": item["evaluation"]["evaluation_id"],
             "effective_at": item.get("effective_at"),
         }
-        for item in sorted(data["policies"], key=lambda policy: (policy["version"], policy["policy_id"]))
+        for item in sorted(data["policies"], key=lambda policy: (_semver_tuple(policy["version"]), policy["policy_id"]))
     ]
 
 
