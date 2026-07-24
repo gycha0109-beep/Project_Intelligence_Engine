@@ -24,7 +24,7 @@
 13. [STAGE-2C-VALIDATION.md](STAGE-2C-VALIDATION.md) — Stage 2C 검증 결과
 14. [STAGE-2D-COLLECTOR-BOUNDARIES.md](STAGE-2D-COLLECTOR-BOUNDARIES.md) — PR collector·pagination·discussion·source 조립 분리 설계
 15. [STAGE-2D-IMPLEMENTATION-REVIEW.md](STAGE-2D-IMPLEMENTATION-REVIEW.md) — Stage 2D 구현 리뷰
-16. [STAGE-2D-VALIDATION.md](STAGE-2D-VALIDATION.md) — Stage 2D 검증 기록
+16. [STAGE-2D-VALIDATION.md](STAGE-2D-VALIDATION.md) — Stage 2D 검증 결과
 
 ## 권위 규칙
 
@@ -43,8 +43,8 @@
 - Stage 2A — GitHub Target Parsing Extraction: `PASS`, PR #7 검토 대기
 - Stage 2B — GitHub CLI Runner Extraction: `PASS`, PR #8 검토 대기
 - Stage 2C — Repository Binding Extraction: `PASS`, PR #9 검토 대기
-- Stage 2D — Collector Boundary Extraction: 구현 리뷰 `PASS`, 최종 검증 진행
+- Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
 
 ## 다음 단계
 
-Stage 2D 최종 검증 후 GitHub integration extraction을 동결하고 Evidence Ledger 설계로 이동한다.
+GitHub integration extraction을 동결하고 Evidence Ledger 설계로 이동한다.
