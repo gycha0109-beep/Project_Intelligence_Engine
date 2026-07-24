@@ -1,12 +1,12 @@
 # Stage 9 Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #16 HEAD `7d4de5a37295d6154158f715a383fd4e7f44d0a9`
 
-검증된 코드 HEAD: `f9fcb9826e22b73c883d0961f39b464eada99fb3`
+최종 검증 HEAD: `783f6de0ca0d97709ae5b5bdfaac460b19f23514`
 
-GitHub Actions run: `30101322225`
+GitHub Actions run: `30101785712`
 
 ## 검증 범위
 
@@ -55,6 +55,6 @@ GitHub Actions run: `30101322225`
 
 ## 최종 판정
 
-Stage 9 code validation: `PASS`
+Stage 9 validation: `PASS`
 
-문서와 Architecture index가 포함된 마지막 exact HEAD의 GitHub Actions matrix 결과를 최종 PR 본문에 기록한다.
+문서와 Architecture index를 포함한 HEAD `783f6de0ca0d97709ae5b5bdfaac460b19f23514`에서 GitHub Actions run `30101785712`가 Python 3.11·3.13·3.14 전체 matrix와 wheel build를 통과했다. 이 문서 상태를 반영한 마지막 exact HEAD도 동일 matrix로 재검증한다.
