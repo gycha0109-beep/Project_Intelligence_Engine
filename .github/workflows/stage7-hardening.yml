@@ -40,3 +40,4 @@ jobs:
           git add src/review_system/policy_registry.py tests/test_policy_registry_hardening.py
           git diff --cached --quiet || git commit -m "harden Policy Registry identity and lineage verification"
           git push origin HEAD:agent/stage-7-policy-registry
+# registration trigger
