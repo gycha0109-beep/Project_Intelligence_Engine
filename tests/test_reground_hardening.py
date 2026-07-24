@@ -39,7 +39,7 @@ class RegroundIntegrityHardeningTests(unittest.TestCase):
             rehash_report(report)
             errors = verify_reground_report_data(report)
             self.assertTrue(any("files" in error and "status mismatch" in error for error in errors))
-            self.assertIn("impacted_rechecks mismatch", errors)
+            self.assertIn("summary mismatch", errors)
 
     def test_rehashed_relation_and_recheck_tamper_are_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
