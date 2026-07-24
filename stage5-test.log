@@ -1,0 +1,91 @@
+test_defect_id_is_deterministic_and_duplicate_create_is_idempotent (test_defects.DefectRegistryTests.test_defect_id_is_deterministic_and_duplicate_create_is_idempotent) ... ERROR
+test_invalid_transition_is_rejected_without_registry_change (test_defects.DefectRegistryTests.test_invalid_transition_is_rejected_without_registry_change) ... ERROR
+test_link_and_full_lifecycle_require_resolution_evidence (test_defects.DefectRegistryTests.test_link_and_full_lifecycle_require_resolution_evidence) ... ERROR
+test_rebuild_projects_registry_after_runs (test_defects.DefectRegistryTests.test_rebuild_projects_registry_after_runs) ... ERROR
+test_registry_tamper_and_ledger_projection_tamper_are_detected (test_defects.DefectRegistryTests.test_registry_tamper_and_ledger_projection_tamper_are_detected) ... ERROR
+test_import_projects_valid_findings_idempotently (test_defects.FindingProjectionTests.test_import_projects_valid_findings_idempotently) ... ok
+test_invalid_findings_roll_back_import (test_defects.FindingProjectionTests.test_invalid_findings_roll_back_import) ... ok
+test_linked_stale_finding_fails_closed (test_defects.FindingProjectionTests.test_linked_stale_finding_fails_closed) ... ERROR
+test_unlinked_stale_finding_is_removed (test_defects.FindingProjectionTests.test_unlinked_stale_finding_is_removed) ... ok
+
+======================================================================
+ERROR: test_defect_id_is_deterministic_and_duplicate_create_is_idempotent (test_defects.DefectRegistryTests.test_defect_id_is_deterministic_and_duplicate_create_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 193, in test_defect_id_is_deterministic_and_duplicate_create_is_idempotent
+    first = create_defect(
+            ^^^^^^^^^^^^^^
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+======================================================================
+ERROR: test_invalid_transition_is_rejected_without_registry_change (test_defects.DefectRegistryTests.test_invalid_transition_is_rejected_without_registry_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 302, in test_invalid_transition_is_rejected_without_registry_change
+    defect = create_defect(
+             ^^^^^^^^^^^^^^
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+======================================================================
+ERROR: test_link_and_full_lifecycle_require_resolution_evidence (test_defects.DefectRegistryTests.test_link_and_full_lifecycle_require_resolution_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 220, in test_link_and_full_lifecycle_require_resolution_evidence
+    defect = create_defect(
+             ^^^^^^^^^^^^^^
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+======================================================================
+ERROR: test_rebuild_projects_registry_after_runs (test_defects.DefectRegistryTests.test_rebuild_projects_registry_after_runs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 356, in test_rebuild_projects_registry_after_runs
+    create_defect(
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+======================================================================
+ERROR: test_registry_tamper_and_ledger_projection_tamper_are_detected (test_defects.DefectRegistryTests.test_registry_tamper_and_ledger_projection_tamper_are_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 329, in test_registry_tamper_and_ledger_projection_tamper_are_detected
+    defect = create_defect(
+             ^^^^^^^^^^^^^^
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+======================================================================
+ERROR: test_linked_stale_finding_fails_closed (test_defects.FindingProjectionTests.test_linked_stale_finding_fails_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 149, in test_linked_stale_finding_fails_closed
+    defect = create_defect(
+             ^^^^^^^^^^^^^^
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 781, in create_defect
+    _write_registry(path, registry)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/defects.py", line 272, in _write_registry
+    raise DefectRegistryError("refusing to write invalid defect registry: " + "; ".join(errors))
+review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.366s
+
+FAILED (errors=6)
