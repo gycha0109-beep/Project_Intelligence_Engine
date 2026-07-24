@@ -229,7 +229,7 @@ def _stable_source_rows(rows: dict[str, Any]) -> dict[str, Any]:
         "evidence": without(rows["evidence"], set()),
         "claim_evidence": without(rows["claim_evidence"], set()),
         "findings": without(rows["findings"], {"imported_at"}),
-        "finding_defects": without(rows["finding_defects"], {"linked_at"}),
+        "finding_defects": without(rows["finding_defects"], set()),
         "defects": without(rows["defects"], set()),
         "decisions": without(rows["decisions"], set()),
         "policy_snapshots": without(rows["policy_snapshots"], {"imported_at"}),
@@ -416,6 +416,10 @@ def _project_rows(rows: dict[str, Any], included_artifacts: set[str]) -> dict[st
         }
         for row in rows["claim_evidence"]
     ]
+    defect_ids_by_finding: dict[str, set[str]] = {}
+    for link in rows["finding_defects"]:
+        finding_id = str(link["finding_id"])
+        defect_ids_by_finding.setdefault(finding_id, set()).add(str(link["defect_id"]))
     findings = []
     for row in rows["findings"]:
         artifact_id, redacted = _artifact_reference(row.get("artifact_id"), included_artifacts)
@@ -426,6 +430,7 @@ def _project_rows(rows: dict[str, Any], included_artifacts: set[str]) -> dict[st
                 "severity": str(row["severity"]),
                 "confidence": str(row["confidence"]),
                 "status": str(row["status"]),
+                "defect_ids": sorted(defect_ids_by_finding.get(str(row["finding_id"]), set())),
                 "finding_sha256": str(row["finding_sha256"]),
                 "artifact_id": artifact_id,
                 "artifact_redacted": redacted,
@@ -654,6 +659,17 @@ def _canonical_projection_errors(export: dict[str, Any]) -> list[str]:
             if item.get("artifact_redacted") is not expected_redacted:
                 errors.append(f"projection.{name}[{index}].artifact_redacted mismatch")
 
+    findings = projection.get("findings")
+    if isinstance(findings, list):
+        for index, item in enumerate(findings):
+            if not isinstance(item, dict):
+                continue
+            defect_ids = item.get("defect_ids")
+            if not isinstance(defect_ids, list) or not all(isinstance(value, str) and value for value in defect_ids):
+                errors.append(f"projection.findings[{index}].defect_ids canonical mismatch")
+            elif defect_ids != sorted(set(defect_ids)):
+                errors.append(f"projection.findings[{index}].defect_ids canonical mismatch")
+
     decisions = projection.get("decisions")
     if isinstance(decisions, list):
         for index, item in enumerate(decisions):
@@ -661,14 +677,23 @@ def _canonical_projection_errors(export: dict[str, Any]) -> list[str]:
                 continue
             refs = item.get("reason_refs")
             if isinstance(refs, list):
-                canonical = sorted(
-                    refs,
-                    key=lambda ref: (
-                        str(ref.get("group")) if isinstance(ref, dict) else "",
-                        str(ref.get("reason_id")) if isinstance(ref, dict) else "",
-                    ),
-                )
-                if refs != canonical or len({(ref.get("group"), ref.get("reason_id")) for ref in refs if isinstance(ref, dict)}) != len(refs):
+                keys: list[tuple[str, str]] = []
+                malformed = False
+                for ref in refs:
+                    if not isinstance(ref, dict):
+                        malformed = True
+                        continue
+                    group = ref.get("group")
+                    reason_id = ref.get("reason_id")
+                    if not isinstance(group, str) or not group or not isinstance(reason_id, str) or not reason_id:
+                        malformed = True
+                        continue
+                    keys.append((group, reason_id))
+                canonical = [
+                    {"group": group, "reason_id": reason_id}
+                    for group, reason_id in sorted(set(keys))
+                ]
+                if malformed or refs != canonical:
                     errors.append(f"projection.decisions[{index}].reason_refs canonical mismatch")
     return errors
 

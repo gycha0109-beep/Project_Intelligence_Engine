@@ -1,0 +1,700 @@
+APPLY_EXIT=0
+/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/assets
+SYNC_EXIT=0
+Obtaining file:///home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine
+ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/base_command.py", line 109, in _run_wrapper
+    status = _inner_run()
+             ^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/base_command.py", line 102, in _inner_run
+    return self.run(options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/req_command.py", line 101, in wrapper
+    return func(self, options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/commands/install.py", line 479, in run
+    requirement_set = resolver.resolve(
+                      ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 79, in resolve
+    collected = self.factory.collect_root_requirements(root_reqs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 597, in collect_root_requirements
+    reqs = list(
+           ^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 553, in _make_requirements_from_install_req
+    cand = self._make_base_candidate_from_link(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 207, in _make_base_candidate_from_link
+    self._editable_candidate_cache[link] = EditableCandidate(
+                                           ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 351, in __init__
+    super().__init__(
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 168, in __init__
+    self.dist = self._prepare()
+                ^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 246, in _prepare
+    dist = self._prepare_distribution()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 361, in _prepare_distribution
+    return self._factory.preparer.prepare_editable_requirement(self._ireq)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/operations/prepare.py", line 717, in prepare_editable_requirement
+    dist = _get_prepared_distribution(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/distributions/sdist.py", line 42, in prepare_distribution_metadata
+    self.req.load_pyproject_toml()
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/req/req_install.py", line 492, in load_pyproject_toml
+    pyproject_toml_data = load_pyproject_toml(
+                          ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/pyproject.py", line 64, in load_pyproject_toml
+    pp_toml = tomllib.loads(f.read())
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/tomllib/_parser.py", line 102, in loads
+    pos = key_value_rule(src, pos, out, header, parse_float)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/tomllib/_parser.py", line 349, in key_value_rule
+    raise suffixed_err(src, pos, "Cannot overwrite a value")
+tomllib.TOMLDecodeError: Cannot overwrite a value (at line 29, column 49)
+INSTALL_EXIT=2
+COMPILE_EXIT=0
+test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export) ... ERROR
+test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening) ... ERROR
+
+======================================================================
+ERROR: test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_buildmap_export
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export.py", line 7, in <module>
+    from review_system.buildmap_export import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_buildmap_export_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export_hardening.py", line 8, in <module>
+    from review_system.buildmap_export import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+FAILED (errors=2)
+FOCUSED_EXIT=1
+test_application_analyze_pr (unittest.loader._FailedTest.test_application_analyze_pr) ... ERROR
+test_application_index_analyze (unittest.loader._FailedTest.test_application_index_analyze) ... ERROR
+test_application_rule_gate (unittest.loader._FailedTest.test_application_rule_gate) ... ERROR
+test_packaged_assets_match_source_assets (test_asset_sync.AssetSyncTests.test_packaged_assets_match_source_assets) ... ok
+test_baseline (unittest.loader._FailedTest.test_baseline) ... ERROR
+test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export) ... ERROR
+test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening) ... ERROR
+test_cli (unittest.loader._FailedTest.test_cli) ... ERROR
+test_defect_registry_hardening (unittest.loader._FailedTest.test_defect_registry_hardening) ... ERROR
+test_defects (unittest.loader._FailedTest.test_defects) ... ERROR
+test_evaluation (unittest.loader._FailedTest.test_evaluation) ... ERROR
+test_evaluation_hardening (unittest.loader._FailedTest.test_evaluation_hardening) ... ERROR
+test_gate (unittest.loader._FailedTest.test_gate) ... ERROR
+test_github_binding (unittest.loader._FailedTest.test_github_binding) ... ERROR
+test_github_collection_boundaries (unittest.loader._FailedTest.test_github_collection_boundaries) ... ERROR
+test_github_connector (unittest.loader._FailedTest.test_github_connector) ... ERROR
+test_github_runner (unittest.loader._FailedTest.test_github_runner) ... ERROR
+test_github_target (unittest.loader._FailedTest.test_github_target) ... ERROR
+test_identity (unittest.loader._FailedTest.test_identity) ... ERROR
+test_intelligence_cli (unittest.loader._FailedTest.test_intelligence_cli) ... ERROR
+test_intelligence_graph (unittest.loader._FailedTest.test_intelligence_graph) ... ERROR
+test_intelligence_impact (unittest.loader._FailedTest.test_intelligence_impact) ... ERROR
+test_intelligence_learning (unittest.loader._FailedTest.test_intelligence_learning) ... ERROR
+test_intelligence_report (unittest.loader._FailedTest.test_intelligence_report) ... ERROR
+test_ledger (unittest.loader._FailedTest.test_ledger) ... ERROR
+test_ledger_review_hardening (unittest.loader._FailedTest.test_ledger_review_hardening) ... ERROR
+test_merge (unittest.loader._FailedTest.test_merge) ... ERROR
+test_packs (unittest.loader._FailedTest.test_packs) ... ERROR
+test_path_globs (unittest.loader._FailedTest.test_path_globs) ... ERROR
+test_policy_registry (unittest.loader._FailedTest.test_policy_registry) ... ERROR
+test_policy_registry_hardening (unittest.loader._FailedTest.test_policy_registry_hardening) ... ERROR
+test_profile (unittest.loader._FailedTest.test_profile) ... ERROR
+test_project_init_and_pr_cli (unittest.loader._FailedTest.test_project_init_and_pr_cli) ... ERROR
+test_reground (unittest.loader._FailedTest.test_reground) ... ERROR
+test_reground_hardening (unittest.loader._FailedTest.test_reground_hardening) ... ERROR
+test_review_run (unittest.loader._FailedTest.test_review_run) ... ERROR
+test_run (unittest.loader._FailedTest.test_run) ... ERROR
+test_validation (unittest.loader._FailedTest.test_validation) ... ERROR
+
+======================================================================
+ERROR: test_application_analyze_pr (unittest.loader._FailedTest.test_application_analyze_pr)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_application_analyze_pr
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_analyze_pr.py", line 10, in <module>
+    from review_system.application import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_application_index_analyze (unittest.loader._FailedTest.test_application_index_analyze)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_application_index_analyze
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_index_analyze.py", line 9, in <module>
+    from review_system.application import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_application_rule_gate (unittest.loader._FailedTest.test_application_rule_gate)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_application_rule_gate
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_rule_gate.py", line 10, in <module>
+    from review_system.application import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_baseline (unittest.loader._FailedTest.test_baseline)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_baseline
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_baseline.py", line 5, in <module>
+    from review_system.baseline import compare_snapshot, create_snapshot
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_buildmap_export
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export.py", line 7, in <module>
+    from review_system.buildmap_export import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_buildmap_export_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export_hardening.py", line 8, in <module>
+    from review_system.buildmap_export import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_cli (unittest.loader._FailedTest.test_cli)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_cli
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_cli.py", line 5, in <module>
+    from review_system.cli import main
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_defect_registry_hardening (unittest.loader._FailedTest.test_defect_registry_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_defect_registry_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defect_registry_hardening.py", line 9, in <module>
+    from review_system.defect_cli import main as defect_main
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_defects (unittest.loader._FailedTest.test_defects)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_defects
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 7, in <module>
+    from review_system.defects import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_evaluation (unittest.loader._FailedTest.test_evaluation)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_evaluation
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_evaluation.py", line 10, in <module>
+    from review_system.application import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_evaluation_hardening (unittest.loader._FailedTest.test_evaluation_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_evaluation_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_evaluation_hardening.py", line 10, in <module>
+    from review_system.evaluation import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_gate (unittest.loader._FailedTest.test_gate)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_gate
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_gate.py", line 3, in <module>
+    from review_system.gate import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_github_binding (unittest.loader._FailedTest.test_github_binding)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_github_binding
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_binding.py", line 4, in <module>
+    from review_system.github.binding import RepositoryBinding, resolve_repository_binding
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_github_collection_boundaries (unittest.loader._FailedTest.test_github_collection_boundaries)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_github_collection_boundaries
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_collection_boundaries.py", line 5, in <module>
+    from review_system.github.binding import RepositoryBinding
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_github_connector (unittest.loader._FailedTest.test_github_connector)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_github_connector
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_connector.py", line 7, in <module>
+    from review_system.github_connector import (
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_github_runner (unittest.loader._FailedTest.test_github_runner)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_github_runner
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_runner.py", line 8, in <module>
+    import review_system.github.runner as extracted
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_github_target (unittest.loader._FailedTest.test_github_target)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_github_target
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_target.py", line 3, in <module>
+    import review_system.github.target as extracted
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_identity (unittest.loader._FailedTest.test_identity)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_identity
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_identity.py", line 5, in <module>
+    from review_system.application import AnalyzePullRequestRequest, analyze_pull_request
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_intelligence_cli (unittest.loader._FailedTest.test_intelligence_cli)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_intelligence_cli
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_cli.py", line 5, in <module>
+    from review_system.cli import main
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_intelligence_graph (unittest.loader._FailedTest.test_intelligence_graph)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_intelligence_graph
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_graph.py", line 6, in <module>
+    from review_system.intelligence_graph import build_project_graph, validate_project_graph
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_intelligence_impact (unittest.loader._FailedTest.test_intelligence_impact)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_intelligence_impact
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_impact.py", line 3, in <module>
+    from review_system.intelligence_impact import analyze_change, compare_change_sets
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_intelligence_learning (unittest.loader._FailedTest.test_intelligence_learning)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_intelligence_learning
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_learning.py", line 3, in <module>
+    from review_system.intelligence_learning import approve_candidate_rule, discover_rule_candidates, merge_rule_candidates
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_intelligence_report (unittest.loader._FailedTest.test_intelligence_report)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_intelligence_report
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_report.py", line 3, in <module>
+    from review_system.intelligence_report import pull_request_markdown
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_ledger (unittest.loader._FailedTest.test_ledger)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_ledger
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_ledger.py", line 9, in <module>
+    from review_system.identity import derive_run_identity, write_identity_manifest
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_ledger_review_hardening (unittest.loader._FailedTest.test_ledger_review_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_ledger_review_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_ledger_review_hardening.py", line 6, in <module>
+    from review_system.ledger import import_artifact_directory, verify_ledger
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_merge (unittest.loader._FailedTest.test_merge)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_merge
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_merge.py", line 3, in <module>
+    from review_system.merge import merge_findings
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_packs (unittest.loader._FailedTest.test_packs)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_packs
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_packs.py", line 3, in <module>
+    from review_system.packs import lock_packs, select_packs, select_packs_with_reasons
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_path_globs (unittest.loader._FailedTest.test_path_globs)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_path_globs
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_path_globs.py", line 3, in <module>
+    from review_system.path_globs import expand_trailing_recursive_glob
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_policy_registry (unittest.loader._FailedTest.test_policy_registry)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_policy_registry
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_policy_registry.py", line 6, in <module>
+    from review_system.evaluation import run_evaluation, write_evaluation_report
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_policy_registry_hardening (unittest.loader._FailedTest.test_policy_registry_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_policy_registry_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_policy_registry_hardening.py", line 11, in <module>
+    from review_system.identity import canonical_json_sha256
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_profile (unittest.loader._FailedTest.test_profile)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_profile
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_profile.py", line 5, in <module>
+    from review_system.io import dump_yaml
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_project_init_and_pr_cli (unittest.loader._FailedTest.test_project_init_and_pr_cli)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_project_init_and_pr_cli
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_project_init_and_pr_cli.py", line 8, in <module>
+    from review_system.cli import main
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_reground (unittest.loader._FailedTest.test_reground)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_reground
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground.py", line 9, in <module>
+    from review_system.identity import canonical_json_sha256
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_reground_hardening (unittest.loader._FailedTest.test_reground_hardening)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_reground_hardening
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground_hardening.py", line 8, in <module>
+    from review_system.identity import canonical_json_sha256
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_review_run (unittest.loader._FailedTest.test_review_run)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_review_run
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_review_run.py", line 3, in <module>
+    from review_system.gate import calculate_gate_from_run, derive_finding_metrics
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_run (unittest.loader._FailedTest.test_run)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_run
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_run.py", line 7, in <module>
+    from review_system.io import dump_json, load_data
+ModuleNotFoundError: No module named 'review_system'
+
+
+======================================================================
+ERROR: test_validation (unittest.loader._FailedTest.test_validation)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_validation
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_validation.py", line 5, in <module>
+    from review_system.validation import validate_finding_data, validate_profile_file
+ModuleNotFoundError: No module named 'review_system'
+
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.014s
+
+FAILED (errors=37)
+FULL_EXIT=1
+RESULT=0,0,2,0,1,1

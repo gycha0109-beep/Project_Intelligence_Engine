@@ -59,6 +59,30 @@ class BuildMapExportIntegrityTests(unittest.TestCase):
             errors = verify_buildmap_export_data(export)
             self.assertTrue(any("artifact_redacted mismatch" in error for error in errors))
 
+    def test_malformed_reason_reference_is_a_validation_error_not_an_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = BuildMapFixture(Path(tmp))
+            export = fixture.export()
+            export["projection"]["decisions"][0]["reason_refs"] = [
+                {"group": [], "reason_id": {}}
+            ]
+            rehash_export(export)
+            errors = verify_buildmap_export_data(export)
+            self.assertTrue(errors)
+            self.assertTrue(any("reason_refs" in error for error in errors))
+
+    def test_rehashed_finding_defect_links_are_source_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = BuildMapFixture(Path(tmp))
+            export = fixture.export()
+            export["projection"]["findings"][0]["defect_ids"] = []
+            rehash_export(export)
+            self.assertEqual([], verify_buildmap_export_data(export))
+            self.assertIn(
+                "BuildMap source projection mismatch",
+                verify_buildmap_export_source(export, fixture.database),
+            )
+
     def test_rehashed_path_traversal_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = BuildMapFixture(Path(tmp))

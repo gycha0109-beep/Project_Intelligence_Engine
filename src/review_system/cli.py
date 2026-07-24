@@ -20,6 +20,7 @@ from .application import (
 )
 from .baseline import verify_snapshot_file, write_snapshot
 from .buildmap_cli import cmd_export as cmd_export_buildmap, cmd_validate as cmd_validate_buildmap_export
+from .buildmap_cli import cmd_export as cmd_export_buildmap, cmd_validate as cmd_validate_buildmap_export
 from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
 from .io import dump_json, dump_yaml, load_data

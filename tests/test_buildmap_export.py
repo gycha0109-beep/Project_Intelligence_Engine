@@ -10,6 +10,7 @@ from review_system.buildmap_export import (
     verify_buildmap_export_source,
     write_buildmap_export,
 )
+from review_system.defects import create_defect, initialize_defect_registry, link_finding
 from review_system.identity import derive_run_identity, write_identity_manifest
 from review_system.io import dump_json
 from review_system.ledger import import_artifact_directory
@@ -43,6 +44,31 @@ class BuildMapFixture:
         dump_json(self.directory / "private-reference.json", {"secret": "PRIVATE_REFERENCE"})
         (self.directory / "gate-policy.yml").write_text("version: '1.0'\n", encoding="utf-8")
         dump_json(
+            self.directory / "findings.json",
+            [
+                {
+                    "id": "FINDING-001",
+                    "title": "PRIVATE_FINDING_TITLE",
+                    "category": "test.buildmap.export",
+                    "severity": "P2",
+                    "confidence": "HYPOTHESIS",
+                    "status": "OPEN",
+                    "scope": {"files": ["src/demo.py"], "symbols": []},
+                    "evidence": [
+                        {
+                            "level": "E1",
+                            "type": "code",
+                            "location": "src/demo.py:1",
+                            "summary": "PRIVATE_FINDING_EVIDENCE",
+                        }
+                    ],
+                    "impact": "PRIVATE_FINDING_IMPACT",
+                    "recommended_action": "PRIVATE_FINDING_ACTION",
+                    "verification": [],
+                }
+            ],
+        )
+        dump_json(
             self.directory / "gate-result.json",
             {
                 "decision": "PASS",
@@ -69,6 +95,7 @@ class BuildMapFixture:
         self.database = root / "ledger.sqlite3"
         import_artifact_directory(self.database, self.directory, expected_run_type="review")
         self._insert_claim_and_evidence()
+        self._create_and_link_defect()
 
     def _insert_claim_and_evidence(self) -> None:
         with sqlite3.connect(self.database) as connection:
@@ -143,6 +170,37 @@ class BuildMapFixture:
                 ("claim-demo", "evidence-public", "supports", "strong"),
             )
 
+    def _create_and_link_defect(self) -> None:
+        with sqlite3.connect(self.database) as connection:
+            row = connection.execute(
+                "SELECT finding_id FROM findings WHERE run_id = ?",
+                (self.run_id,),
+            ).fetchone()
+        self.finding_id = str(row[0])
+        registry = self.root / "defect-registry.json"
+        initialize_defect_registry(registry, "demo")
+        defect = create_defect(
+            registry,
+            self.database,
+            signature="PRIVATE_DEFECT_SIGNATURE",
+            title="PRIVATE_DEFECT_TITLE",
+            category="test.buildmap.export",
+            actor="reviewer",
+            root_cause="PRIVATE_ROOT_CAUSE",
+            occurred_at="2026-07-24T00:10:00Z",
+        )
+        self.defect_id = str(defect["defect_id"])
+        link_finding(
+            registry,
+            self.database,
+            finding_id=self.finding_id,
+            defect_id=self.defect_id,
+            match_method="manual",
+            confidence=1.0,
+            approved_by="reviewer",
+            occurred_at="2026-07-24T00:11:00Z",
+        )
+
     def export(self, *, generated_at: str = "2026-07-24T12:00:00Z", redaction_paths=()):
         return build_buildmap_export(
             self.database,
@@ -169,6 +227,13 @@ class BuildMapExportTests(unittest.TestCase):
                 "PRIVATE_RESULT_TEXT",
                 "SECRET_PATCH_BODY",
                 "SECRET_TOKEN_VALUE",
+                "PRIVATE_FINDING_TITLE",
+                "PRIVATE_FINDING_EVIDENCE",
+                "PRIVATE_FINDING_IMPACT",
+                "PRIVATE_FINDING_ACTION",
+                "PRIVATE_DEFECT_SIGNATURE",
+                "PRIVATE_DEFECT_TITLE",
+                "PRIVATE_ROOT_CAUSE",
                 str(fixture.directory),
                 "/absolute/private/locator",
             ):
@@ -179,6 +244,10 @@ class BuildMapExportTests(unittest.TestCase):
                 [{"group": "pass", "reason_id": "G-P001"}],
                 export["projection"]["decisions"][0]["reason_refs"],
             )
+            finding = export["projection"]["findings"][0]
+            self.assertEqual(fixture.finding_id, finding["finding_id"])
+            self.assertEqual([fixture.defect_id], finding["defect_ids"])
+            self.assertEqual(fixture.defect_id, export["projection"]["defects"][0]["defect_id"])
             redacted_evidence = next(
                 item
                 for item in export["projection"]["evidence"]
