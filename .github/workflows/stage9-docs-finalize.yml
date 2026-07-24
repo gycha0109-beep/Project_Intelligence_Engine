@@ -1,0 +1,31 @@
+name: Stage 9 Docs Finalize
+
+on:
+  push:
+    branches:
+      - agent/stage-9-buildmap-export
+    paths:
+      - scripts/finalize_stage9_design.py
+      - .github/workflows/stage9-docs-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-9-buildmap-export
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/finalize_stage9_design.py
+      - name: Commit final design state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture/STAGE-9-BUILDMAP-EXPORT.md
+          git diff --cached --quiet || git commit -m "finalize Stage 9 design record"
+          git push origin HEAD:agent/stage-9-buildmap-export
