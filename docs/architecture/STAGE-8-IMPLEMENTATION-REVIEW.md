@@ -1,6 +1,6 @@
 # Stage 8 Implementation Review
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #15 HEAD `f97b7367a66bb3a7b077536350d5f604bfb83fe9`
 
@@ -84,4 +84,4 @@ file status를 조작해도 verifier는 recorded/current hash에서 실제 statu
 
 구현 리뷰: `PASS`
 
-GitHub Actions run `30090607168`에서 Python 3.11·3.13·3.14 전체 regression과 wheel build가 통과했다. 문서 포함 최종 exact HEAD에서 같은 matrix를 재검증한다.
+GitHub Actions run `30090607168`에서 Python 3.11·3.13·3.14 전체 regression과 wheel build가 통과했다. 최종 문서 포함 exact HEAD의 결과는 PR 본문을 권위 기록으로 사용한다.
