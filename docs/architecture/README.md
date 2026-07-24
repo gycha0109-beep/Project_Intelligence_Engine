@@ -25,6 +25,9 @@
 14. [STAGE-2D-COLLECTOR-BOUNDARIES.md](STAGE-2D-COLLECTOR-BOUNDARIES.md) — PR collector·pagination·discussion·source 조립 분리 설계
 15. [STAGE-2D-IMPLEMENTATION-REVIEW.md](STAGE-2D-IMPLEMENTATION-REVIEW.md) — Stage 2D 구현 리뷰
 16. [STAGE-2D-VALIDATION.md](STAGE-2D-VALIDATION.md) — Stage 2D 검증 결과
+17. [STAGE-3-RUN-ARTIFACT-IDENTITY.md](STAGE-3-RUN-ARTIFACT-IDENTITY.md) — Run·Artifact identity 상세 설계와 설계 리뷰
+18. [STAGE-3-IMPLEMENTATION-REVIEW.md](STAGE-3-IMPLEMENTATION-REVIEW.md) — Stage 3 구현 리뷰
+19. [STAGE-3-VALIDATION.md](STAGE-3-VALIDATION.md) — Stage 3 검증 결과
 
 ## 권위 규칙
 
@@ -44,7 +47,8 @@
 - Stage 2B — GitHub CLI Runner Extraction: `PASS`, PR #8 검토 대기
 - Stage 2C — Repository Binding Extraction: `PASS`, PR #9 검토 대기
 - Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
+- Stage 3 — Run and Artifact Identity: 구현·리뷰 완료, PR #11 최종 검증 중
 
 ## 다음 단계
 
-GitHub integration extraction을 동결하고 Evidence Ledger 설계로 이동한다.
+Stage 3 승인 후 Stage 4 Evidence Ledger Foundation의 SQLite schema·migration·rebuild 경계를 상세 설계한다.
