@@ -1,6 +1,6 @@
 # Stage 5 Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #12 HEAD `9a59bf1d41b9c6b5be559957737f78b66d6d24f3`
 
@@ -14,7 +14,7 @@
 - duplicate Finding import idempotence
 - invalid findings transaction rollback
 - unlinked stale Finding deletion
-- Defect-linked stale Finding deletion 거부
+- Defect-linked stale Finding 삭제 거부
 - deterministic Defect ID와 signature conflict
 - canonical registry ordering·hash
 - event hash·event ID·creation ordering
@@ -35,6 +35,7 @@
 2. 수정 후 focused·full Python 3.11 run `30075436093`이 통과했다.
 3. 구현 리뷰 hardening에서 event ID, CREATED ordering, CLOSED validator, migration upgrade와 CLI contract를 보강했다.
 4. 임시 workflow·script·diagnostic log를 제거한 코드 HEAD `d7711308e7a9eb4912148657736eb6746fcac6b3`의 run `30075607439`이 Python 3.11·3.13·3.14에서 모두 통과했다.
+5. 구현 리뷰·검증 문서와 Architecture index를 포함한 HEAD `bac95a21dc81e094f5e3124eaa0a9db216a2fe6e`의 run `30075765879`도 동일한 matrix를 통과했다.
 
 각 matrix job은 다음 단계를 완료했다.
 
@@ -46,6 +47,8 @@
 - finding validation: PASS
 - wheel build including `pie-defect`: PASS
 
-## 최종 판정 조건
+## 최종 판정
 
-본 문서와 Architecture index를 포함한 마지막 exact HEAD에서 같은 matrix를 통과하면 Stage 5 Gate를 `PASS`로 확정한다.
+Stage 5 Gate: `PASS`
+
+최종 상태 기록을 포함한 PR HEAD도 동일한 matrix로 재검증한다. PR 본문에 기록된 exact-head run을 최종 권위 검증으로 사용한다.
