@@ -3,7 +3,7 @@
 기준일: 2026-07-24  
 선행 기준선: PR #16 HEAD `7d4de5a37295d6154158f715a383fd4e7f44d0a9`  
 작업 브랜치: `agent/stage-9-buildmap-export`  
-상태: `DESIGN_APPROVED / IMPLEMENTATION_PENDING`
+상태: `PASS`
 
 ## 1. 목적
 
@@ -138,6 +138,7 @@ category
 severity
 confidence
 status
+defect_ids
 artifact_id
 artifact_redacted
 finding_sha256
@@ -154,6 +155,7 @@ lifecycle_status
 signature_sha256
 first_seen_run_id
 last_seen_run_id
+artifact_refs: artifact_id + relation + artifact_redacted
 ```
 
 제목, root cause, owner와 resolution 원문은 제외한다.
@@ -219,7 +221,8 @@ omitted_artifacts counts by reason
 - Run의 stable field
 - 전체 Artifact metadata
 - Claim, Evidence, ClaimEvidence
-- Finding과 linked Defect
+- Finding, Finding→Defect link와 linked Defect
+- Defect→Artifact evidence link
 - Decision과 Policy snapshot
 
 `artifact_root`, `imported_at` 등 projection 재생성 시 변하는 local metadata는 제외한다. 민감 원문은 export에 노출하지 않지만 source fingerprint 계산에는 반영된다.
@@ -260,6 +263,7 @@ Self-contained verifier는 다음을 재계산한다.
 - canonical array ordering
 - path normalization과 traversal 차단
 - opaque reference integrity
+- Finding→Defect와 Defect→Artifact relationship projection
 - reason reference projection
 - redaction invariants
 - projection SHA-256
