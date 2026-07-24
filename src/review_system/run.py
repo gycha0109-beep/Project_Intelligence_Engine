@@ -10,10 +10,17 @@ import zipfile
 
 from .baseline import verify_snapshot_file, write_snapshot
 from .gate import calculate_gate_from_run, derive_finding_metrics
+from .identity import (
+    identity_metadata,
+    review_run_identity,
+    validate_identity_manifest,
+    write_identity_manifest,
+)
+from .intelligence_state import capture_project_state
 from .io import dump_json, dump_yaml, load_data
 from .packs import lock_packs
 from .paths import asset
-from .profile import resolve_profile_file
+from .profile import repository_root_for, resolve_profile_file
 from .validation import (
     validate_findings_file,
     validate_profile_data,
@@ -45,6 +52,13 @@ COMPANION_INPUTS = (
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _refresh_run_identity(root: Path, run: dict[str, Any], *, source_revision: str | None = None) -> None:
+    identity = review_run_identity(run, source_revision=source_revision)
+    run["identity"] = identity_metadata(identity)
+    dump_json(root / "run.json", run)
+    write_identity_manifest(root, identity)
 
 
 def _default_metrics(profile: dict[str, Any]) -> dict[str, Any]:
@@ -97,6 +111,16 @@ def initialize_run(
     target.mkdir(parents=True, exist_ok=False)
     now = _utc_now()
     run_id = target.name
+    identity_root = (
+        Path(repository_root).resolve()
+        if repository_root is not None
+        else repository_root_for(profile_path, profile)
+    )
+    identity_state = capture_project_state(identity_root, project_id=profile["project"]["id"])
+    identity = review_run_identity(
+        {"run_id": run_id, "project_id": profile["project"]["id"]},
+        source_revision=identity_state["repository"].get("head_revision"),
+    )
     copied_inputs = _copy_companion_inputs(profile_path, target)
     pack_lock = lock_packs(profile["review"]["packs"])
     metadata = {
@@ -111,6 +135,7 @@ def initialize_run(
         "gate_config": profile["gate"],
         "constraints": profile.get("constraints", {}),
         "copied_inputs": copied_inputs,
+        "identity": identity_metadata(identity),
         "metrics": _default_metrics(profile),
         "findings": [],
     }
@@ -129,6 +154,7 @@ def initialize_run(
         shutil.copy2(asset(source), target / destination)
     if snapshot_protected and profile.get("protected_paths"):
         write_snapshot(profile_path, target / "protected-baseline.json", repository_root=repository_root)
+    write_identity_manifest(target, identity)
     write_manifest(target, filename="initial-manifest.sha256")
     return target
 
@@ -222,7 +248,7 @@ def sync_run(directory: str | Path) -> dict[str, Any]:
     errors = validate_review_run_data(run)
     if errors:
         raise ValueError("invalid synchronized run: " + "; ".join(errors))
-    dump_json(run_path, run)
+    _refresh_run_identity(root, run)
     return run
 
 
@@ -292,6 +318,7 @@ def calculate_gate_directory(
         result["protected_baseline_verification"] = protected_result
     dump_json(root / "gate-result.json", result)
     (root / "final-gate.md").write_text(_render_gate_markdown(result, run), encoding="utf-8")
+    _refresh_run_identity(root, run)
     return result
 
 
@@ -366,6 +393,9 @@ def validate_run_directory(directory: str | Path, *, require_gate: bool = False)
                     errors.append("protected baseline verification is stale")
                 if run.get("metrics", {}).get("protected_baseline_modified") != (not live["intact"]):
                     errors.append("run protected_baseline_modified metric is stale")
+    identity_path = root / "identity.json"
+    if identity_path.exists():
+        errors.extend(f"identity.json: {error}" for error in validate_identity_manifest(root))
     return errors
 
 
@@ -377,6 +407,10 @@ def archive_run(directory: str | Path, output: str | Path) -> Path:
     errors = validate_run_directory(root, require_gate=True)
     if errors:
         raise ValueError("run directory is not archivable: " + "; ".join(errors))
+    run = load_data(root / "run.json")
+    if not isinstance(run, dict):
+        raise ValueError("run.json must contain an object")
+    _refresh_run_identity(root, run)
     write_manifest(root)
     target.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
