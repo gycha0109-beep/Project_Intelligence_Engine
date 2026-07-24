@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+import warnings as py_warnings
 
 from ..intelligence_config import load_rules
 from ..intelligence_learning import approve_candidate_rule
@@ -35,14 +36,16 @@ def approve_rule(request: ApproveRuleRequest) -> ApproveRuleResult:
         (rule for rule in candidates.get("rules", []) if rule.get("id") == request.rule_id),
         None,
     )
-    warnings: tuple[str, ...] = ()
+    result_warnings: tuple[str, ...] = ()
     if selected is not None:
         evaluation = selected.get("evaluation")
         if not isinstance(evaluation, dict) or evaluation.get("decision") != "PASS":
-            warnings = (
+            warning = (
                 f"rule {request.rule_id} has no attached PASS evaluation report; "
-                "approval remains allowed for schema 1.0 compatibility",
+                "approval remains allowed for schema 1.0 compatibility"
             )
+            result_warnings = (warning,)
+            py_warnings.warn(warning, RuntimeWarning, stacklevel=2)
     updated_candidates, updated_approved = approve_candidate_rule(
         candidates,
         approved,
@@ -63,5 +66,5 @@ def approve_rule(request: ApproveRuleRequest) -> ApproveRuleResult:
         approved_path=approved_path,
         candidates=updated_candidates,
         approved=updated_approved,
-        warnings=warnings,
+        warnings=result_warnings,
     )
