@@ -23,6 +23,7 @@ class ApproveRuleResult:
     approved_path: Path
     candidates: dict
     approved: dict
+    warnings: tuple[str, ...] = ()
 
 
 def approve_rule(request: ApproveRuleRequest) -> ApproveRuleResult:
@@ -30,6 +31,18 @@ def approve_rule(request: ApproveRuleRequest) -> ApproveRuleResult:
     approved_path = Path(request.approved)
     candidates = load_rules(candidates_path)
     approved = load_rules(approved_path, required_status="approved")
+    selected = next(
+        (rule for rule in candidates.get("rules", []) if rule.get("id") == request.rule_id),
+        None,
+    )
+    warnings: tuple[str, ...] = ()
+    if selected is not None:
+        evaluation = selected.get("evaluation")
+        if not isinstance(evaluation, dict) or evaluation.get("decision") != "PASS":
+            warnings = (
+                f"rule {request.rule_id} has no attached PASS evaluation report; "
+                "approval remains allowed for schema 1.0 compatibility",
+            )
     updated_candidates, updated_approved = approve_candidate_rule(
         candidates,
         approved,
@@ -50,4 +63,5 @@ def approve_rule(request: ApproveRuleRequest) -> ApproveRuleResult:
         approved_path=approved_path,
         candidates=updated_candidates,
         approved=updated_approved,
+        warnings=warnings,
     )
