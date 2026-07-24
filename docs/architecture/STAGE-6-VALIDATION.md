@@ -1,10 +1,10 @@
 # Stage 6 Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #13 HEAD `f171129935b6617ed5d69983b50f07fab2399b3c`
 
-검증 대상 코드 HEAD: `f507c61491b5950dc16f0966420e633a6b206564`
+검증된 문서 포함 HEAD: `7b3d5d756a3802f58eed78d83cf24519369fdc4c`
 
 ## 검증 대상
 
@@ -39,18 +39,21 @@
 1. 초기 구현 HEAD `12af36f186dfb6d19f9a8accdf5def8db1bccd8f`의 GitHub Actions run `30082458842`가 Python 3.11·3.13·3.14에서 통과했다.
 2. 구현 리뷰에서 holdout 누락, evaluator identity 누락, path normalization projection 누락, metric 기본 threshold 0을 발견했다.
 3. hardening suite를 추가하고 focused Evaluation tests, 전체 regression, `pie-eval --help`, 기존 `pie --help`를 통과한 변경만 HEAD `f507c61491b5950dc16f0966420e633a6b206564`에 반영했다.
-4. 임시 적용 workflow와 script는 제품 diff에서 제거했다.
+4. 임시 적용 workflow와 script를 제품 diff에서 제거했다.
+5. 설계·구현 리뷰·검증 문서와 Architecture index를 포함한 HEAD `7b3d5d756a3802f58eed78d83cf24519369fdc4c`의 GitHub Actions run `30083113087`이 Python 3.11·3.13·3.14에서 모두 통과했다.
 
-## 최종 판정 조건
+각 matrix job은 다음 단계를 완료했다.
 
-설계·구현 리뷰·검증 문서와 Architecture index를 포함하고 임시 자산이 제거된 마지막 exact HEAD에서 다음 GitHub Actions matrix가 모두 통과하면 Stage 6 Gate를 `PASS`로 확정한다.
+- package install: PASS
+- package asset synchronization: PASS
+- full unit/regression suite: PASS
+- existing `urs version`: PASS
+- four profile validations: PASS
+- finding validation: PASS
+- wheel build including `pie-eval`: PASS
 
-- Python 3.11
-- Python 3.13
-- Python 3.14
-- full unit/regression suite
-- package asset synchronization
-- existing `urs version`
-- four profile validations
-- finding validation
-- wheel build including `pie-eval`
+## 최종 판정
+
+Stage 6 Gate: `PASS`
+
+최종 상태 문서가 포함된 PR HEAD에서도 동일 matrix를 다시 통과해야 PR을 Ready for review로 전환한다.
