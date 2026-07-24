@@ -1,0 +1,49 @@
+name: Stage 9 BuildMap Apply
+
+on:
+  push:
+    branches:
+      - agent/stage-9-buildmap-export
+    paths:
+      - scripts/apply_stage9_buildmap.py
+      - .github/workflows/stage9-buildmap-apply.yml
+      - src/review_system/buildmap_export.py
+      - src/review_system/buildmap_cli.py
+      - tests/test_buildmap_export.py
+      - tests/test_buildmap_export_hardening.py
+      - schemas/buildmap-export.schema.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage9-buildmap-apply
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-9-buildmap-export
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/apply_stage9_buildmap.py
+      - run: python scripts/sync_package_assets.py
+      - run: pip install -e .
+      - run: python -m compileall -q src tests
+      - run: python -m unittest discover -s tests -p 'test_buildmap_export*.py' -v
+      - run: python -m unittest discover -s tests -v
+      - run: pie export-buildmap --help
+      - run: pie validate-buildmap-export --help
+      - run: pie-buildmap --help
+      - run: pip wheel . --no-deps --wheel-dir dist-stage9
+      - name: Commit verified integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/review_system/cli.py pyproject.toml tests/test_buildmap_export_hardening.py src/review_system/assets/schemas/buildmap-export.schema.json
+          git diff --cached --quiet || git commit -m "integrate BuildMap export CLI"
+          git push origin HEAD:agent/stage-9-buildmap-export
