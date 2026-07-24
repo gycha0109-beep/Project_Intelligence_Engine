@@ -55,8 +55,8 @@
 - Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
 - Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
-- Stage 5 — Defect Registry: 구현·리뷰 완료, PR #13 최종 검증 중
+- Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
 
 ## 다음 단계
 
-Stage 5 승인 후 Stage 6 Evaluation Lab의 dataset·runner·metric 계약을 상세 설계한다.
+Stage 6 Evaluation Lab의 dataset·runner·metric 계약을 상세 설계한다.
