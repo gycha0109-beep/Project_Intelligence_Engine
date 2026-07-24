@@ -161,7 +161,7 @@ def _database_path(database: str | Path, *, create_parent: bool) -> Path:
 
 def _connect(path: Path, *, read_only: bool = False) -> sqlite3.Connection:
     if read_only:
-        connection = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=5.0)
+        connection = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=5.0)
     else:
         connection = sqlite3.connect(path, timeout=5.0)
     connection.row_factory = sqlite3.Row
@@ -242,19 +242,15 @@ def _load_identity_directory(
 
 
 def _legacy_run_id(root: Path, run_type: str) -> str | None:
-    if run_type == "review":
-        path = root / "run.json"
-        if path.is_file():
-            data = load_data(path)
-            if isinstance(data, dict) and isinstance(data.get("run_id"), str):
-                return data["run_id"]
-    if run_type == "pull_request":
-        path = root / "github-source.json"
-        if path.is_file():
-            data = load_data(path)
-            number = data.get("pull_request", {}).get("number") if isinstance(data, dict) else None
-            if isinstance(number, int) and not isinstance(number, bool):
-                return f"PR-{number}"
+    if run_type == "review" and (root / "run.json").is_file():
+        data = load_data(root / "run.json")
+        if isinstance(data, dict) and isinstance(data.get("run_id"), str):
+            return data["run_id"]
+    if run_type == "pull_request" and (root / "github-source.json").is_file():
+        data = load_data(root / "github-source.json")
+        number = data.get("pull_request", {}).get("number") if isinstance(data, dict) else None
+        if isinstance(number, int) and not isinstance(number, bool):
+            return f"PR-{number}"
     return None
 
 
@@ -265,64 +261,91 @@ def _explicit_projections(
     *,
     imported_at: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    artifact_ids = {
-        item.get("relative_path"): item.get("artifact_id")
+    by_path = {
+        item["relative_path"]: item
         for item in artifacts
-        if isinstance(item.get("relative_path"), str) and isinstance(item.get("artifact_id"), str)
+        if isinstance(item.get("relative_path"), str)
     }
     run_id = str(run["run_id"])
     decisions: list[dict[str, Any]] = []
     policies: list[dict[str, Any]] = []
 
-    policy_path = root / "gate-policy.yml"
-    if policy_path.is_file() and "gate-policy.yml" in artifact_ids:
-        policy = load_data(policy_path)
-        policy_version = str(policy.get("version")) if isinstance(policy, dict) and policy.get("version") is not None else None
-        policy_artifact = next(item for item in artifacts if item.get("relative_path") == "gate-policy.yml")
+    policy_artifact = by_path.get("gate-policy.yml")
+    if policy_artifact is not None and (root / "gate-policy.yml").is_file():
+        policy = load_data(root / "gate-policy.yml")
+        version = str(policy.get("version")) if isinstance(policy, dict) and policy.get("version") is not None else None
         digest = str(policy_artifact["sha256"])
         policies.append(
             {
                 "policy_snapshot_id": f"policy-{canonical_json_sha256({'run_id': run_id, 'sha256': digest})[:32]}",
                 "run_id": run_id,
-                "policy_version": policy_version,
+                "policy_version": version,
                 "source": "gate-policy.yml",
                 "sha256": digest,
                 "imported_at": imported_at,
-                "artifact_id": artifact_ids["gate-policy.yml"],
+                "artifact_id": policy_artifact["artifact_id"],
             }
         )
 
-    gate_path = root / "gate-result.json"
-    if gate_path.is_file() and "gate-result.json" in artifact_ids:
-        gate = load_data(gate_path)
+    gate_artifact = by_path.get("gate-result.json")
+    if gate_artifact is not None and (root / "gate-result.json").is_file():
+        gate = load_data(root / "gate-result.json")
         if isinstance(gate, dict) and isinstance(gate.get("decision"), str):
-            outcome = gate["decision"]
             policy_meta = gate.get("policy") if isinstance(gate.get("policy"), dict) else {}
-            policy_version = str(policy_meta.get("version")) if policy_meta.get("version") is not None else None
+            version = str(policy_meta.get("version")) if policy_meta.get("version") is not None else None
             natural_key = {
                 "run_id": run_id,
                 "decision_type": "review_gate",
-                "outcome": outcome,
-                "artifact_id": artifact_ids["gate-result.json"],
+                "outcome": gate["decision"],
+                "artifact_id": gate_artifact["artifact_id"],
             }
             decisions.append(
                 {
                     "decision_id": f"decision-{canonical_json_sha256(natural_key)[:32]}",
                     "run_id": run_id,
                     "decision_type": "review_gate",
-                    "outcome": outcome,
+                    "outcome": gate["decision"],
                     "reasons_json": json.dumps(
                         gate.get("triggered", {}),
                         sort_keys=True,
                         ensure_ascii=False,
                         separators=(",", ":"),
                     ),
-                    "policy_version": policy_version,
+                    "policy_version": version,
                     "decided_at": gate.get("generated_at") if isinstance(gate.get("generated_at"), str) else None,
-                    "artifact_id": artifact_ids["gate-result.json"],
+                    "artifact_id": gate_artifact["artifact_id"],
                 }
             )
     return decisions, policies
+
+
+def _required_run_fields(run: dict[str, Any]) -> None:
+    fields = (
+        "run_id",
+        "run_key_sha256",
+        "project_id",
+        "run_type",
+        "source_revision",
+        "source_identifier",
+    )
+    missing = [field for field in fields if not isinstance(run.get(field), str) or not run.get(field)]
+    if missing:
+        raise LedgerImportError("identity run is missing fields: " + ", ".join(missing))
+
+
+def _delete_stale_artifacts(
+    connection: sqlite3.Connection,
+    run_id: str,
+    artifact_ids: list[str],
+) -> None:
+    if not artifact_ids:
+        connection.execute("DELETE FROM artifacts WHERE run_id = ?", (run_id,))
+        return
+    placeholders = ",".join("?" for _ in artifact_ids)
+    connection.execute(
+        f"DELETE FROM artifacts WHERE run_id = ? AND artifact_id NOT IN ({placeholders})",
+        (run_id, *artifact_ids),
+    )
 
 
 def import_artifact_directory(
@@ -337,35 +360,24 @@ def import_artifact_directory(
         expected_run_type=expected_run_type,
     )
     _ensure_database_outside_root(database_path, root)
-    initialize_ledger(database_path)
-
-    required_run_fields = (
-        "run_id",
-        "run_key_sha256",
-        "project_id",
-        "run_type",
-        "source_revision",
-        "source_identifier",
-    )
-    missing = [field for field in required_run_fields if not isinstance(run.get(field), str) or not run.get(field)]
-    if missing:
-        raise LedgerImportError("identity run is missing fields: " + ", ".join(missing))
+    _required_run_fields(run)
     manifest_hash = manifest.get("manifest_sha256")
     if not isinstance(manifest_hash, str) or len(manifest_hash) != 64:
         raise LedgerImportError("identity manifest_sha256 is invalid")
+    initialize_ledger(database_path)
 
     imported_at = _utc_now()
     decisions, policies = _explicit_projections(root, run, artifacts, imported_at=imported_at)
+    run_id = str(run["run_id"])
+    artifact_ids = [str(item["artifact_id"]) for item in artifacts]
     with _connect(database_path) as connection:
         connection.execute("BEGIN IMMEDIATE")
         existing = connection.execute(
             "SELECT run_key_sha256 FROM runs WHERE run_id = ?",
-            (run["run_id"],),
+            (run_id,),
         ).fetchone()
         if existing is not None and existing["run_key_sha256"] != run["run_key_sha256"]:
-            raise LedgerImportError(
-                f"logical run ID collision for {run['run_id']}: full natural keys differ"
-            )
+            raise LedgerImportError(f"logical run ID collision for {run_id}: full natural keys differ")
         connection.execute(
             """
             INSERT INTO runs(
@@ -384,7 +396,7 @@ def import_artifact_directory(
                 imported_at = excluded.imported_at
             """,
             (
-                run["run_id"],
+                run_id,
                 run["run_key_sha256"],
                 run["project_id"],
                 run["run_type"],
@@ -396,12 +408,9 @@ def import_artifact_directory(
                 imported_at,
             ),
         )
-        connection.execute("DELETE FROM claim_evidence WHERE claim_id IN (SELECT claim_id FROM claims WHERE run_id = ?)", (run["run_id"],))
-        connection.execute("DELETE FROM claims WHERE run_id = ?", (run["run_id"],))
-        connection.execute("DELETE FROM evidence WHERE run_id = ?", (run["run_id"],))
-        connection.execute("DELETE FROM decisions WHERE run_id = ?", (run["run_id"],))
-        connection.execute("DELETE FROM policy_snapshots WHERE run_id = ?", (run["run_id"],))
-        connection.execute("DELETE FROM artifacts WHERE run_id = ?", (run["run_id"],))
+        connection.execute("DELETE FROM decisions WHERE run_id = ?", (run_id,))
+        connection.execute("DELETE FROM policy_snapshots WHERE run_id = ?", (run_id,))
+        _delete_stale_artifacts(connection, run_id, artifact_ids)
 
         for item in artifacts:
             connection.execute(
@@ -410,11 +419,19 @@ def import_artifact_directory(
                     artifact_id, artifact_key_sha256, run_id, artifact_type,
                     relative_path, sha256, media_type, size_bytes
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(artifact_id) DO UPDATE SET
+                    artifact_key_sha256 = excluded.artifact_key_sha256,
+                    run_id = excluded.run_id,
+                    artifact_type = excluded.artifact_type,
+                    relative_path = excluded.relative_path,
+                    sha256 = excluded.sha256,
+                    media_type = excluded.media_type,
+                    size_bytes = excluded.size_bytes
                 """,
                 (
                     item["artifact_id"],
                     item["artifact_key_sha256"],
-                    run["run_id"],
+                    run_id,
                     item["artifact_type"],
                     item["relative_path"],
                     item["sha256"],
@@ -430,15 +447,10 @@ def import_artifact_directory(
                     sha256, imported_at, artifact_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (
-                    item["policy_snapshot_id"],
-                    item["run_id"],
-                    item["policy_version"],
-                    item["source"],
-                    item["sha256"],
-                    item["imported_at"],
-                    item["artifact_id"],
-                ),
+                tuple(item[field] for field in (
+                    "policy_snapshot_id", "run_id", "policy_version", "source",
+                    "sha256", "imported_at", "artifact_id",
+                )),
             )
         for item in decisions:
             connection.execute(
@@ -448,22 +460,16 @@ def import_artifact_directory(
                     policy_version, decided_at, artifact_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (
-                    item["decision_id"],
-                    item["run_id"],
-                    item["decision_type"],
-                    item["outcome"],
-                    item["reasons_json"],
-                    item["policy_version"],
-                    item["decided_at"],
-                    item["artifact_id"],
-                ),
+                tuple(item[field] for field in (
+                    "decision_id", "run_id", "decision_type", "outcome",
+                    "reasons_json", "policy_version", "decided_at", "artifact_id",
+                )),
             )
 
     return LedgerImportResult(
         database=database_path,
         artifact_root=root,
-        run_id=str(run["run_id"]),
+        run_id=run_id,
         run_type=str(run["run_type"]),
         artifact_count=len(artifacts),
         decision_count=len(decisions),
@@ -472,7 +478,6 @@ def import_artifact_directory(
 
 
 def _migration_errors(connection: sqlite3.Connection) -> list[str]:
-    errors: list[str] = []
     try:
         rows = connection.execute(
             "SELECT version, checksum_sha256 FROM schema_migrations ORDER BY version"
@@ -481,6 +486,7 @@ def _migration_errors(connection: sqlite3.Connection) -> list[str]:
         return [f"schema_migrations unavailable: {exc}"]
     expected = {version: _migration_checksum(sql) for version, sql in _MIGRATIONS}
     recorded = {row["version"]: row["checksum_sha256"] for row in rows}
+    errors: list[str] = []
     for version, checksum in expected.items():
         if version not in recorded:
             errors.append(f"missing migration: {version}")
@@ -489,6 +495,27 @@ def _migration_errors(connection: sqlite3.Connection) -> list[str]:
     for version in sorted(set(recorded) - set(expected)):
         errors.append(f"unsupported migration present: {version}")
     return errors
+
+
+def _compare_rows(
+    errors: list[str],
+    *,
+    label: str,
+    expected: list[dict[str, Any]],
+    stored: list[dict[str, Any]],
+    key: str,
+    fields: tuple[str, ...],
+) -> None:
+    expected_by_key = {str(item[key]): item for item in expected}
+    stored_by_key = {str(item[key]): item for item in stored}
+    for value in sorted(set(expected_by_key) - set(stored_by_key)):
+        errors.append(f"{label} missing from ledger: {value}")
+    for value in sorted(set(stored_by_key) - set(expected_by_key)):
+        errors.append(f"stale ledger {label}: {value}")
+    for value in sorted(set(expected_by_key) & set(stored_by_key)):
+        for field in fields:
+            if expected_by_key[value].get(field) != stored_by_key[value].get(field):
+                errors.append(f"{label} {value} field mismatch: {field}")
 
 
 def verify_ledger(database: str | Path) -> dict[str, Any]:
@@ -507,9 +534,9 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
         with _connect(path, read_only=True) as connection:
             integrity = connection.execute("PRAGMA integrity_check").fetchone()
             if integrity is None or integrity[0] != "ok":
-                result["errors"].append(f"SQLite integrity_check failed: {integrity[0] if integrity else 'no result'}")
-            foreign_keys = connection.execute("PRAGMA foreign_key_check").fetchall()
-            for row in foreign_keys:
+                value = integrity[0] if integrity else "no result"
+                result["errors"].append(f"SQLite integrity_check failed: {value}")
+            for row in connection.execute("PRAGMA foreign_key_check").fetchall():
                 result["errors"].append(
                     f"foreign key violation: table={row[0]} rowid={row[1]} parent={row[2]}"
                 )
@@ -519,62 +546,90 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
 
             runs = connection.execute("SELECT * FROM runs ORDER BY run_id").fetchall()
             for run_row in runs:
+                run_id = str(run_row["run_id"])
                 result["runs_checked"] += 1
                 root = Path(run_row["artifact_root"])
                 if not root.is_dir():
-                    result["errors"].append(
-                        f"run {run_row['run_id']} artifact root not found: {root}"
-                    )
+                    result["errors"].append(f"run {run_id} artifact root not found: {root}")
                     continue
                 identity_errors = validate_identity_manifest(root, require_complete=True)
-                result["errors"].extend(
-                    f"run {run_row['run_id']}: {error}" for error in identity_errors
-                )
+                result["errors"].extend(f"run {run_id}: {error}" for error in identity_errors)
                 if identity_errors:
                     continue
                 manifest = load_data(root / "identity.json")
                 run = manifest["run"]
-                if run.get("run_id") != run_row["run_id"]:
-                    result["errors"].append(f"run {run_row['run_id']}: logical run ID mismatch")
-                if run.get("run_key_sha256") != run_row["run_key_sha256"]:
-                    result["errors"].append(f"run {run_row['run_id']}: run key mismatch")
+                for field in (
+                    "run_id", "run_key_sha256", "project_id", "run_type",
+                    "source_revision", "source_identifier",
+                ):
+                    if run.get(field) != run_row[field]:
+                        result["errors"].append(f"run {run_id}: field mismatch: {field}")
                 if manifest.get("manifest_sha256") != run_row["manifest_sha256"]:
-                    result["errors"].append(f"run {run_row['run_id']}: manifest hash mismatch")
+                    result["errors"].append(f"run {run_id}: manifest hash mismatch")
 
-                stored_artifacts = {
-                    row["relative_path"]: dict(row)
+                stored_artifacts = [
+                    dict(row)
                     for row in connection.execute(
                         "SELECT * FROM artifacts WHERE run_id = ? ORDER BY relative_path",
-                        (run_row["run_id"],),
+                        (run_id,),
                     ).fetchall()
-                }
-                manifest_artifacts = {
-                    item["relative_path"]: item for item in manifest.get("artifacts", [])
-                }
+                ]
+                manifest_artifacts = list(manifest.get("artifacts", []))
                 result["artifacts_checked"] += len(manifest_artifacts)
-                for relative in sorted(set(manifest_artifacts) - set(stored_artifacts)):
-                    result["errors"].append(
-                        f"run {run_row['run_id']}: artifact missing from ledger: {relative}"
-                    )
-                for relative in sorted(set(stored_artifacts) - set(manifest_artifacts)):
-                    result["errors"].append(
-                        f"run {run_row['run_id']}: stale ledger artifact: {relative}"
-                    )
-                for relative in sorted(set(manifest_artifacts) & set(stored_artifacts)):
-                    source = manifest_artifacts[relative]
-                    stored = stored_artifacts[relative]
-                    for field in (
-                        "artifact_id",
-                        "artifact_key_sha256",
-                        "artifact_type",
-                        "sha256",
-                        "media_type",
-                        "size_bytes",
-                    ):
-                        if source.get(field) != stored.get(field):
-                            result["errors"].append(
-                                f"run {run_row['run_id']}: artifact {relative} field mismatch: {field}"
-                            )
+                _compare_rows(
+                    result["errors"],
+                    label=f"run {run_id} artifact",
+                    expected=manifest_artifacts,
+                    stored=stored_artifacts,
+                    key="relative_path",
+                    fields=(
+                        "artifact_id", "artifact_key_sha256", "artifact_type",
+                        "sha256", "media_type", "size_bytes",
+                    ),
+                )
+
+                expected_decisions, expected_policies = _explicit_projections(
+                    root,
+                    run,
+                    manifest_artifacts,
+                    imported_at=str(run_row["imported_at"]),
+                )
+                stored_decisions = [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM decisions WHERE run_id = ? ORDER BY decision_id",
+                        (run_id,),
+                    ).fetchall()
+                ]
+                stored_policies = [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM policy_snapshots WHERE run_id = ? ORDER BY policy_snapshot_id",
+                        (run_id,),
+                    ).fetchall()
+                ]
+                _compare_rows(
+                    result["errors"],
+                    label=f"run {run_id} decision",
+                    expected=expected_decisions,
+                    stored=stored_decisions,
+                    key="decision_id",
+                    fields=(
+                        "run_id", "decision_type", "outcome", "reasons_json",
+                        "policy_version", "decided_at", "artifact_id",
+                    ),
+                )
+                _compare_rows(
+                    result["errors"],
+                    label=f"run {run_id} policy snapshot",
+                    expected=expected_policies,
+                    stored=stored_policies,
+                    key="policy_snapshot_id",
+                    fields=(
+                        "run_id", "policy_version", "source", "sha256",
+                        "imported_at", "artifact_id",
+                    ),
+                )
     except (sqlite3.DatabaseError, OSError, ValueError) as exc:
         result["errors"].append(f"ledger verification failed: {exc}")
         return result
@@ -582,10 +637,7 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
     return result
 
 
-def rebuild_ledger(
-    database: str | Path,
-    directories: Iterable[str | Path],
-) -> dict[str, Any]:
+def rebuild_ledger(database: str | Path, directories: Iterable[str | Path]) -> dict[str, Any]:
     path = _database_path(database, create_parent=True)
     roots = [Path(item).expanduser().resolve() for item in directories]
     if not roots:
@@ -626,30 +678,19 @@ def show_run(database: str | Path, run_id: str) -> dict[str, Any] | None:
         run = connection.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone()
         if run is None:
             return None
-        artifacts = [
-            dict(row)
-            for row in connection.execute(
-                "SELECT * FROM artifacts WHERE run_id = ? ORDER BY relative_path",
-                (run_id,),
-            ).fetchall()
-        ]
-        decisions = [
-            dict(row)
-            for row in connection.execute(
-                "SELECT * FROM decisions WHERE run_id = ? ORDER BY decision_id",
-                (run_id,),
-            ).fetchall()
-        ]
-        policies = [
-            dict(row)
-            for row in connection.execute(
-                "SELECT * FROM policy_snapshots WHERE run_id = ? ORDER BY policy_snapshot_id",
-                (run_id,),
-            ).fetchall()
-        ]
-    return {
-        "run": dict(run),
-        "artifacts": artifacts,
-        "decisions": decisions,
-        "policy_snapshots": policies,
-    }
+        result = {"run": dict(run)}
+        for key, table, order in (
+            ("artifacts", "artifacts", "relative_path"),
+            ("claims", "claims", "claim_id"),
+            ("evidence", "evidence", "evidence_id"),
+            ("decisions", "decisions", "decision_id"),
+            ("policy_snapshots", "policy_snapshots", "policy_snapshot_id"),
+        ):
+            result[key] = [
+                dict(row)
+                for row in connection.execute(
+                    f"SELECT * FROM {table} WHERE run_id = ? ORDER BY {order}",
+                    (run_id,),
+                ).fetchall()
+            ]
+    return result
