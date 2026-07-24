@@ -86,6 +86,6 @@ Traceback (most recent call last):
 review_system.defects.DefectRegistryError: refusing to write invalid defect registry: events[0].event_sha256 mismatch
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.366s
+Ran 9 tests in 0.632s
 
 FAILED (errors=6)
