@@ -309,7 +309,8 @@
         "lifecycle_status",
         "signature_sha256",
         "first_seen_run_id",
-        "last_seen_run_id"
+        "last_seen_run_id",
+        "artifact_refs"
       ],
       "properties": {
         "defect_id": {
@@ -332,6 +333,12 @@
         },
         "last_seen_run_id": {
           "$ref": "#/$defs/nullableId"
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/defectArtifactReference"
+          }
         }
       }
     },
@@ -544,6 +551,28 @@
         },
         "omitted_artifacts": {
           "$ref": "#/$defs/omittedCounts"
+        }
+      }
+    },
+    "defectArtifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "relation",
+        "artifact_redacted"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_redacted": {
+          "type": "boolean"
         }
       }
     }
