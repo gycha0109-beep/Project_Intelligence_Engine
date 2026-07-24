@@ -32,6 +32,8 @@
 21. [STAGE-4-IMPLEMENTATION-REVIEW.md](STAGE-4-IMPLEMENTATION-REVIEW.md) — Stage 4 구현 리뷰와 보완
 22. [STAGE-4-VALIDATION.md](STAGE-4-VALIDATION.md) — Stage 4 검증 결과
 23. [STAGE-5-DEFECT-REGISTRY.md](STAGE-5-DEFECT-REGISTRY.md) — Finding·Defect identity·lifecycle·registry 설계
+24. [STAGE-5-IMPLEMENTATION-REVIEW.md](STAGE-5-IMPLEMENTATION-REVIEW.md) — Stage 5 구현 리뷰와 보완
+25. [STAGE-5-VALIDATION.md](STAGE-5-VALIDATION.md) — Stage 5 검증 결과
 
 ## 권위 규칙
 
@@ -53,7 +55,7 @@
 - Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
 - Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
-- Stage 5 — Defect Registry: 구현 리뷰 진행
+- Stage 5 — Defect Registry: 구현·리뷰 완료, PR #13 최종 검증 중
 
 ## 다음 단계
 
