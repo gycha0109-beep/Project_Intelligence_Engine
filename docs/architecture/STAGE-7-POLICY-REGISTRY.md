@@ -3,7 +3,7 @@
 기준일: 2026-07-24  
 선행 기준선: PR #14 HEAD `e3d9aedc8b66e53a2cae61a3c18fc9280137354a`  
 작업 브랜치: `agent/stage-7-policy-registry`  
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 ## 1. 목적
 
@@ -225,7 +225,8 @@ pie-policy materialize
 - 설계된 Registry·Policy·event identity와 lifecycle을 구현했다.
 - 구현 리뷰에서 ID 재계산, parent version 증가, report traversal, lifecycle metadata projection 누락을 보완했다.
 - 코드 HEAD `9980bff910bb8f524d27836c052c726ab5c30291`의 Python 3.11·3.13·3.14 matrix가 통과했다.
-- 최종 문서 포함 exact HEAD의 재검증 결과는 `STAGE-7-VALIDATION.md`와 PR #15에 기록한다.
+- 설계·리뷰·검증 문서 포함 HEAD `42d827c8af743f71749f5a43c80f8c8acf71c1af`의 matrix도 통과했다.
+- 최종 상태 문서를 포함한 exact HEAD 결과는 PR #15에 기록한다.
 
 ## 12. Rollback
 
