@@ -1,12 +1,17 @@
 # Stage 10A Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #17 HEAD `cf4732bd78ca6d1e7ab78c44d0719285331d6803`
 
 검증된 코드 HEAD: `d58b2c3264e986cd0ca02117c9156c4f0575d19e`
 
-GitHub Actions run: `30108052100`
+문서 포함 검증 HEAD: `399ef6fdfd6ffaca345920aae7eceebd836be9ed`
+
+GitHub Actions runs:
+
+- 코드·테스트 HEAD: `30108052100`
+- 문서 포함 HEAD: `30108340288`
 
 ## 검증 범위
 
@@ -67,6 +72,6 @@ GitHub Actions run: `30108052100`
 
 ## 최종 판정
 
-Stage 10A code validation: `PASS`
+Stage 10A validation: `PASS`
 
-Architecture index와 최종 리뷰 문서가 포함된 exact HEAD의 GitHub Actions matrix를 통과한 뒤 PR을 Ready for review로 전환한다.
+코드·테스트 HEAD와 문서 포함 HEAD 모두 Python 3.11·3.13·3.14 matrix를 통과했다. 최종 상태 기록 HEAD에서도 같은 matrix를 재검증한다.
