@@ -224,6 +224,7 @@ def validate_registry_data(registry: dict[str, Any]) -> list[str]:
                 errors.append(f"{prefix}.{field} must be a non-empty string")
         payload = dict(item)
         recorded_hash = payload.pop("event_sha256", None)
+        payload.pop("event_id", None)
         if recorded_hash != canonical_json_sha256(payload):
             errors.append(f"{prefix}.event_sha256 mismatch")
         status_from = item.get("status_from")

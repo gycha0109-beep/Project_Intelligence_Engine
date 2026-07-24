@@ -289,7 +289,7 @@ class DefectRegistryTests(unittest.TestCase):
             )
             self.assertEqual("REOPENED", reopened["lifecycle_status"])
             shown = show_defect(database, defect["defect_id"])
-            self.assertEqual(8, len(shown["events"]))
+            self.assertEqual(9, len(shown["events"]))
             self.assertEqual(1, len(shown["findings"]))
             self.assertEqual(1, len(shown["artifacts"]))
             self.assertTrue(verify_defect_registry(database, registry)["valid"])

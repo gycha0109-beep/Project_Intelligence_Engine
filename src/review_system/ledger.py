@@ -13,7 +13,7 @@ from .identity import canonical_json_sha256, validate_identity_manifest
 from .io import load_data
 
 
-LEDGER_SCHEMA_VERSION = "001"
+LEDGER_SCHEMA_VERSION = "002"
 
 
 class LedgerError(RuntimeError):
@@ -117,7 +117,104 @@ CREATE INDEX IF NOT EXISTS idx_decisions_run_id ON decisions(run_id);
 CREATE INDEX IF NOT EXISTS idx_policy_snapshots_run_id ON policy_snapshots(run_id);
 """
 
-_MIGRATIONS: tuple[tuple[str, str], ...] = ((LEDGER_SCHEMA_VERSION, _INITIAL_SCHEMA),)
+_DEFECT_REGISTRY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS findings (
+    finding_id TEXT PRIMARY KEY,
+    finding_key_sha256 TEXT NOT NULL UNIQUE,
+    run_id TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
+    source_finding_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    confidence TEXT NOT NULL,
+    status TEXT NOT NULL,
+    scope_json TEXT NOT NULL,
+    impact TEXT NOT NULL,
+    recommended_action TEXT NOT NULL,
+    finding_sha256 TEXT NOT NULL,
+    artifact_id TEXT REFERENCES artifacts(artifact_id) ON DELETE SET NULL,
+    imported_at TEXT NOT NULL,
+    UNIQUE (run_id, source_finding_id)
+);
+
+CREATE TABLE IF NOT EXISTS registry_sources (
+    project_id TEXT PRIMARY KEY,
+    registry_path TEXT NOT NULL,
+    registry_sha256 TEXT NOT NULL,
+    imported_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS defects (
+    defect_id TEXT PRIMARY KEY,
+    defect_key_sha256 TEXT NOT NULL UNIQUE,
+    project_id TEXT NOT NULL,
+    signature TEXT NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    root_cause TEXT,
+    lifecycle_status TEXT NOT NULL CHECK (
+        lifecycle_status IN (
+            'OBSERVED', 'REPRODUCED', 'CLASSIFIED', 'RULE_CANDIDATE',
+            'MITIGATED', 'VERIFIED', 'CLOSED', 'REOPENED'
+        )
+    ),
+    first_seen_run_id TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    last_seen_run_id TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    owner TEXT,
+    resolution TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (project_id, signature)
+);
+
+CREATE TABLE IF NOT EXISTS finding_defects (
+    finding_id TEXT NOT NULL REFERENCES findings(finding_id) ON DELETE RESTRICT,
+    defect_id TEXT NOT NULL REFERENCES defects(defect_id) ON DELETE CASCADE,
+    match_method TEXT NOT NULL CHECK (match_method IN ('manual', 'deterministic_signature')),
+    confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+    approved_by TEXT NOT NULL,
+    linked_at TEXT NOT NULL,
+    PRIMARY KEY (finding_id, defect_id)
+);
+
+CREATE TABLE IF NOT EXISTS defect_events (
+    event_id TEXT PRIMARY KEY,
+    defect_id TEXT NOT NULL REFERENCES defects(defect_id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL CHECK (
+        event_type IN ('CREATED', 'FINDING_LINKED', 'ARTIFACT_LINKED', 'TRANSITIONED')
+    ),
+    status_from TEXT,
+    status_to TEXT,
+    actor TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    occurred_at TEXT NOT NULL,
+    event_sha256 TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS defect_artifacts (
+    defect_id TEXT NOT NULL REFERENCES defects(defect_id) ON DELETE CASCADE,
+    artifact_id TEXT NOT NULL REFERENCES artifacts(artifact_id) ON DELETE RESTRICT,
+    relation TEXT NOT NULL CHECK (
+        relation IN ('reproducer', 'diagnostic', 'mitigation', 'verification', 'resolution_evidence')
+    ),
+    linked_by TEXT NOT NULL,
+    linked_at TEXT NOT NULL,
+    note TEXT,
+    PRIMARY KEY (defect_id, artifact_id, relation)
+);
+
+CREATE INDEX IF NOT EXISTS idx_findings_run_id ON findings(run_id);
+CREATE INDEX IF NOT EXISTS idx_findings_category ON findings(category);
+CREATE INDEX IF NOT EXISTS idx_defects_project_status ON defects(project_id, lifecycle_status);
+CREATE INDEX IF NOT EXISTS idx_finding_defects_defect_id ON finding_defects(defect_id);
+CREATE INDEX IF NOT EXISTS idx_defect_events_defect_id ON defect_events(defect_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_defect_artifacts_defect_id ON defect_artifacts(defect_id);
+"""
+
+_MIGRATIONS: tuple[tuple[str, str], ...] = (
+    ("001", _INITIAL_SCHEMA),
+    (LEDGER_SCHEMA_VERSION, _DEFECT_REGISTRY_SCHEMA),
+)
 
 
 @dataclass(frozen=True)
@@ -439,6 +536,15 @@ def import_artifact_directory(
                     item["size_bytes"],
                 ),
             )
+        from .defects import project_findings_for_run
+
+        project_findings_for_run(
+            connection,
+            root,
+            run,
+            artifacts,
+            imported_at=imported_at,
+        )
         for item in policies:
             connection.execute(
                 """
@@ -587,6 +693,16 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
                         "sha256", "media_type", "size_bytes",
                     ),
                 )
+                from .defects import verify_findings_for_run
+
+                verify_findings_for_run(
+                    connection,
+                    root,
+                    run_id,
+                    manifest_artifacts,
+                    result["errors"],
+                    imported_at=str(run_row["imported_at"]),
+                )
 
                 expected_decisions, expected_policies = _explicit_projections(
                     root,
@@ -630,6 +746,16 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
                         "imported_at", "artifact_id",
                     ),
                 )
+            registry_sources = connection.execute(
+                "SELECT registry_path FROM registry_sources ORDER BY project_id"
+            ).fetchall()
+        from .defects import verify_defect_registry
+
+        for source in registry_sources:
+            registry_result = verify_defect_registry(path, source["registry_path"])
+            result["errors"].extend(
+                f"defect registry: {error}" for error in registry_result["errors"]
+            )
     except (sqlite3.DatabaseError, OSError, ValueError) as exc:
         result["errors"].append(f"ledger verification failed: {exc}")
         return result
@@ -637,7 +763,12 @@ def verify_ledger(database: str | Path) -> dict[str, Any]:
     return result
 
 
-def rebuild_ledger(database: str | Path, directories: Iterable[str | Path]) -> dict[str, Any]:
+def rebuild_ledger(
+    database: str | Path,
+    directories: Iterable[str | Path],
+    *,
+    registry_paths: Iterable[str | Path] = (),
+) -> dict[str, Any]:
     path = _database_path(database, create_parent=True)
     roots = [Path(item).expanduser().resolve() for item in directories]
     if not roots:
@@ -658,6 +789,21 @@ def rebuild_ledger(database: str | Path, directories: Iterable[str | Path]) -> d
                 )
             seen[item.run_id] = item.artifact_root
             imported.append(item.to_dict())
+        registries = [Path(item).expanduser().resolve() for item in registry_paths]
+        seen_projects: set[str] = set()
+        registry_results: list[dict[str, Any]] = []
+        if registries:
+            from .defects import load_defect_registry, sync_defect_registry
+
+            for registry_path in registries:
+                _, registry = load_defect_registry(registry_path)
+                project_id = str(registry["project_id"])
+                if project_id in seen_projects:
+                    raise LedgerImportError(
+                        f"rebuild input contains multiple Defect registries for project {project_id}"
+                    )
+                seen_projects.add(project_id)
+                registry_results.append(sync_defect_registry(temporary, registry_path))
         verification = verify_ledger(temporary)
         if not verification["valid"]:
             raise LedgerError("rebuilt ledger failed verification: " + "; ".join(verification["errors"]))
@@ -667,6 +813,7 @@ def rebuild_ledger(database: str | Path, directories: Iterable[str | Path]) -> d
         raise
     verification["database"] = str(path)
     verification["imported"] = imported
+    verification["defect_registries"] = registry_results
     return verification
 
 

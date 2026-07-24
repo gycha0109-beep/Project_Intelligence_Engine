@@ -68,7 +68,11 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 def cmd_rebuild(args: argparse.Namespace) -> int:
     try:
-        result = rebuild_ledger(args.database, args.directories)
+        result = rebuild_ledger(
+            args.database,
+            args.directories,
+            registry_paths=args.defect_registry,
+        )
     except Exception as exc:
         return _error(exc)
     _print(result)
@@ -115,6 +119,12 @@ def build_parser() -> argparse.ArgumentParser:
     command = sub.add_parser("rebuild", help="Atomically rebuild a ledger from explicit artifact directories")
     command.add_argument("directories", nargs="+")
     command.add_argument("--database", required=True)
+    command.add_argument(
+        "--defect-registry",
+        action="append",
+        default=[],
+        help="Canonical Defect Registry JSON to project after Run imports; repeatable",
+    )
     command.set_defaults(func=cmd_rebuild)
 
     command = sub.add_parser("show-run", help="Show one logical Run and its indexed artifacts")
