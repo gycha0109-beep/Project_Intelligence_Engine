@@ -44,6 +44,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/review_system/cli.py pyproject.toml tests/test_buildmap_export_hardening.py src/review_system/assets/schemas/buildmap-export.schema.json
-          git diff --cached --quiet || git commit -m "integrate BuildMap export CLI"
+          git add src/review_system/cli.py pyproject.toml src/review_system/buildmap_export.py tests/test_buildmap_export.py tests/test_buildmap_export_hardening.py schemas/buildmap-export.schema.json src/review_system/assets/schemas/buildmap-export.schema.json
+          git diff --cached --quiet || git commit -m "harden BuildMap export relationships"
           git push origin HEAD:agent/stage-9-buildmap-export
