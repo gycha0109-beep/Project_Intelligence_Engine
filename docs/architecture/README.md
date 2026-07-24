@@ -19,6 +19,9 @@
 8. [STAGE-1C-RULE-GATE-BOUNDARY.md](STAGE-1C-RULE-GATE-BOUNDARY.md) — ApproveRule·CalculateGate application boundary 설계·리뷰·검증
 9. [STAGE-2A-GITHUB-TARGET-EXTRACTION.md](STAGE-2A-GITHUB-TARGET-EXTRACTION.md) — GitHub target·repository parser 분리 설계·리뷰·검증
 10. [STAGE-2B-GITHUB-RUNNER-EXTRACTION.md](STAGE-2B-GITHUB-RUNNER-EXTRACTION.md) — GitHub CLI runner·retry 분리 설계·리뷰·검증
+11. [STAGE-2C-REPOSITORY-BINDING.md](STAGE-2C-REPOSITORY-BINDING.md) — repository binding 설계·설계 리뷰
+12. [STAGE-2C-IMPLEMENTATION-REVIEW.md](STAGE-2C-IMPLEMENTATION-REVIEW.md) — Stage 2C 구현 리뷰
+13. [STAGE-2C-VALIDATION.md](STAGE-2C-VALIDATION.md) — Stage 2C 검증 결과
 
 ## 권위 규칙
 
@@ -36,8 +39,8 @@
 - Stage 1C — ApproveRule / CalculateGate Application Boundaries: `PASS`, PR #6 검토 대기
 - Stage 2A — GitHub Target Parsing Extraction: `PASS`, PR #7 검토 대기
 - Stage 2B — GitHub CLI Runner Extraction: `PASS`, PR #8 검토 대기
-- Stage 2C — Repository Binding Extraction: 구현 리뷰 진행
+- Stage 2C — Repository Binding Extraction: `PASS`, PR #9 검토 대기
 
 ## 다음 단계
 
-Stage 2C 승인 후 PR collector의 pagination·discussion·artifact 조립 책임을 별도 모듈로 분리한다.
+Stage 2D에서 PR collector의 pagination·discussion·artifact 조립 책임을 별도 모듈로 분리한다.
