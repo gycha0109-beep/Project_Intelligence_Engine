@@ -75,7 +75,7 @@
 - Stage 7 — Policy Registry: `PASS`, PR #15 검토 대기
 - Stage 8 — Reground Foundation: `PASS`, PR #16 검토 대기
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
-- Stage 10A — Trust Gate Readiness: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #18 검토 대기
+- Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
 
 ## 다음 단계
 
