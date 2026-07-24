@@ -20,6 +20,7 @@ from .application import (
 )
 from .baseline import verify_snapshot_file, write_snapshot
 from .buildmap_cli import cmd_export as cmd_export_buildmap, cmd_validate as cmd_validate_buildmap_export
+from .trust_cli import cmd_assess as cmd_assess_trust, cmd_validate as cmd_validate_trust_report
 from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
 from .io import dump_json, dump_yaml, load_data
@@ -733,6 +734,29 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("export")
     p.add_argument("--ledger")
     p.set_defaults(func=cmd_validate_buildmap_export)
+
+    p = sub.add_parser("trust-assess", help="Generate a report-only Trust Gate readiness assessment")
+    p.add_argument("--request", required=True)
+    p.add_argument("--profile", required=True)
+    p.add_argument("--ledger")
+    p.add_argument("--policy-registry")
+    p.add_argument("--evaluation-report")
+    p.add_argument("--reground-report")
+    p.add_argument("--reground-observations")
+    p.add_argument("--output", required=True)
+    p.add_argument("--generated-at")
+    p.set_defaults(func=cmd_assess_trust)
+
+    p = sub.add_parser("validate-trust-report", help="Validate a Trust readiness report and optional source replay")
+    p.add_argument("report")
+    p.add_argument("--request")
+    p.add_argument("--profile")
+    p.add_argument("--ledger")
+    p.add_argument("--policy-registry")
+    p.add_argument("--evaluation-report")
+    p.add_argument("--reground-report")
+    p.add_argument("--reground-observations")
+    p.set_defaults(func=cmd_validate_trust_report)
     return parser
 
 

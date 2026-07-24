@@ -105,7 +105,7 @@ def _path_has_symlink(path: Path) -> bool:
     current = Path(absolute.anchor)
     for part in absolute.parts[1:]:
         current = current / part
-        if current.exists() and current.is_symlink():
+        if current.is_symlink():
             return True
     return False
 

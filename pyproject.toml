@@ -26,6 +26,7 @@ pie-eval = "review_system.evaluation_cli:main"
 pie-policy = "review_system.policy_cli:main"
 pie-reground = "review_system.reground_cli:main"
 pie-buildmap = "review_system.buildmap_cli:main"
+pie-trust = "review_system.trust_cli:main"
 
 [tool.setuptools]
 include-package-data = true
