@@ -332,12 +332,14 @@ def pull_request_run_identity(project_id: str, source: dict[str, Any]) -> RunIde
         raise ValueError("pull request number must be a positive integer")
     head_oid = pull_request.get("head_oid")
     source_hash = source.get("source_sha256")
+    revision = "unresolved"
     if isinstance(head_oid, str) and head_oid:
-        revision = head_oid
-    elif isinstance(source_hash, str) and len(source_hash) == 64 and _HEX_RE.fullmatch(source_hash):
+        try:
+            revision = normalize_source_revision(head_oid)
+        except ValueError:
+            revision = "unresolved"
+    if revision == "unresolved" and isinstance(source_hash, str) and len(source_hash) == 64 and _HEX_RE.fullmatch(source_hash):
         revision = f"sha256:{source_hash}"
-    else:
-        revision = "unresolved"
     identifier = f"github://{hostname.lower()}/{name_with_owner.lower()}/pull/{number}"
     return derive_run_identity(
         project_id=project_id,
