@@ -47,8 +47,8 @@
 - Stage 2B — GitHub CLI Runner Extraction: `PASS`, PR #8 검토 대기
 - Stage 2C — Repository Binding Extraction: `PASS`, PR #9 검토 대기
 - Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
-- Stage 3 — Run and Artifact Identity: 구현·리뷰 완료, PR #11 최종 검증 중
+- Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
 
 ## 다음 단계
 
-Stage 3 승인 후 Stage 4 Evidence Ledger Foundation의 SQLite schema·migration·rebuild 경계를 상세 설계한다.
+Stage 4 Evidence Ledger Foundation의 SQLite schema·migration·rebuild 경계를 상세 설계한다.
