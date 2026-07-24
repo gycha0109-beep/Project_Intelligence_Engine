@@ -41,3 +41,4 @@ jobs:
           git add schemas/buildmap-export.schema.json src/review_system/assets/schemas/buildmap-export.schema.json src/review_system/buildmap_export.py tests/test_buildmap_export.py tests/test_buildmap_export_hardening.py
           git diff --cached --quiet || git commit -m "preserve Defect Artifact references in BuildMap export"
           git push origin HEAD:agent/stage-9-buildmap-export
+# trigger
