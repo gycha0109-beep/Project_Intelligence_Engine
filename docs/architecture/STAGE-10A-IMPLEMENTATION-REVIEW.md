@@ -1,10 +1,12 @@
 # Stage 10A Implementation Review
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #17 HEAD `cf4732bd78ca6d1e7ab78c44d0719285331d6803`
 
 검증된 코드 HEAD: `d58b2c3264e986cd0ca02117c9156c4f0575d19e`
+
+문서 포함 검증 HEAD: `399ef6fdfd6ffaca345920aae7eceebd836be9ed`
 
 ## 구현 결과
 
@@ -98,4 +100,6 @@ CURRENT·STALE 혼합 fixture로 확장한 뒤 duplicate relation 테스트가 �
 
 구현 리뷰: `PASS`
 
-GitHub Actions run `30108052100`에서 Python 3.11·3.13·3.14 전체 regression, 기존 CLI·profile·Finding 검증과 wheel build가 통과했다. 문서 포함 exact HEAD에서 동일 matrix를 재검증한다.
+GitHub Actions run `30108052100`에서 코드·테스트 HEAD의 Python 3.11·3.13·3.14 전체 regression, 기존 CLI·profile·Finding 검증과 wheel build가 통과했다.
+
+GitHub Actions run `30108340288`에서 구현 리뷰·검증 문서와 Architecture index가 포함된 HEAD `399ef6fdfd6ffaca345920aae7eceebd836be9ed`의 동일 matrix가 통과했다.
