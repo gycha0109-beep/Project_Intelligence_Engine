@@ -28,7 +28,7 @@ Traceback (most recent call last):
 AssertionError: 'impacted_rechecks mismatch' not found in ['files[1].reasons mismatch', 'files[1].status mismatch', 'summary mismatch']
 
 ----------------------------------------------------------------------
-Ran 20 tests in 0.728s
+Ran 20 tests in 0.764s
 
 FAILED (failures=1)
 FOCUSED_EXIT=1
@@ -300,30 +300,30 @@ Traceback (most recent call last):
 AssertionError: 'impacted_rechecks mismatch' not found in ['files[1].reasons mismatch', 'files[1].status mismatch', 'summary mismatch']
 
 ----------------------------------------------------------------------
-Ran 252 tests in 5.235s
+Ran 252 tests in 4.320s
 
 FAILED (failures=1)
-MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmpbp_4_gzs/conflicts.json
-INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmpg9_1jhr1/graph.json
-ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmpg9_1jhr1/impact.json
-INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmp6dn6h_zh
-VALID profile: /tmp/tmp6dn6h_zh/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmp6dn6h_zh/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmpoj93isgk
-VALID profile: /tmp/tmpoj93isgk/.review/project.yml; packs=7; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpoj93isgk/.review/intelligence/config.yml; components=5
-INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmparll8sg8
-VALID profile: /tmp/tmparll8sg8/.review/project.yml; packs=11; inherits=['spring-postgres']
-VALID intelligence config: /tmp/tmparll8sg8/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp85vx2nqy
-VALID profile: /tmp/tmp85vx2nqy/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmp85vx2nqy/.review/intelligence/config.yml; components=4
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpop4qh_ng
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpop4qh_ng/analysis
+MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmp9rei6fkf/conflicts.json
+INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmplkyqfi9z/graph.json
+ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmplkyqfi9z/impact.json
+INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmpu47iw2u1
+VALID profile: /tmp/tmpu47iw2u1/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmpu47iw2u1/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmp659jl1ts
+VALID profile: /tmp/tmp659jl1ts/.review/project.yml; packs=7; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmp659jl1ts/.review/intelligence/config.yml; components=5
+INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmpr7hntpsk
+VALID profile: /tmp/tmpr7hntpsk/.review/project.yml; packs=11; inherits=['spring-postgres']
+VALID intelligence config: /tmp/tmpr7hntpsk/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpb6x3o60x
+VALID profile: /tmp/tmpb6x3o60x/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmpb6x3o60x/.review/intelligence/config.yml; components=4
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpfke57or7
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpfke57or7/analysis
 VALID GitHub source: repo=demo/repo; pr=#7; files=1
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpajaogo5m
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpajaogo5m/analysis
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpajaogo5m/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpc4ivb6ar
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpc4ivb6ar/analysis
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpc4ivb6ar/analysis
 {
   "schema_version": "1.0",
   "ready": true,
@@ -343,18 +343,18 @@ ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; outp
     "hostname": "github.com"
   }
 }
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpblx5a466
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpblx5a466/allowed
-INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmp4zuo6vlo
-INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmp4zuo6vlo
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp25g_46nt
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmp25g_46nt
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmp25g_46nt
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp9r7f1f64
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpji8ei34z
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpji8ei34z/allowed
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpe32tiwpt
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpe32tiwpt/analysis
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp4g4x8gmm
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp4g4x8gmm/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpzvoy3gqk
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpzvoy3gqk/allowed
+INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmpunk5dnai
+INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmpunk5dnai
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpudl_dh0a
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmpudl_dh0a
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmpudl_dh0a
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpyl173tr2
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmplnwft44f
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmplnwft44f/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpiicqfzni
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpiicqfzni/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp4pg6v9wc
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp4pg6v9wc/allowed
 FULL_EXIT=1
