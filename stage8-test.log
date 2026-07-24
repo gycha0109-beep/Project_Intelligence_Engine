@@ -14,24 +14,16 @@ test_graph_ledger_and_output_symlink_paths_are_rejected (test_reground_hardening
 test_invalid_ledger_is_rejected_before_last_run_projection (test_reground_hardening.RegroundInputSafetyTests.test_invalid_ledger_is_rejected_before_last_run_projection) ... ok
 test_tampered_graph_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tampered_graph_is_rejected) ... ok
 test_tracked_symlink_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tracked_symlink_is_rejected) ... ok
-test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... FAIL
+test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... ok
 test_rehashed_relation_and_recheck_tamper_are_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_relation_and_recheck_tamper_are_detected) ... ok
 test_report_id_and_snapshot_hash_are_natural_key_verified (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_id_and_snapshot_hash_are_natural_key_verified) ... ok
 test_report_path_traversal_is_detected_after_rehash (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_path_traversal_is_detected_after_rehash) ... ok
 
-======================================================================
-FAIL: test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected)
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground_hardening.py", line 42, in test_rehashed_file_status_tamper_is_detected
-    self.assertIn("impacted_rechecks mismatch", errors)
-AssertionError: 'impacted_rechecks mismatch' not found in ['files[1].reasons mismatch', 'files[1].status mismatch', 'summary mismatch']
+Ran 20 tests in 0.699s
 
-----------------------------------------------------------------------
-Ran 20 tests in 0.764s
-
-FAILED (failures=1)
-FOCUSED_EXIT=1
+OK
+FOCUSED_EXIT=0
 test_cli_maps_arguments_and_delegates_to_use_case (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_cli_maps_arguments_and_delegates_to_use_case) ... ok
 test_direct_use_case_preserves_artifact_and_hash_contracts (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_direct_use_case_preserves_artifact_and_hash_contracts) ... ok
 test_direct_use_case_preserves_fail_closed_repository_binding (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_direct_use_case_preserves_fail_closed_repository_binding) ... ok
@@ -264,7 +256,7 @@ test_graph_ledger_and_output_symlink_paths_are_rejected (test_reground_hardening
 test_invalid_ledger_is_rejected_before_last_run_projection (test_reground_hardening.RegroundInputSafetyTests.test_invalid_ledger_is_rejected_before_last_run_projection) ... ok
 test_tampered_graph_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tampered_graph_is_rejected) ... ok
 test_tracked_symlink_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tracked_symlink_is_rejected) ... ok
-test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... FAIL
+test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... ok
 test_rehashed_relation_and_recheck_tamper_are_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_relation_and_recheck_tamper_are_detected) ... ok
 test_report_id_and_snapshot_hash_are_natural_key_verified (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_id_and_snapshot_hash_are_natural_key_verified) ... ok
 test_report_path_traversal_is_detected_after_rehash (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_path_traversal_is_detected_after_rehash) ... ok
@@ -291,39 +283,31 @@ test_rejected_status_and_confidence_must_match (test_validation.ValidationTests.
 test_resolved_requires_e5 (test_validation.ValidationTests.test_resolved_requires_e5) ... ok
 test_unknown_pack_is_rejected (test_validation.ValidationTests.test_unknown_pack_is_rejected) ... ok
 
-======================================================================
-FAIL: test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected)
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground_hardening.py", line 42, in test_rehashed_file_status_tamper_is_detected
-    self.assertIn("impacted_rechecks mismatch", errors)
-AssertionError: 'impacted_rechecks mismatch' not found in ['files[1].reasons mismatch', 'files[1].status mismatch', 'summary mismatch']
+Ran 252 tests in 4.034s
 
-----------------------------------------------------------------------
-Ran 252 tests in 4.320s
-
-FAILED (failures=1)
-MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmp9rei6fkf/conflicts.json
-INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmplkyqfi9z/graph.json
-ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmplkyqfi9z/impact.json
-INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmpu47iw2u1
-VALID profile: /tmp/tmpu47iw2u1/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpu47iw2u1/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmp659jl1ts
-VALID profile: /tmp/tmp659jl1ts/.review/project.yml; packs=7; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmp659jl1ts/.review/intelligence/config.yml; components=5
-INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmpr7hntpsk
-VALID profile: /tmp/tmpr7hntpsk/.review/project.yml; packs=11; inherits=['spring-postgres']
-VALID intelligence config: /tmp/tmpr7hntpsk/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpb6x3o60x
-VALID profile: /tmp/tmpb6x3o60x/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpb6x3o60x/.review/intelligence/config.yml; components=4
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpfke57or7
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpfke57or7/analysis
+OK
+MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmpxs0dqqdw/conflicts.json
+INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmpuzj21l_6/graph.json
+ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmpuzj21l_6/impact.json
+INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmput38cxmv
+VALID profile: /tmp/tmput38cxmv/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmput38cxmv/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmp_h_syekb
+VALID profile: /tmp/tmp_h_syekb/.review/project.yml; packs=7; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmp_h_syekb/.review/intelligence/config.yml; components=5
+INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmphvzx43bm
+VALID profile: /tmp/tmphvzx43bm/.review/project.yml; packs=11; inherits=['spring-postgres']
+VALID intelligence config: /tmp/tmphvzx43bm/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp14kwf85a
+VALID profile: /tmp/tmp14kwf85a/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmp14kwf85a/.review/intelligence/config.yml; components=4
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmppef5jvhp
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmppef5jvhp/analysis
 VALID GitHub source: repo=demo/repo; pr=#7; files=1
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpc4ivb6ar
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpc4ivb6ar/analysis
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpc4ivb6ar/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp37m44uwh
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp37m44uwh/analysis
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp37m44uwh/analysis
 {
   "schema_version": "1.0",
   "ready": true,
@@ -343,18 +327,18 @@ ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; outp
     "hostname": "github.com"
   }
 }
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpzvoy3gqk
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpzvoy3gqk/allowed
-INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmpunk5dnai
-INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmpunk5dnai
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpudl_dh0a
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmpudl_dh0a
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmpudl_dh0a
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpyl173tr2
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmplnwft44f
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmplnwft44f/allowed
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpiicqfzni
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpiicqfzni/analysis
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp4pg6v9wc
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp4pg6v9wc/allowed
-FULL_EXIT=1
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp5y10dztn
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp5y10dztn/allowed
+INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmpj429j7yv
+INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmpj429j7yv
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpuh3ni2ql
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmpuh3ni2ql
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmpuh3ni2ql
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpnm9cfn_d
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpjjv1wlb_
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpjjv1wlb_/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp76m7aqlj
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmp76m7aqlj/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpeiqb7g6r
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpeiqb7g6r/allowed
+FULL_EXIT=0
