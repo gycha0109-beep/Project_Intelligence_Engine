@@ -286,10 +286,12 @@ class BuildMapExportTests(unittest.TestCase):
             defect = export["projection"]["defects"][0]
             self.assertEqual(fixture.defect_id, defect["defect_id"])
             self.assertEqual(2, len(defect["artifact_refs"]))
-            self.assertEqual(
-                [False, True],
-                [item["artifact_redacted"] for item in defect["artifact_refs"]],
-            )
+            refs_by_relation = {
+                item["relation"]: item
+                for item in defect["artifact_refs"]
+            }
+            self.assertFalse(refs_by_relation["diagnostic"]["artifact_redacted"])
+            self.assertTrue(refs_by_relation["reproducer"]["artifact_redacted"])
             redacted_evidence = next(
                 item
                 for item in export["projection"]["evidence"]
