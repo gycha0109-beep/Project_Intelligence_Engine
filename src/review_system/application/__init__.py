@@ -9,6 +9,7 @@ from .calculate_gate import (
     ReviewRunValidationError,
     calculate_review_gate,
 )
+from .evaluate_policy import EvaluatePolicyRequest, EvaluatePolicyResult, evaluate_policy
 from .index_project import IndexProjectRequest, IndexProjectResult, index_project
 
 __all__ = [
@@ -20,6 +21,8 @@ __all__ = [
     "ApproveRuleResult",
     "CalculateGateRequest",
     "CalculateGateResult",
+    "EvaluatePolicyRequest",
+    "EvaluatePolicyResult",
     "IndexProjectRequest",
     "IndexProjectResult",
     "ReviewRunValidationError",
@@ -27,5 +30,6 @@ __all__ = [
     "analyze_pull_request",
     "approve_rule",
     "calculate_review_gate",
+    "evaluate_policy",
     "index_project",
 ]
