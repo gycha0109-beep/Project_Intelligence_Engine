@@ -2,699 +2,411 @@ APPLY_EXIT=0
 /home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/src/review_system/assets
 SYNC_EXIT=0
 Obtaining file:///home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine
-ERROR: Exception:
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/base_command.py", line 109, in _run_wrapper
-    status = _inner_run()
-             ^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/base_command.py", line 102, in _inner_run
-    return self.run(options, args)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/cli/req_command.py", line 101, in wrapper
-    return func(self, options, args)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/commands/install.py", line 479, in run
-    requirement_set = resolver.resolve(
-                      ^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 79, in resolve
-    collected = self.factory.collect_root_requirements(root_reqs)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 597, in collect_root_requirements
-    reqs = list(
-           ^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 553, in _make_requirements_from_install_req
-    cand = self._make_base_candidate_from_link(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 207, in _make_base_candidate_from_link
-    self._editable_candidate_cache[link] = EditableCandidate(
-                                           ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 351, in __init__
-    super().__init__(
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 168, in __init__
-    self.dist = self._prepare()
-                ^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 246, in _prepare
-    dist = self._prepare_distribution()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 361, in _prepare_distribution
-    return self._factory.preparer.prepare_editable_requirement(self._ireq)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/operations/prepare.py", line 717, in prepare_editable_requirement
-    dist = _get_prepared_distribution(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
-    abstract_dist.prepare_distribution_metadata(
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/distributions/sdist.py", line 42, in prepare_distribution_metadata
-    self.req.load_pyproject_toml()
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/req/req_install.py", line 492, in load_pyproject_toml
-    pyproject_toml_data = load_pyproject_toml(
-                          ^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pip/_internal/pyproject.py", line 64, in load_pyproject_toml
-    pp_toml = tomllib.loads(f.read())
-              ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/tomllib/_parser.py", line 102, in loads
-    pos = key_value_rule(src, pos, out, header, parse_float)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/tomllib/_parser.py", line 349, in key_value_rule
-    raise suffixed_err(src, pos, "Cannot overwrite a value")
-tomllib.TOMLDecodeError: Cannot overwrite a value (at line 29, column 49)
-INSTALL_EXIT=2
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Collecting PyYAML>=6.0.3 (from project-intelligence-engine==0.3.0)
+  Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting jsonschema>=4.26.0 (from project-intelligence-engine==0.3.0)
+  Downloading jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+Collecting attrs>=22.2.0 (from jsonschema>=4.26.0->project-intelligence-engine==0.3.0)
+  Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.26.0->project-intelligence-engine==0.3.0)
+  Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+Collecting referencing>=0.28.4 (from jsonschema>=4.26.0->project-intelligence-engine==0.3.0)
+  Downloading referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+Collecting rpds-py>=0.25.0 (from jsonschema>=4.26.0->project-intelligence-engine==0.3.0)
+  Downloading rpds_py-2026.6.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+Collecting typing-extensions>=4.4.0 (from referencing>=0.28.4->jsonschema>=4.26.0->project-intelligence-engine==0.3.0)
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 13.7 MB/s  0:00:00
+Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+Downloading rpds_py-2026.6.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (371 kB)
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Building wheels for collected packages: project-intelligence-engine
+  Building editable for project-intelligence-engine (pyproject.toml): started
+  Building editable for project-intelligence-engine (pyproject.toml): finished with status 'done'
+  Created wheel for project-intelligence-engine: filename=project_intelligence_engine-0.3.0-0.editable-py3-none-any.whl size=4990 sha256=9a03d9426ec4043af78681bdb7efe9441ccd43bc7628461e85500b40cd780cd0
+  Stored in directory: /tmp/pip-ephem-wheel-cache-c5q0bk_y/wheels/47/63/09/7485a8c415a66b0a2482ed1c086cb7dd2861e9a5a30fb9c644
+Successfully built project-intelligence-engine
+Installing collected packages: typing-extensions, rpds-py, PyYAML, attrs, referencing, jsonschema-specifications, jsonschema, project-intelligence-engine
+
+Successfully installed PyYAML-6.0.3 attrs-26.1.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 project-intelligence-engine-0.3.0 referencing-0.37.0 rpds-py-2026.6.3 typing-extensions-4.16.0
+INSTALL_EXIT=0
 COMPILE_EXIT=0
-test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export) ... ERROR
-test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening) ... ERROR
-
-======================================================================
-ERROR: test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_buildmap_export
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export.py", line 7, in <module>
-    from review_system.buildmap_export import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_buildmap_export_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export_hardening.py", line 8, in <module>
-    from review_system.buildmap_export import (
-ModuleNotFoundError: No module named 'review_system'
-
+test_buildmap_consumer_can_idempotently_import_reference_projection (test_buildmap_export.BuildMapExportTests.test_buildmap_consumer_can_idempotently_import_reference_projection) ... ok
+test_default_and_custom_redaction_counts_are_explicit (test_buildmap_export.BuildMapExportTests.test_default_and_custom_redaction_counts_are_explicit) ... ok
+test_export_id_is_stable_across_time_and_idempotent_reimport (test_buildmap_export.BuildMapExportTests.test_export_id_is_stable_across_time_and_idempotent_reimport) ... ok
+test_export_is_valid_reference_only_and_source_verifiable (test_buildmap_export.BuildMapExportTests.test_export_is_valid_reference_only_and_source_verifiable) ... ok
+test_unsafe_external_source_identifier_is_replaced_by_pie_uri (test_buildmap_export.BuildMapExportTests.test_unsafe_external_source_identifier_is_replaced_by_pie_uri) ... ok
+test_write_round_trip (test_buildmap_export.BuildMapExportTests.test_write_round_trip) ... ok
+test_atomic_replace_failure_preserves_existing_bytes (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
+test_export_and_ledger_symlink_inputs_are_rejected (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_export_and_ledger_symlink_inputs_are_rejected) ... ok
+test_invalid_document_is_rejected_before_write (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_invalid_document_is_rejected_before_write) ... ok
+test_output_symlink_is_rejected (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_output_symlink_is_rejected) ... ok
+test_custom_redaction_pattern_traversal_is_rejected (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_custom_redaction_pattern_traversal_is_rejected) ... ok
+test_malformed_reason_reference_is_a_validation_error_not_an_exception (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_malformed_reason_reference_is_a_validation_error_not_an_exception) ... ok
+test_rehashed_artifact_redaction_flag_is_recomputed (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_artifact_redaction_flag_is_recomputed) ... ok
+test_rehashed_body_injection_is_rejected_by_schema (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_body_injection_is_rejected_by_schema) ... ok
+test_rehashed_finding_defect_links_are_source_verified (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_finding_defect_links_are_source_verified) ... ok
+test_rehashed_path_traversal_is_rejected (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_path_traversal_is_rejected) ... ok
+test_rehashed_reordering_is_rejected_by_canonical_projection (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_reordering_is_rejected_by_canonical_projection) ... ok
+test_source_fingerprint_tamper_requires_ledger_replay (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_source_fingerprint_tamper_requires_ledger_replay) ... ok
+test_source_projection_tamper_is_detected_against_ledger (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_source_projection_tamper_is_detected_against_ledger) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.000s
+Ran 19 tests in 1.310s
 
-FAILED (errors=2)
-FOCUSED_EXIT=1
-test_application_analyze_pr (unittest.loader._FailedTest.test_application_analyze_pr) ... ERROR
-test_application_index_analyze (unittest.loader._FailedTest.test_application_index_analyze) ... ERROR
-test_application_rule_gate (unittest.loader._FailedTest.test_application_rule_gate) ... ERROR
+OK
+FOCUSED_EXIT=0
+test_cli_maps_arguments_and_delegates_to_use_case (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_cli_maps_arguments_and_delegates_to_use_case) ... ok
+test_direct_use_case_preserves_artifact_and_hash_contracts (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_direct_use_case_preserves_artifact_and_hash_contracts) ... ok
+test_direct_use_case_preserves_fail_closed_repository_binding (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_direct_use_case_preserves_fail_closed_repository_binding) ... ok
+test_empty_output_directory_uses_default_pr_artifact_path (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_empty_output_directory_uses_default_pr_artifact_path) ... ok
+test_request_contract_is_immutable (test_application_analyze_pr.AnalyzePullRequestApplicationTests.test_request_contract_is_immutable) ... ok
+test_analyze_change_base_source_uses_injected_git_diff_reader (test_application_index_analyze.IndexAnalyzeApplicationTests.test_analyze_change_base_source_uses_injected_git_diff_reader) ... ok
+test_analyze_change_cli_maps_arguments_and_dependency (test_application_index_analyze.IndexAnalyzeApplicationTests.test_analyze_change_cli_maps_arguments_and_dependency) ... ok
+test_analyze_change_files_source_preserves_json_markdown_and_impact (test_application_index_analyze.IndexAnalyzeApplicationTests.test_analyze_change_files_source_preserves_json_markdown_and_impact) ... ok
+test_changed_file_source_requires_exactly_one_input (test_application_index_analyze.IndexAnalyzeApplicationTests.test_changed_file_source_requires_exactly_one_input) ... ok
+test_index_project_cli_maps_arguments_and_delegates (test_application_index_analyze.IndexAnalyzeApplicationTests.test_index_project_cli_maps_arguments_and_delegates) ... ok
+test_index_project_preserves_graph_and_artifact_contract (test_application_index_analyze.IndexAnalyzeApplicationTests.test_index_project_preserves_graph_and_artifact_contract) ... ok
+test_invalid_graph_fails_before_output_write (test_application_index_analyze.IndexAnalyzeApplicationTests.test_invalid_graph_fails_before_output_write) ... ok
+test_missing_approved_rules_fails_before_output_write (test_application_index_analyze.IndexAnalyzeApplicationTests.test_missing_approved_rules_fails_before_output_write) ... ok
+test_request_contracts_are_frozen (test_application_index_analyze.IndexAnalyzeApplicationTests.test_request_contracts_are_frozen) ... ok
+test_approval_request_is_immutable (test_application_rule_gate.ApproveRuleApplicationTests.test_approval_request_is_immutable) ... ok
+test_cli_maps_rule_approval_arguments (test_application_rule_gate.ApproveRuleApplicationTests.test_cli_maps_rule_approval_arguments) ... ok
+test_direct_approval_updates_both_files_and_preserves_audit (test_application_rule_gate.ApproveRuleApplicationTests.test_direct_approval_updates_both_files_and_preserves_audit) ... /home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_rule_gate.py:48: RuntimeWarning: rule LC_5F40FE360D has no attached PASS evaluation report; approval remains allowed for schema 1.0 compatibility
+  result = approve_rule(
+ok
+test_failed_approval_does_not_modify_either_file (test_application_rule_gate.ApproveRuleApplicationTests.test_failed_approval_does_not_modify_either_file) ... ok
+test_direct_gate_calculation_writes_requested_output (test_application_rule_gate.CalculateGateApplicationTests.test_direct_gate_calculation_writes_requested_output) ... ok
+test_gate_hold_maps_to_three (test_application_rule_gate.CalculateGateApplicationTests.test_gate_hold_maps_to_three) ... ok
+test_gate_pass_maps_to_zero_and_preserves_stdout_json (test_application_rule_gate.CalculateGateApplicationTests.test_gate_pass_maps_to_zero_and_preserves_stdout_json) ... ok
+test_gate_request_is_immutable (test_application_rule_gate.CalculateGateApplicationTests.test_gate_request_is_immutable) ... ok
+test_gate_validation_error_preserves_cli_error_format (test_application_rule_gate.CalculateGateApplicationTests.test_gate_validation_error_preserves_cli_error_format) ... ok
+test_invalid_review_run_raises_typed_error_without_output (test_application_rule_gate.CalculateGateApplicationTests.test_invalid_review_run_raises_typed_error_without_output) ... ok
 test_packaged_assets_match_source_assets (test_asset_sync.AssetSyncTests.test_packaged_assets_match_source_assets) ... ok
-test_baseline (unittest.loader._FailedTest.test_baseline) ... ERROR
-test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export) ... ERROR
-test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening) ... ERROR
-test_cli (unittest.loader._FailedTest.test_cli) ... ERROR
-test_defect_registry_hardening (unittest.loader._FailedTest.test_defect_registry_hardening) ... ERROR
-test_defects (unittest.loader._FailedTest.test_defects) ... ERROR
-test_evaluation (unittest.loader._FailedTest.test_evaluation) ... ERROR
-test_evaluation_hardening (unittest.loader._FailedTest.test_evaluation_hardening) ... ERROR
-test_gate (unittest.loader._FailedTest.test_gate) ... ERROR
-test_github_binding (unittest.loader._FailedTest.test_github_binding) ... ERROR
-test_github_collection_boundaries (unittest.loader._FailedTest.test_github_collection_boundaries) ... ERROR
-test_github_connector (unittest.loader._FailedTest.test_github_connector) ... ERROR
-test_github_runner (unittest.loader._FailedTest.test_github_runner) ... ERROR
-test_github_target (unittest.loader._FailedTest.test_github_target) ... ERROR
-test_identity (unittest.loader._FailedTest.test_identity) ... ERROR
-test_intelligence_cli (unittest.loader._FailedTest.test_intelligence_cli) ... ERROR
-test_intelligence_graph (unittest.loader._FailedTest.test_intelligence_graph) ... ERROR
-test_intelligence_impact (unittest.loader._FailedTest.test_intelligence_impact) ... ERROR
-test_intelligence_learning (unittest.loader._FailedTest.test_intelligence_learning) ... ERROR
-test_intelligence_report (unittest.loader._FailedTest.test_intelligence_report) ... ERROR
-test_ledger (unittest.loader._FailedTest.test_ledger) ... ERROR
-test_ledger_review_hardening (unittest.loader._FailedTest.test_ledger_review_hardening) ... ERROR
-test_merge (unittest.loader._FailedTest.test_merge) ... ERROR
-test_packs (unittest.loader._FailedTest.test_packs) ... ERROR
-test_path_globs (unittest.loader._FailedTest.test_path_globs) ... ERROR
-test_policy_registry (unittest.loader._FailedTest.test_policy_registry) ... ERROR
-test_policy_registry_hardening (unittest.loader._FailedTest.test_policy_registry_hardening) ... ERROR
-test_profile (unittest.loader._FailedTest.test_profile) ... ERROR
-test_project_init_and_pr_cli (unittest.loader._FailedTest.test_project_init_and_pr_cli) ... ERROR
-test_reground (unittest.loader._FailedTest.test_reground) ... ERROR
-test_reground_hardening (unittest.loader._FailedTest.test_reground_hardening) ... ERROR
-test_review_run (unittest.loader._FailedTest.test_review_run) ... ERROR
-test_run (unittest.loader._FailedTest.test_run) ... ERROR
-test_validation (unittest.loader._FailedTest.test_validation) ... ERROR
-
-======================================================================
-ERROR: test_application_analyze_pr (unittest.loader._FailedTest.test_application_analyze_pr)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_application_analyze_pr
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_analyze_pr.py", line 10, in <module>
-    from review_system.application import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_application_index_analyze (unittest.loader._FailedTest.test_application_index_analyze)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_application_index_analyze
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_index_analyze.py", line 9, in <module>
-    from review_system.application import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_application_rule_gate (unittest.loader._FailedTest.test_application_rule_gate)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_application_rule_gate
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_application_rule_gate.py", line 10, in <module>
-    from review_system.application import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_baseline (unittest.loader._FailedTest.test_baseline)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_baseline
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_baseline.py", line 5, in <module>
-    from review_system.baseline import compare_snapshot, create_snapshot
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_buildmap_export (unittest.loader._FailedTest.test_buildmap_export)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_buildmap_export
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export.py", line 7, in <module>
-    from review_system.buildmap_export import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_buildmap_export_hardening (unittest.loader._FailedTest.test_buildmap_export_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_buildmap_export_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_buildmap_export_hardening.py", line 8, in <module>
-    from review_system.buildmap_export import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_cli (unittest.loader._FailedTest.test_cli)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_cli
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_cli.py", line 5, in <module>
-    from review_system.cli import main
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_defect_registry_hardening (unittest.loader._FailedTest.test_defect_registry_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_defect_registry_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defect_registry_hardening.py", line 9, in <module>
-    from review_system.defect_cli import main as defect_main
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_defects (unittest.loader._FailedTest.test_defects)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_defects
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_defects.py", line 7, in <module>
-    from review_system.defects import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_evaluation (unittest.loader._FailedTest.test_evaluation)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_evaluation
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_evaluation.py", line 10, in <module>
-    from review_system.application import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_evaluation_hardening (unittest.loader._FailedTest.test_evaluation_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_evaluation_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_evaluation_hardening.py", line 10, in <module>
-    from review_system.evaluation import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_gate (unittest.loader._FailedTest.test_gate)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_gate
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_gate.py", line 3, in <module>
-    from review_system.gate import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_github_binding (unittest.loader._FailedTest.test_github_binding)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_github_binding
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_binding.py", line 4, in <module>
-    from review_system.github.binding import RepositoryBinding, resolve_repository_binding
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_github_collection_boundaries (unittest.loader._FailedTest.test_github_collection_boundaries)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_github_collection_boundaries
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_collection_boundaries.py", line 5, in <module>
-    from review_system.github.binding import RepositoryBinding
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_github_connector (unittest.loader._FailedTest.test_github_connector)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_github_connector
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_connector.py", line 7, in <module>
-    from review_system.github_connector import (
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_github_runner (unittest.loader._FailedTest.test_github_runner)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_github_runner
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_runner.py", line 8, in <module>
-    import review_system.github.runner as extracted
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_github_target (unittest.loader._FailedTest.test_github_target)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_github_target
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_github_target.py", line 3, in <module>
-    import review_system.github.target as extracted
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_identity (unittest.loader._FailedTest.test_identity)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_identity
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_identity.py", line 5, in <module>
-    from review_system.application import AnalyzePullRequestRequest, analyze_pull_request
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_intelligence_cli (unittest.loader._FailedTest.test_intelligence_cli)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_intelligence_cli
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_cli.py", line 5, in <module>
-    from review_system.cli import main
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_intelligence_graph (unittest.loader._FailedTest.test_intelligence_graph)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_intelligence_graph
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_graph.py", line 6, in <module>
-    from review_system.intelligence_graph import build_project_graph, validate_project_graph
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_intelligence_impact (unittest.loader._FailedTest.test_intelligence_impact)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_intelligence_impact
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_impact.py", line 3, in <module>
-    from review_system.intelligence_impact import analyze_change, compare_change_sets
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_intelligence_learning (unittest.loader._FailedTest.test_intelligence_learning)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_intelligence_learning
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_learning.py", line 3, in <module>
-    from review_system.intelligence_learning import approve_candidate_rule, discover_rule_candidates, merge_rule_candidates
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_intelligence_report (unittest.loader._FailedTest.test_intelligence_report)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_intelligence_report
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_intelligence_report.py", line 3, in <module>
-    from review_system.intelligence_report import pull_request_markdown
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_ledger (unittest.loader._FailedTest.test_ledger)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_ledger
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_ledger.py", line 9, in <module>
-    from review_system.identity import derive_run_identity, write_identity_manifest
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_ledger_review_hardening (unittest.loader._FailedTest.test_ledger_review_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_ledger_review_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_ledger_review_hardening.py", line 6, in <module>
-    from review_system.ledger import import_artifact_directory, verify_ledger
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_merge (unittest.loader._FailedTest.test_merge)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_merge
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_merge.py", line 3, in <module>
-    from review_system.merge import merge_findings
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_packs (unittest.loader._FailedTest.test_packs)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_packs
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_packs.py", line 3, in <module>
-    from review_system.packs import lock_packs, select_packs, select_packs_with_reasons
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_path_globs (unittest.loader._FailedTest.test_path_globs)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_path_globs
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_path_globs.py", line 3, in <module>
-    from review_system.path_globs import expand_trailing_recursive_glob
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_policy_registry (unittest.loader._FailedTest.test_policy_registry)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_policy_registry
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_policy_registry.py", line 6, in <module>
-    from review_system.evaluation import run_evaluation, write_evaluation_report
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_policy_registry_hardening (unittest.loader._FailedTest.test_policy_registry_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_policy_registry_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_policy_registry_hardening.py", line 11, in <module>
-    from review_system.identity import canonical_json_sha256
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_profile (unittest.loader._FailedTest.test_profile)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_profile
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_profile.py", line 5, in <module>
-    from review_system.io import dump_yaml
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_project_init_and_pr_cli (unittest.loader._FailedTest.test_project_init_and_pr_cli)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_project_init_and_pr_cli
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_project_init_and_pr_cli.py", line 8, in <module>
-    from review_system.cli import main
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_reground (unittest.loader._FailedTest.test_reground)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_reground
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground.py", line 9, in <module>
-    from review_system.identity import canonical_json_sha256
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_reground_hardening (unittest.loader._FailedTest.test_reground_hardening)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_reground_hardening
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_reground_hardening.py", line 8, in <module>
-    from review_system.identity import canonical_json_sha256
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_review_run (unittest.loader._FailedTest.test_review_run)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_review_run
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_review_run.py", line 3, in <module>
-    from review_system.gate import calculate_gate_from_run, derive_finding_metrics
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_run (unittest.loader._FailedTest.test_run)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_run
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_run.py", line 7, in <module>
-    from review_system.io import dump_json, load_data
-ModuleNotFoundError: No module named 'review_system'
-
-
-======================================================================
-ERROR: test_validation (unittest.loader._FailedTest.test_validation)
-----------------------------------------------------------------------
-ImportError: Failed to import test module: test_validation
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 419, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/unittest/loader.py", line 362, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_validation.py", line 5, in <module>
-    from review_system.validation import validate_finding_data, validate_profile_file
-ModuleNotFoundError: No module named 'review_system'
-
+test_protected_symlink_is_rejected (test_baseline.ProtectedBaselineSafetyTests.test_protected_symlink_is_rejected) ... ok
+test_unsafe_pattern_is_rejected (test_baseline.ProtectedBaselineSafetyTests.test_unsafe_pattern_is_rejected) ... ok
+test_journey_sql_protection_patterns_match_01_through_34_only (test_baseline.ProtectedBaselineTests.test_journey_sql_protection_patterns_match_01_through_34_only) ... ok
+test_snapshot_detects_modified_added_and_deleted_files (test_baseline.ProtectedBaselineTests.test_snapshot_detects_modified_added_and_deleted_files) ... ok
+test_buildmap_consumer_can_idempotently_import_reference_projection (test_buildmap_export.BuildMapExportTests.test_buildmap_consumer_can_idempotently_import_reference_projection) ... ok
+test_default_and_custom_redaction_counts_are_explicit (test_buildmap_export.BuildMapExportTests.test_default_and_custom_redaction_counts_are_explicit) ... ok
+test_export_id_is_stable_across_time_and_idempotent_reimport (test_buildmap_export.BuildMapExportTests.test_export_id_is_stable_across_time_and_idempotent_reimport) ... ok
+test_export_is_valid_reference_only_and_source_verifiable (test_buildmap_export.BuildMapExportTests.test_export_is_valid_reference_only_and_source_verifiable) ... ok
+test_unsafe_external_source_identifier_is_replaced_by_pie_uri (test_buildmap_export.BuildMapExportTests.test_unsafe_external_source_identifier_is_replaced_by_pie_uri) ... ok
+test_write_round_trip (test_buildmap_export.BuildMapExportTests.test_write_round_trip) ... ok
+test_atomic_replace_failure_preserves_existing_bytes (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
+test_export_and_ledger_symlink_inputs_are_rejected (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_export_and_ledger_symlink_inputs_are_rejected) ... ok
+test_invalid_document_is_rejected_before_write (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_invalid_document_is_rejected_before_write) ... ok
+test_output_symlink_is_rejected (test_buildmap_export_hardening.BuildMapExportFileSafetyTests.test_output_symlink_is_rejected) ... ok
+test_custom_redaction_pattern_traversal_is_rejected (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_custom_redaction_pattern_traversal_is_rejected) ... ok
+test_malformed_reason_reference_is_a_validation_error_not_an_exception (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_malformed_reason_reference_is_a_validation_error_not_an_exception) ... ok
+test_rehashed_artifact_redaction_flag_is_recomputed (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_artifact_redaction_flag_is_recomputed) ... ok
+test_rehashed_body_injection_is_rejected_by_schema (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_body_injection_is_rejected_by_schema) ... ok
+test_rehashed_finding_defect_links_are_source_verified (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_finding_defect_links_are_source_verified) ... ok
+test_rehashed_path_traversal_is_rejected (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_path_traversal_is_rejected) ... ok
+test_rehashed_reordering_is_rejected_by_canonical_projection (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_rehashed_reordering_is_rejected_by_canonical_projection) ... ok
+test_source_fingerprint_tamper_requires_ledger_replay (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_source_fingerprint_tamper_requires_ledger_replay) ... ok
+test_source_projection_tamper_is_detected_against_ledger (test_buildmap_export_hardening.BuildMapExportIntegrityTests.test_source_projection_tamper_is_detected_against_ledger) ... ok
+test_merge_findings_writes_array_and_separate_conflicts (test_cli.CliTests.test_merge_findings_writes_array_and_separate_conflicts) ... ok
+test_defect_cli_init_sync_verify_list_and_missing_show (test_defect_registry_hardening.LedgerAndCliHardeningTests.test_defect_cli_init_sync_verify_list_and_missing_show) ... ok
+test_rebuild_rejects_duplicate_registry_sources_for_project (test_defect_registry_hardening.LedgerAndCliHardeningTests.test_rebuild_rejects_duplicate_registry_sources_for_project) ... ok
+test_show_run_exposes_run_local_findings (test_defect_registry_hardening.LedgerAndCliHardeningTests.test_show_run_exposes_run_local_findings) ... ok
+test_stage4_database_upgrades_from_001_to_002 (test_defect_registry_hardening.LedgerAndCliHardeningTests.test_stage4_database_upgrades_from_001_to_002) ... ok
+test_closed_registry_requires_resolution_evidence_even_after_rehash (test_defect_registry_hardening.RegistryValidationHardeningTests.test_closed_registry_requires_resolution_evidence_even_after_rehash) ... ok
+test_event_id_must_match_event_hash (test_defect_registry_hardening.RegistryValidationHardeningTests.test_event_id_must_match_event_hash) ... ok
+test_non_creation_event_cannot_precede_created (test_defect_registry_hardening.RegistryValidationHardeningTests.test_non_creation_event_cannot_precede_created) ... ok
+test_defect_id_is_deterministic_and_duplicate_create_is_idempotent (test_defects.DefectRegistryTests.test_defect_id_is_deterministic_and_duplicate_create_is_idempotent) ... ok
+test_invalid_transition_is_rejected_without_registry_change (test_defects.DefectRegistryTests.test_invalid_transition_is_rejected_without_registry_change) ... ok
+test_link_and_full_lifecycle_require_resolution_evidence (test_defects.DefectRegistryTests.test_link_and_full_lifecycle_require_resolution_evidence) ... ok
+test_rebuild_projects_registry_after_runs (test_defects.DefectRegistryTests.test_rebuild_projects_registry_after_runs) ... ok
+test_registry_tamper_and_ledger_projection_tamper_are_detected (test_defects.DefectRegistryTests.test_registry_tamper_and_ledger_projection_tamper_are_detected) ... ok
+test_import_projects_valid_findings_idempotently (test_defects.FindingProjectionTests.test_import_projects_valid_findings_idempotently) ... ok
+test_invalid_findings_roll_back_import (test_defects.FindingProjectionTests.test_invalid_findings_roll_back_import) ... ok
+test_linked_stale_finding_fails_closed (test_defects.FindingProjectionTests.test_linked_stale_finding_fails_closed) ... ok
+test_unlinked_stale_finding_is_removed (test_defects.FindingProjectionTests.test_unlinked_stale_finding_is_removed) ... ok
+test_cli_pass_fail_and_integrity_exit_codes (test_evaluation.EvaluationCliTests.test_cli_pass_fail_and_integrity_exit_codes) ... ok
+test_cli_returns_three_for_gate_failure (test_evaluation.EvaluationCliTests.test_cli_returns_three_for_gate_failure) ... ok
+test_application_writes_report_and_request_is_frozen (test_evaluation.EvaluationLabTests.test_application_writes_report_and_request_is_frozen) ... ok
+test_approval_without_evaluation_remains_allowed_with_warning (test_evaluation.EvaluationLabTests.test_approval_without_evaluation_remains_allowed_with_warning) ... ok
+test_attach_pass_report_and_approval_warning_contract (test_evaluation.EvaluationLabTests.test_attach_pass_report_and_approval_warning_contract) ... ok
+test_challenger_report_is_deterministic_and_passes_holdout_gate (test_evaluation.EvaluationLabTests.test_challenger_report_is_deterministic_and_passes_holdout_gate) ... ok
+test_dataset_validation_and_path_safety (test_evaluation.EvaluationLabTests.test_dataset_validation_and_path_safety) ... ok
+test_fail_report_cannot_be_attached (test_evaluation.EvaluationLabTests.test_fail_report_cannot_be_attached) ... ok
+test_protected_negative_regression_fails_gate (test_evaluation.EvaluationLabTests.test_protected_negative_regression_fails_gate) ... ok
+test_report_tamper_is_detected_even_after_outer_hash_refresh (test_evaluation.EvaluationLabTests.test_report_tamper_is_detected_even_after_outer_hash_refresh) ... ok
+test_same_policy_has_zero_delta (test_evaluation.EvaluationLabTests.test_same_policy_has_zero_delta) ... ok
+test_atomic_attach_failure_preserves_candidate_file (test_evaluation_hardening.EvaluationHardeningTests.test_atomic_attach_failure_preserves_candidate_file) ... ok
+test_atomic_report_failure_preserves_existing_target (test_evaluation_hardening.EvaluationHardeningTests.test_atomic_report_failure_preserves_existing_target) ... ok
+test_dataset_paths_are_normalized_before_scoring (test_evaluation_hardening.EvaluationHardeningTests.test_dataset_paths_are_normalized_before_scoring) ... ok
+test_duplicate_case_id_and_invalid_policy_fail_closed (test_evaluation_hardening.EvaluationHardeningTests.test_duplicate_case_id_and_invalid_policy_fail_closed) ... ok
+test_evaluator_contract_participates_in_evaluation_identity (test_evaluation_hardening.EvaluationHardeningTests.test_evaluator_contract_participates_in_evaluation_identity) ... ok
+test_no_holdout_cannot_pass_approval_gate (test_evaluation_hardening.EvaluationHardeningTests.test_no_holdout_cannot_pass_approval_gate) ... ok
+test_rehashed_outcome_tamper_still_fails_metric_verification (test_evaluation_hardening.EvaluationHardeningTests.test_rehashed_outcome_tamper_still_fails_metric_verification) ... ok
+test_repeatability_mismatch_is_a_hard_gate (test_evaluation_hardening.EvaluationHardeningTests.test_repeatability_mismatch_is_a_hard_gate) ... ok
+test_symlink_artifact_is_rejected (test_evaluation_hardening.EvaluationHardeningTests.test_symlink_artifact_is_rejected) ... ok
+test_tampered_report_cannot_be_attached (test_evaluation_hardening.EvaluationHardeningTests.test_tampered_report_cannot_be_attached) ... ok
+test_valid_fail_report_verify_cli_returns_three (test_evaluation_hardening.EvaluationHardeningTests.test_valid_fail_report_verify_cli_returns_three) ... ok
+test_zero_denominator_metric_rule (test_evaluation_hardening.EvaluationHardeningTests.test_zero_denominator_metric_rule) ... ok
+test_duplicate_rule_ids_are_rejected (test_gate.GatePolicyValidationTests.test_duplicate_rule_ids_are_rejected) ... ok
+test_policy_without_pass_prerequisite_is_rejected (test_gate.GatePolicyValidationTests.test_policy_without_pass_prerequisite_is_rejected) ... ok
+test_accepted_finding_is_residual_risk_not_open_blocker (test_gate.GateTests.test_accepted_finding_is_residual_risk_not_open_blocker) ... ok
+test_block_on_p2_is_respected (test_gate.GateTests.test_block_on_p2_is_respected) ... ok
+test_confirmed_p0_fails (test_gate.GateTests.test_confirmed_p0_fails) ... ok
+test_confirmed_p1_holds (test_gate.GateTests.test_confirmed_p1_holds) ... ok
+test_expression_rejects_calls (test_gate.GateTests.test_expression_rejects_calls) ... ok
+test_fixed_but_unverified_blocker_holds (test_gate.GateTests.test_fixed_but_unverified_blocker_holds) ... ok
+test_pass_with_legacy_metrics (test_gate.GateTests.test_pass_with_legacy_metrics) ... ok
+test_run_uses_derived_metrics_and_reports_discrepancy (test_gate.GateTests.test_run_uses_derived_metrics_and_reports_discrepancy) ... ok
+test_binding_is_frozen (test_github_binding.RepositoryBindingTests.test_binding_is_frozen) ... ok
+test_explicit_repository_matching_url_is_normalized (test_github_binding.RepositoryBindingTests.test_explicit_repository_matching_url_is_normalized) ... ok
+test_hostname_mismatch_preserves_failure (test_github_binding.RepositoryBindingTests.test_hostname_mismatch_preserves_failure) ... ok
+test_numeric_target_uses_current_repository (test_github_binding.RepositoryBindingTests.test_numeric_target_uses_current_repository) ... ok
+test_numeric_target_without_current_repository_fails_closed (test_github_binding.RepositoryBindingTests.test_numeric_target_without_current_repository_fails_closed) ... ok
+test_repository_mismatch_preserves_failure (test_github_binding.RepositoryBindingTests.test_repository_mismatch_preserves_failure) ... ok
+test_url_target_supplies_repository_without_current_lookup (test_github_binding.RepositoryBindingTests.test_url_target_supplies_repository_without_current_lookup) ... ok
+test_collects_and_compacts_complete_discussion (test_github_collection_boundaries.DiscussionBoundaryTests.test_collects_and_compacts_complete_discussion) ... ok
+test_disabled_discussion_uses_view_data_without_api_calls (test_github_collection_boundaries.DiscussionBoundaryTests.test_disabled_discussion_uses_view_data_without_api_calls) ... ok
+test_partial_failure_preserves_fallback_and_warning (test_github_collection_boundaries.DiscussionBoundaryTests.test_partial_failure_preserves_fallback_and_warning) ... ok
+test_api_failure_returns_detail_without_raising (test_github_collection_boundaries.PaginationBoundaryTests.test_api_failure_returns_detail_without_raising) ... ok
+test_flattens_direct_and_slurped_arrays (test_github_collection_boundaries.PaginationBoundaryTests.test_flattens_direct_and_slurped_arrays) ... ok
+test_invalid_json_is_actionable (test_github_collection_boundaries.PaginationBoundaryTests.test_invalid_json_is_actionable) ... ok
+test_assembles_valid_deterministic_source (test_github_collection_boundaries.SourceBoundaryTests.test_assembles_valid_deterministic_source) ... ok
+test_authentication_failure_is_actionable (test_github_connector.GitHubCollectionTests.test_authentication_failure_is_actionable) ... ok
+test_collects_all_files_from_paginated_api (test_github_connector.GitHubCollectionTests.test_collects_all_files_from_paginated_api) ... ok
+test_collects_metadata_diff_and_inline_review_comments (test_github_connector.GitHubCollectionTests.test_collects_metadata_diff_and_inline_review_comments) ... ok
+test_diff_failure_is_warning_not_metadata_failure (test_github_connector.GitHubCollectionTests.test_diff_failure_is_warning_not_metadata_failure) ... ok
+test_rate_limit_is_retried_and_actionable (test_github_connector.GitHubCollectionTests.test_rate_limit_is_retried_and_actionable) ... ok
+test_real_runner_uses_argument_vector (test_github_connector.GitHubCollectionTests.test_real_runner_uses_argument_vector) ... ok
+test_normalize_repository (test_github_connector.GitHubTargetTests.test_normalize_repository) ... ok
+test_parse_number_and_url (test_github_connector.GitHubTargetTests.test_parse_number_and_url) ... ok
+test_rejects_unsafe_or_ambiguous_target (test_github_connector.GitHubTargetTests.test_rejects_unsafe_or_ambiguous_target) ... ok
+test_check_false_returns_failure_result (test_github_runner.GitHubRunnerExtractionTests.test_check_false_returns_failure_result) ... ok
+test_legacy_exports_are_extracted_implementations (test_github_runner.GitHubRunnerExtractionTests.test_legacy_exports_are_extracted_implementations) ... ok
+test_missing_executable_contracts (test_github_runner.GitHubRunnerExtractionTests.test_missing_executable_contracts) ... ok
+test_non_retryable_failure_runs_once (test_github_runner.GitHubRunnerExtractionTests.test_non_retryable_failure_runs_once) ... ok
+test_rate_limit_is_retried_three_times_and_actionable (test_github_runner.GitHubRunnerExtractionTests.test_rate_limit_is_retried_three_times_and_actionable) ... ok
+test_runner_uses_argument_vector_environment_cwd_and_timeout (test_github_runner.GitHubRunnerExtractionTests.test_runner_uses_argument_vector_environment_cwd_and_timeout) ... ok
+test_timeout_and_os_error_are_wrapped (test_github_runner.GitHubRunnerExtractionTests.test_timeout_and_os_error_are_wrapped) ... ok
+test_transient_server_error_retries_then_returns_success (test_github_runner.GitHubRunnerExtractionTests.test_transient_server_error_retries_then_returns_success) ... ok
+test_version_auth_and_current_repository_contracts (test_github_runner.GitHubRunnerExtractionTests.test_version_auth_and_current_repository_contracts) ... ok
+test_https_pr_url_preserves_enterprise_and_trailing_path_behavior (test_github_target.GitHubTargetExtractionTests.test_https_pr_url_preserves_enterprise_and_trailing_path_behavior) ... ok
+test_legacy_exports_are_the_extracted_implementations (test_github_target.GitHubTargetExtractionTests.test_legacy_exports_are_the_extracted_implementations) ... ok
+test_numeric_target_preserves_whitespace_and_default_host_behavior (test_github_target.GitHubTargetExtractionTests.test_numeric_target_preserves_whitespace_and_default_host_behavior) ... ok
+test_rejects_existing_unsafe_and_ambiguous_inputs (test_github_target.GitHubTargetExtractionTests.test_rejects_existing_unsafe_and_ambiguous_inputs) ... ok
+test_repository_argument_preserves_public_and_enterprise_forms (test_github_target.GitHubTargetExtractionTests.test_repository_argument_preserves_public_and_enterprise_forms) ... ok
+test_repository_normalization_preserves_supported_forms (test_github_target.GitHubTargetExtractionTests.test_repository_normalization_preserves_supported_forms) ... ok
+test_legacy_review_run_is_upgraded_on_sync (test_identity.IdentityIntegrationTests.test_legacy_review_run_is_upgraded_on_sync) ... ok
+test_pr_analysis_writes_identity_without_changing_existing_hash_contract (test_identity.IdentityIntegrationTests.test_pr_analysis_writes_identity_without_changing_existing_hash_contract) ... ok
+test_review_run_identity_is_created_refreshed_and_validated (test_identity.IdentityIntegrationTests.test_review_run_identity_is_created_refreshed_and_validated) ... ok
+test_manifest_is_sorted_deterministic_and_excludes_recursive_files (test_identity.IdentityManifestTests.test_manifest_is_sorted_deterministic_and_excludes_recursive_files) ... ok
+test_manifest_tampering_is_detected (test_identity.IdentityManifestTests.test_manifest_tampering_is_detected) ... ok
+test_validation_detects_modified_missing_and_unexpected_artifacts (test_identity.IdentityManifestTests.test_validation_detects_modified_missing_and_unexpected_artifacts) ... ok
+test_artifact_path_move_changes_identity_but_not_content_hash (test_identity.IdentityPrimitiveTests.test_artifact_path_move_changes_identity_but_not_content_hash) ... ok
+test_path_escape_and_symlink_escape_are_rejected (test_identity.IdentityPrimitiveTests.test_path_escape_and_symlink_escape_are_rejected) ... ok
+test_run_identity_is_deterministic_and_revision_sensitive (test_identity.IdentityPrimitiveTests.test_run_identity_is_deterministic_and_revision_sensitive) ... ok
+test_symbolic_revision_is_rejected (test_identity.IdentityPrimitiveTests.test_symbolic_revision_is_rejected) ... ok
+test_index_and_analyze_change_end_to_end (test_intelligence_cli.IntelligenceCliTests.test_index_and_analyze_change_end_to_end) ... ok
+test_builds_cross_language_graph_and_component_membership (test_intelligence_graph.IntelligenceGraphTests.test_builds_cross_language_graph_and_component_membership) ... ok
+test_graph_hash_detects_tampering (test_intelligence_graph.IntelligenceGraphTests.test_graph_hash_detects_tampering) ... ok
+test_internal_symlink_alias_is_not_indexed (test_intelligence_graph.IntelligenceGraphTests.test_internal_symlink_alias_is_not_indexed) ... ok
+test_invalid_max_file_size_is_rejected (test_intelligence_graph.IntelligenceGraphTests.test_invalid_max_file_size_is_rejected) ... ok
+test_markdown_parent_link_is_resolved_or_ignored_safely (test_intelligence_graph.IntelligenceGraphTests.test_markdown_parent_link_is_resolved_or_ignored_safely) ... ok
+test_symlink_file_is_not_indexed (test_intelligence_graph.IntelligenceGraphTests.test_symlink_file_is_not_indexed) ... ok
+test_unsafe_scope_pattern_is_rejected (test_intelligence_graph.IntelligenceGraphTests.test_unsafe_scope_pattern_is_rejected) ... ok
+test_analyzes_dependents_rules_packs_and_tests (test_intelligence_impact.IntelligenceImpactTests.test_analyzes_dependents_rules_packs_and_tests) ... ok
+test_changed_verification_script_is_a_required_test (test_intelligence_impact.IntelligenceImpactTests.test_changed_verification_script_is_a_required_test) ... ok
+test_compare_change_sets_is_advisory_and_deterministic (test_intelligence_impact.IntelligenceImpactTests.test_compare_change_sets_is_advisory_and_deterministic) ... ok
+test_compare_detects_cross_component_shared_review_domain (test_intelligence_impact.IntelligenceImpactTests.test_compare_detects_cross_component_shared_review_domain) ... ok
+test_directly_changed_verifier_is_a_required_test (test_intelligence_impact.IntelligenceImpactTests.test_directly_changed_verifier_is_a_required_test) ... ok
+test_rule_pack_not_in_profile_is_reported_not_selected (test_intelligence_impact.IntelligenceImpactTests.test_rule_pack_not_in_profile_is_reported_not_selected) ... ok
+test_test_helpers_and_verification_sources_are_not_runnable_tests (test_intelligence_impact.IntelligenceImpactTests.test_test_helpers_and_verification_sources_are_not_runnable_tests) ... ok
+test_test_substrings_inside_normal_words_are_not_required_tests (test_intelligence_impact.IntelligenceImpactTests.test_test_substrings_inside_normal_words_are_not_required_tests) ... ok
+test_approval_requires_explicit_actor_and_preserves_candidate_audit (test_intelligence_learning.IntelligenceLearningTests.test_approval_requires_explicit_actor_and_preserves_candidate_audit) ... ok
+test_candidate_rediscovery_preserves_human_decision (test_intelligence_learning.IntelligenceLearningTests.test_candidate_rediscovery_preserves_human_decision) ... ok
+test_discovers_asymmetric_candidate_without_auto_approval (test_intelligence_learning.IntelligenceLearningTests.test_discovers_asymmetric_candidate_without_auto_approval) ... ok
+test_reports_status_context_and_evidence_completeness (test_intelligence_report.PullRequestReportTests.test_reports_status_context_and_evidence_completeness) ... ok
+test_cli_init_import_verify_and_show (test_ledger.LedgerCLITests.test_cli_init_import_verify_and_show) ... ok
+test_cli_missing_run_uses_integrity_exit_code (test_ledger.LedgerCLITests.test_cli_missing_run_uses_integrity_exit_code) ... ok
+test_database_inside_artifact_root_is_rejected (test_ledger.LedgerImportTests.test_database_inside_artifact_root_is_rejected) ... ok
+test_gate_and_policy_are_explicitly_projected (test_ledger.LedgerImportTests.test_gate_and_policy_are_explicitly_projected) ... ok
+test_modified_artifact_is_rejected_before_import (test_ledger.LedgerImportTests.test_modified_artifact_is_rejected_before_import) ... ok
+test_pull_request_import_and_type_mismatch (test_ledger.LedgerImportTests.test_pull_request_import_and_type_mismatch) ... ok
+test_review_run_import_is_idempotent (test_ledger.LedgerImportTests.test_review_run_import_is_idempotent) ... ok
+test_initialize_is_idempotent_and_enables_foreign_keys (test_ledger.LedgerMigrationTests.test_initialize_is_idempotent_and_enables_foreign_keys) ... ok
+test_migration_checksum_mismatch_fails_closed (test_ledger.LedgerMigrationTests.test_migration_checksum_mismatch_fails_closed) ... ok
+test_corrupt_database_returns_invalid_result (test_ledger.LedgerVerificationAndRebuildTests.test_corrupt_database_returns_invalid_result) ... ok
+test_rebuild_is_atomic_and_replaces_projection (test_ledger.LedgerVerificationAndRebuildTests.test_rebuild_is_atomic_and_replaces_projection) ... ok
+test_rebuild_rejects_two_roots_for_same_logical_run (test_ledger.LedgerVerificationAndRebuildTests.test_rebuild_rejects_two_roots_for_same_logical_run) ... ok
+test_verify_detects_source_artifact_change (test_ledger.LedgerVerificationAndRebuildTests.test_verify_detects_source_artifact_change) ... ok
+test_reimport_preserves_future_claim_and_evidence_rows (test_ledger_review_hardening.LedgerReviewHardeningTests.test_reimport_preserves_future_claim_and_evidence_rows) ... ok
+test_verify_detects_explicit_decision_projection_tamper (test_ledger_review_hardening.LedgerReviewHardeningTests.test_verify_detects_explicit_decision_projection_tamper) ... ok
+test_verify_detects_run_projection_tamper (test_ledger_review_hardening.LedgerReviewHardeningTests.test_verify_detects_run_projection_tamper) ... ok
+test_conflict_preserved (test_merge.MergeTests.test_conflict_preserved) ... ok
+test_merges_evidence_and_promotes_stronger_state (test_merge.MergeTests.test_merges_evidence_and_promotes_stronger_state) ... ok
+test_rejected_and_active_versions_conflict (test_merge.MergeTests.test_rejected_and_active_versions_conflict) ... ok
+test_invalid_pack_id_is_rejected (test_packs.PackPathSafetyTests.test_invalid_pack_id_is_rejected) ... ok
+test_contract_decision_selects_traceability (test_packs.PackSelectionTests.test_contract_decision_selects_traceability) ... ok
+test_empty_change_set_selects_nothing (test_packs.PackSelectionTests.test_empty_change_set_selects_nothing) ... ok
+test_only_configured_packs_are_returned (test_packs.PackSelectionTests.test_only_configured_packs_are_returned) ... ok
+test_pack_lock_contains_versions (test_packs.PackSelectionTests.test_pack_lock_contains_versions) ... ok
+test_reasons_are_preserved (test_packs.PackSelectionTests.test_reasons_are_preserved) ... ok
+test_sql_migration_selects_data_packs (test_packs.PackSelectionTests.test_sql_migration_selects_data_packs) ... ok
+test_test_fixture_sql_does_not_select_migration_safety (test_packs.PackSelectionTests.test_test_fixture_sql_does_not_select_migration_safety) ... ok
+test_token_matching_avoids_api_substring_false_positive (test_packs.PackSelectionTests.test_token_matching_avoids_api_substring_false_positive) ... ok
+test_non_trailing_recursive_glob_is_unchanged (test_path_globs.PathGlobCompatibilityTests.test_non_trailing_recursive_glob_is_unchanged) ... ok
+test_trailing_recursive_glob_adds_explicit_descendant_pattern (test_path_globs.PathGlobCompatibilityTests.test_trailing_recursive_glob_adds_explicit_descendant_pattern) ... ok
+test_activation_requires_current_active_parent (test_policy_registry.PolicyRegistryLifecycleTests.test_activation_requires_current_active_parent) ... ok
+test_build_and_first_activation_materialize_active_rules (test_policy_registry.PolicyRegistryLifecycleTests.test_build_and_first_activation_materialize_active_rules) ... ok
+test_child_activation_supersedes_parent_and_compare_reports_added_rule (test_policy_registry.PolicyRegistryLifecycleTests.test_child_activation_supersedes_parent_and_compare_reports_added_rule) ... ok
+test_materialize_command_recreates_view (test_policy_registry.PolicyRegistryLifecycleTests.test_materialize_command_recreates_view) ... ok
+test_mismatched_evaluation_and_duplicate_version_fail_closed (test_policy_registry.PolicyRegistryLifecycleTests.test_mismatched_evaluation_and_duplicate_version_fail_closed) ... ok
+test_retire_active_clears_materialized_view (test_policy_registry.PolicyRegistryLifecycleTests.test_retire_active_clears_materialized_view) ... ok
+test_atomic_activation_failure_restores_registry_and_view (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_atomic_activation_failure_restores_registry_and_view) ... ok
+test_cli_build_verify_list_show_compare_and_verification_exit_codes (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_cli_build_verify_list_show_compare_and_verification_exit_codes) ... ok
+test_invalid_semver_future_effective_and_active_retire_without_view_fail (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_invalid_semver_future_effective_and_active_retire_without_view_fail) ... ok
+test_parent_cycle_and_active_projection_tamper_are_detected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_parent_cycle_and_active_projection_tamper_are_detected) ... ok
+test_parent_version_must_increase (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_parent_version_must_increase) ... ok
+test_registry_policy_and_materialized_tamper_are_detected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_registry_policy_and_materialized_tamper_are_detected) ... ok
+test_rehashed_event_tamper_is_detected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_rehashed_event_tamper_is_detected) ... ok
+test_rehashed_registry_and_policy_identity_tamper_are_detected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_rehashed_registry_and_policy_identity_tamper_are_detected) ... ok
+test_rehashed_unsafe_report_reference_and_event_projection_are_detected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_rehashed_unsafe_report_reference_and_event_projection_are_detected) ... ok
+test_symlink_registry_and_materialized_targets_are_rejected (test_policy_registry_hardening.PolicyRegistryHardeningTests.test_symlink_registry_and_materialized_targets_are_rejected) ... ok
+test_project_local_stack_directory_is_supported (test_profile.LocalStackTests.test_project_local_stack_directory_is_supported) ... ok
+test_stack_path_traversal_is_rejected (test_profile.ProfilePathSafetyTests.test_stack_path_traversal_is_rejected) ... ok
+test_excluded_pack_is_removed (test_profile.ProfileResolutionTests.test_excluded_pack_is_removed) ... ok
+test_stack_cycle_is_rejected (test_profile.ProfileResolutionTests.test_stack_cycle_is_rejected) ... ok
+test_stack_defaults_are_inherited_and_project_overrides_commands (test_profile.ProfileResolutionTests.test_stack_defaults_are_inherited_and_project_overrides_commands) ... ok
+test_unknown_stack_is_rejected (test_profile.ProfileResolutionTests.test_unknown_stack_is_rejected) ... ok
+test_all_presets_initialize_and_validate (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_all_presets_initialize_and_validate) ... ok
+test_analyze_pr_end_to_end (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_analyze_pr_end_to_end) ... ok
+test_failed_diff_collection_removes_stale_diff (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_failed_diff_collection_removes_stale_diff) ... ok
+test_github_doctor_reports_ready (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_github_doctor_reports_ready) ... ok
+test_head_mismatch_requires_explicit_override (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_head_mismatch_requires_explicit_override) ... ERROR local HEAD does not match the PR head; check out the exact PR head or pass --allow-head-mismatch explicitly for degraded analysis
+ok
+test_init_project_adds_pie_to_gitignore_without_overwriting (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_init_project_adds_pie_to_gitignore_without_overwriting) ... ok
+test_init_project_is_non_destructive_without_force (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_init_project_is_non_destructive_without_force) ... ok
+test_repository_mismatch_is_blocked_by_default (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_repository_mismatch_is_blocked_by_default) ... ERROR local repository does not match the pull request repository; use the correct project folder or pass --allow-repository-mismatch explicitly
+ok
+test_scoped_dirty_worktree_requires_explicit_override (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_scoped_dirty_worktree_requires_explicit_override) ... ERROR working tree has changes inside the analysis scope: src/core.ts; commit/stash them or pass --allow-dirty-worktree explicitly
+ok
+test_stale_cached_graph_is_rebuilt_for_pr_analysis (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_stale_cached_graph_is_rebuilt_for_pr_analysis) ... ok
+test_unverified_repository_is_blocked_by_default (test_project_init_and_pr_cli.ProjectInitAndPullRequestCliTests.test_unverified_repository_is_blocked_by_default) ... ERROR cannot verify the local repository against the pull request; run inside the matching Git repository or pass --allow-repository-mismatch explicitly
+ok
+test_changed_dependency_marks_relation_stale_and_source_for_recheck (test_reground.RegroundProjectionTests.test_changed_dependency_marks_relation_stale_and_source_for_recheck) ... ok
+test_changed_source_and_missing_target_preserve_both_reasons (test_reground.RegroundProjectionTests.test_changed_source_and_missing_target_preserve_both_reasons) ... ok
+test_idempotent_reimport_time_does_not_change_snapshot_identity (test_reground.RegroundProjectionTests.test_idempotent_reimport_time_does_not_change_snapshot_identity) ... ok
+test_latest_verified_project_run_is_selected (test_reground.RegroundProjectionTests.test_latest_verified_project_run_is_selected) ... ok
+test_no_project_run_is_warning_not_failure (test_reground.RegroundProjectionTests.test_no_project_run_is_warning_not_failure) ... ok
+test_unchanged_file_relation_is_current_and_uses_verified_run (test_reground.RegroundProjectionTests.test_unchanged_file_relation_is_current_and_uses_verified_run) ... ok
+test_windows_graph_path_normalizes_to_posix (test_reground.RegroundProjectionTests.test_windows_graph_path_normalizes_to_posix) ... ok
+test_cli_analyze_and_verify_valid_stale_report_return_zero (test_reground.RegroundReportAndCliTests.test_cli_analyze_and_verify_valid_stale_report_return_zero) ... ok
+test_cli_invalid_report_returns_verification_exit (test_reground.RegroundReportAndCliTests.test_cli_invalid_report_returns_verification_exit) ... ok
+test_cli_verify_rejects_symlink_report_as_input_error (test_reground.RegroundReportAndCliTests.test_cli_verify_rejects_symlink_report_as_input_error) ... ok
+test_report_write_load_and_deterministic_identity (test_reground.RegroundReportAndCliTests.test_report_write_load_and_deterministic_identity) ... ok
+test_absolute_and_traversal_graph_paths_are_rejected (test_reground_hardening.RegroundInputSafetyTests.test_absolute_and_traversal_graph_paths_are_rejected) ... ok
+test_atomic_output_replace_failure_preserves_existing_bytes (test_reground_hardening.RegroundInputSafetyTests.test_atomic_output_replace_failure_preserves_existing_bytes) ... ok
+test_duplicate_file_relation_is_rejected_even_with_valid_graph_hash (test_reground_hardening.RegroundInputSafetyTests.test_duplicate_file_relation_is_rejected_even_with_valid_graph_hash) ... ok
+test_file_node_id_must_match_normalized_path (test_reground_hardening.RegroundInputSafetyTests.test_file_node_id_must_match_normalized_path) ... ok
+test_graph_ledger_and_output_symlink_paths_are_rejected (test_reground_hardening.RegroundInputSafetyTests.test_graph_ledger_and_output_symlink_paths_are_rejected) ... ok
+test_invalid_ledger_is_rejected_before_last_run_projection (test_reground_hardening.RegroundInputSafetyTests.test_invalid_ledger_is_rejected_before_last_run_projection) ... ok
+test_tampered_graph_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tampered_graph_is_rejected) ... ok
+test_tracked_symlink_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tracked_symlink_is_rejected) ... ok
+test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... ok
+test_rehashed_relation_and_recheck_tamper_are_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_relation_and_recheck_tamper_are_detected) ... ok
+test_rehashed_reordered_or_extended_projection_is_rejected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_reordered_or_extended_projection_is_rejected) ... ok
+test_report_id_and_snapshot_hash_are_natural_key_verified (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_id_and_snapshot_hash_are_natural_key_verified) ... ok
+test_report_path_traversal_is_detected_after_rehash (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_path_traversal_is_detected_after_rehash) ... ok
+test_closed_finding_not_counted (test_review_run.ReviewRunTests.test_closed_finding_not_counted) ... ok
+test_finding_metrics_are_derived (test_review_run.ReviewRunTests.test_finding_metrics_are_derived) ... ok
+test_sample_run_validates (test_review_run.ReviewRunTests.test_sample_run_validates) ... ok
+test_manifest_path_traversal_is_rejected (test_run.ManifestPathSafetyTests.test_manifest_path_traversal_is_rejected) ... ok
+test_relative_run_path_manifest_verification (test_run.RelativeManifestTests.test_relative_run_path_manifest_verification) ... ok
+test_archive_rejects_stale_gate (test_run.RunInputAndGateConsistencyTests.test_archive_rejects_stale_gate) ... ok
+test_companion_review_inputs_are_copied (test_run.RunInputAndGateConsistencyTests.test_companion_review_inputs_are_copied) ... ok
+test_archive_output_inside_run_is_rejected (test_run.RunTests.test_archive_output_inside_run_is_rejected) ... ok
+test_initialize_sync_archive_and_verify (test_run.RunTests.test_initialize_sync_archive_and_verify) ... ok
+test_sync_run_hydrates_findings_and_metrics (test_run.RunTests.test_sync_run_hydrates_findings_and_metrics) ... ok
+test_unsynchronized_run_directory_is_rejected (test_run.RunTests.test_unsynchronized_run_directory_is_rejected) ... ok
+test_p0_cannot_be_accepted (test_validation.AdditionalValidationTests.test_p0_cannot_be_accepted) ... ok
+test_p0_must_be_in_gate_block_on (test_validation.AdditionalValidationTests.test_p0_must_be_in_gate_block_on) ... ok
+test_accepted_requires_acceptance_record (test_validation.ValidationTests.test_accepted_requires_acceptance_record) ... ok
+test_confirmed_requires_e3 (test_validation.ValidationTests.test_confirmed_requires_e3) ... ok
+test_e3_requires_result (test_validation.ValidationTests.test_e3_requires_result) ... ok
+test_empty_scope_is_rejected (test_validation.ValidationTests.test_empty_scope_is_rejected) ... ok
+test_example_profile_is_valid (test_validation.ValidationTests.test_example_profile_is_valid) ... ok
+test_fixed_confirmed_is_valid_intermediate_state (test_validation.ValidationTests.test_fixed_confirmed_is_valid_intermediate_state) ... ok
+test_rejected_status_and_confidence_must_match (test_validation.ValidationTests.test_rejected_status_and_confidence_must_match) ... ok
+test_resolved_requires_e5 (test_validation.ValidationTests.test_resolved_requires_e5) ... ok
+test_unknown_pack_is_rejected (test_validation.ValidationTests.test_unknown_pack_is_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 38 tests in 0.014s
+Ran 275 tests in 6.398s
 
-FAILED (errors=37)
-FULL_EXIT=1
-RESULT=0,0,2,0,1,1
+OK
+MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmpn317nsy9/conflicts.json
+INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmp1181d8_a/graph.json
+ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmp1181d8_a/impact.json
+INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmpni97kaem
+VALID profile: /tmp/tmpni97kaem/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmpni97kaem/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmpmdebbald
+VALID profile: /tmp/tmpmdebbald/.review/project.yml; packs=7; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmpmdebbald/.review/intelligence/config.yml; components=5
+INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmpwpphm0q9
+VALID profile: /tmp/tmpwpphm0q9/.review/project.yml; packs=11; inherits=['spring-postgres']
+VALID intelligence config: /tmp/tmpwpphm0q9/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmppx8r237q
+VALID profile: /tmp/tmppx8r237q/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmppx8r237q/.review/intelligence/config.yml; components=4
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp6hbjuqsf
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmp6hbjuqsf/analysis
+VALID GitHub source: repo=demo/repo; pr=#7; files=1
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpou4o2wxe
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpou4o2wxe/analysis
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpou4o2wxe/analysis
+{
+  "schema_version": "1.0",
+  "ready": true,
+  "gh": {
+    "installed": true,
+    "executable": "gh-stub",
+    "version": "gh version 2.99.0-test"
+  },
+  "authentication": {
+    "hostname": "github.com",
+    "authenticated": true,
+    "detail": "stub"
+  },
+  "current_repository": {
+    "name_with_owner": "demo/repo",
+    "url": "https://github.com/demo/repo",
+    "hostname": "github.com"
+  }
+}
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp0pg4c8ty
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp0pg4c8ty/allowed
+INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmpl8j40_bf
+INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmpl8j40_bf
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpd677v5gg
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmpd677v5gg
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmpd677v5gg
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpffwrr19m
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmptzndc0ev
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmptzndc0ev/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpcs7ofg0b
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpcs7ofg0b/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp6hx0al8y
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp6hx0al8y/allowed
+FULL_EXIT=0
+RESULT=0,0,0,0,0,0
