@@ -59,12 +59,21 @@ class TrustInputHardeningTests(unittest.TestCase):
             with self.assertRaisesRegex(TrustError, "normalized duplicates"):
                 load_trust_request(fixture.request)
 
+    def test_symbolic_source_revision_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = TrustReadinessFixture(Path(tmp))
+            data = json.loads(fixture.request.read_text(encoding="utf-8"))
+            data["source_revision"] = "HEAD"
+            dump_json(fixture.request, data)
+            with self.assertRaisesRegex(TrustError, "symbolic revision"):
+                load_trust_request(fixture.request)
+
     def test_duplicate_relation_observation_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = TrustReadinessFixture(Path(tmp))
             data = json.loads(fixture.observations.read_text(encoding="utf-8"))
             duplicate = dict(data["observations"][0])
-            duplicate["observation_id"] = "obs-2"
+            duplicate["observation_id"] = "obs-duplicate"
             data["observations"].append(duplicate)
             dump_json(fixture.observations, data)
             with self.assertRaisesRegex(TrustError, "duplicate Reground relation_id"):
@@ -132,6 +141,26 @@ class TrustIntegrityHardeningTests(unittest.TestCase):
             rehash_report(report)
             errors = verify_trust_report_data(report)
             self.assertTrue(any("readiness projection mismatch" in error for error in errors))
+
+    def test_missing_positive_or_negative_sample_cannot_claim_perfect_metrics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = TrustReadinessFixture(Path(tmp))
+            observations = json.loads(fixture.observations.read_text(encoding="utf-8"))
+            current = next(
+                item
+                for item in observations["observations"]
+                if item["expected_status"] == "CURRENT"
+            )
+            observations["observations"] = [current]
+            dump_json(fixture.observations, observations)
+            request = json.loads(fixture.request.read_text(encoding="utf-8"))
+            request["readiness_policy"]["min_reground_coverage"] = 0.5
+            dump_json(fixture.request, request)
+            report = fixture.assess()
+            self.assertIsNone(report["evidence"]["reground"]["precision"])
+            self.assertIsNone(report["evidence"]["reground"]["recall"])
+            self.assertEqual("NOT_READY", report["readiness"]["status"])
+            self.assertIn("reground_precision_threshold", report["readiness"]["failed_conditions"])
 
     def test_policy_evaluation_mismatch_is_not_ready_and_hard_gate(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,3 +1,4 @@
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -6,7 +7,8 @@ import unittest
 from contextlib import redirect_stdout
 
 from review_system.defects import create_defect, initialize_defect_registry
-from review_system.io import dump_json, dump_yaml
+from review_system.intelligence_graph import calculate_graph_sha256
+from review_system.io import dump_json, dump_yaml, load_data
 from review_system.ledger import import_artifact_directory
 from review_system.reground import write_reground_report
 from review_system.trust import (
@@ -69,6 +71,29 @@ class TrustReadinessFixture:
         )
 
         self.reground_fixture = RegroundFixture(root)
+        other = self.reground_fixture.repository / "src" / "other.py"
+        other.write_text("from .source import VALUE\n", encoding="utf-8")
+        graph = load_data(self.reground_fixture.graph)
+        graph["nodes"].append(
+            {
+                "id": "file:src/other.py",
+                "type": "file",
+                "path": "src/other.py",
+                "language": "python",
+                "size_bytes": other.stat().st_size,
+                "sha256": hashlib.sha256(other.read_bytes()).hexdigest(),
+            }
+        )
+        graph["edges"].append(
+            {
+                "source": "file:src/other.py",
+                "target": "file:src/source.py",
+                "type": "imports",
+            }
+        )
+        graph["graph_sha256"] = calculate_graph_sha256(graph)
+        dump_json(self.reground_fixture.graph, graph)
+        self.reground_fixture.target.write_text("VALUE = 2\n", encoding="utf-8")
         gated_root, self.gated_run_id = LedgerFixture.create(root, "gated-run", with_gate=True)
         import_artifact_directory(self.reground_fixture.ledger, gated_root)
 
@@ -94,7 +119,6 @@ class TrustReadinessFixture:
         self.reground = self.reground_fixture.analyze()
         self.reground_report = root / "reground-report.json"
         write_reground_report(self.reground_report, self.reground)
-        relation = self.reground["relations"][0]
         self.observations = root / "reground-observations.json"
         dump_json(
             self.observations,
@@ -105,12 +129,13 @@ class TrustReadinessFixture:
                 "reground_report_id": self.reground["report_id"],
                 "observations": [
                     {
-                        "observation_id": "obs-1",
+                        "observation_id": f"obs-{index}",
                         "relation_id": relation["relation_id"],
                         "expected_status": relation["status"],
                         "confirmed_by": "human-reviewer",
                         "confirmed_at": "2026-07-25T01:00:00Z",
                     }
+                    for index, relation in enumerate(self.reground["relations"], start=1)
                 ],
             },
         )

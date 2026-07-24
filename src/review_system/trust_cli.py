@@ -42,6 +42,9 @@ def cmd_assess(args: argparse.Namespace) -> int:
             generated_at=args.generated_at,
         )
         output = write_trust_report(args.output, report)
+    except TrustVerificationError as exc:
+        _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
+        return 4
     except (TrustError, OSError, ValueError) as exc:
         _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
         return 3

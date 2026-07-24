@@ -13,7 +13,7 @@ from typing import Any, Iterable
 from jsonschema import Draft202012Validator, FormatChecker
 
 from .evaluation import load_evaluation_report
-from .identity import canonical_json_sha256, file_sha256
+from .identity import canonical_json_sha256, file_sha256, normalize_source_revision
 from .intelligence_config import normalize_path
 from .io import load_data
 from .ledger import LEDGER_SCHEMA_VERSION, verify_ledger
@@ -169,10 +169,16 @@ def _normalize_request_data(data: Any) -> dict[str, Any]:
         raise TrustError("Trust request changed_files must not contain normalized duplicates")
     required = sorted(candidate["required_scenarios"])
     completed = sorted(candidate["completed_scenarios"])
+    try:
+        source_revision = normalize_source_revision(candidate["source_revision"])
+    except ValueError as exc:
+        raise TrustError(f"Trust request source_revision: {exc}") from exc
+    if source_revision == "unresolved":
+        raise TrustError("Trust request source_revision must be a stable revision")
     normalized = {
         "schema_version": TRUST_SCHEMA_VERSION,
         "task_id": candidate["task_id"].strip(),
-        "source_revision": candidate["source_revision"].strip(),
+        "source_revision": source_revision,
         "task_class": candidate["task_class"],
         "changed_files": changed_files,
         "required_scenarios": required,
@@ -307,7 +313,15 @@ def _path_classification(path: str) -> tuple[str, str]:
         or name.startswith("dockerfile")
         or name in {"docker-compose.yml", "docker-compose.yaml"}
         or any(token in f"/{lowered}/" for token in r3_tokens)
-        or any(token in name for token in ("credential", "secret", "token", "permission", "migration"))
+        or name.startswith("auth")
+        or any(
+            token in name
+            for token in (
+                "credential", "secret", "token", "permission", "migration",
+                "authentication", "authorization", "oauth", "jwt", "security",
+                "role", "rls",
+            )
+        )
     ):
         return "R3", "HIGH_RISK_PATH"
     if (
@@ -654,10 +668,10 @@ def _classification_metrics(
             fn += 1
     count = len(observations["observations"])
     relation_count = len(relations)
-    precision = tp / (tp + fp) if tp + fp else 1.0
-    recall = tp / (tp + fn) if tp + fn else 1.0
-    false_positive_rate = fp / (fp + tn) if fp + tn else 0.0
-    exact_rate = (tp + tn) / count if count else 0.0
+    precision = tp / (tp + fp) if tp + fp else None
+    recall = tp / (tp + fn) if tp + fn else None
+    false_positive_rate = fp / (fp + tn) if fp + tn else None
+    exact_rate = (tp + tn) / count if count else None
     coverage = count / relation_count if relation_count else 0.0
     return {
         "observation_count": count,
@@ -666,10 +680,14 @@ def _classification_metrics(
         "fp": fp,
         "tn": tn,
         "fn": fn,
-        "precision": round(precision, 6),
-        "recall": round(recall, 6),
-        "false_positive_rate": round(false_positive_rate, 6),
-        "exact_rate": round(exact_rate, 6),
+        "precision": round(precision, 6) if precision is not None else None,
+        "recall": round(recall, 6) if recall is not None else None,
+        "false_positive_rate": (
+            round(false_positive_rate, 6)
+            if false_positive_rate is not None
+            else None
+        ),
+        "exact_rate": round(exact_rate, 6) if exact_rate is not None else None,
     }
 
 
