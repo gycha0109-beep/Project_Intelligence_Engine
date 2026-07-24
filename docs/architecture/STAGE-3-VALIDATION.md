@@ -1,6 +1,6 @@
 # Stage 3 Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #10 HEAD `b0f4a30e625c6cd027241326c391450b87e1a10b`
 
@@ -26,6 +26,8 @@
 
 해당 값을 source evidence hash로 fallback하도록 수정한 뒤, run `30070297959`에서 Python 3.11·3.13·3.14의 모든 단계를 통과했다.
 
+구현 리뷰와 architecture index까지 포함한 run `30070403222`도 세 Python matrix의 전체 단계를 통과했다.
+
 - package install: PASS
 - package asset sync: PASS
 - full unit/regression suite: PASS
@@ -33,4 +35,4 @@
 - finding validation: PASS
 - wheel build: PASS
 
-문서와 구현 리뷰를 포함한 최종 exact HEAD를 같은 matrix로 재검증한 뒤 Gate를 `PASS`로 확정한다.
+최종 Gate: `PASS`
