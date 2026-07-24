@@ -28,6 +28,9 @@
 17. [STAGE-3-RUN-ARTIFACT-IDENTITY.md](STAGE-3-RUN-ARTIFACT-IDENTITY.md) — Run·Artifact identity 상세 설계와 설계 리뷰
 18. [STAGE-3-IMPLEMENTATION-REVIEW.md](STAGE-3-IMPLEMENTATION-REVIEW.md) — Stage 3 구현 리뷰
 19. [STAGE-3-VALIDATION.md](STAGE-3-VALIDATION.md) — Stage 3 검증 결과
+20. [STAGE-4-EVIDENCE-LEDGER-FOUNDATION.md](STAGE-4-EVIDENCE-LEDGER-FOUNDATION.md) — SQLite Ledger schema·migration·import·rebuild 설계
+21. [STAGE-4-IMPLEMENTATION-REVIEW.md](STAGE-4-IMPLEMENTATION-REVIEW.md) — Stage 4 구현 리뷰와 보완
+22. [STAGE-4-VALIDATION.md](STAGE-4-VALIDATION.md) — Stage 4 검증 결과
 
 ## 권위 규칙
 
@@ -48,7 +51,8 @@
 - Stage 2C — Repository Binding Extraction: `PASS`, PR #9 검토 대기
 - Stage 2D — Collector Boundary Extraction: `PASS`, PR #10 검토 대기
 - Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
+- Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
 
 ## 다음 단계
 
-Stage 4 Evidence Ledger Foundation의 SQLite schema·migration·rebuild 경계를 상세 설계한다.
+Stage 5에서 Run-local Finding과 cross-run Defect를 분리하는 Defect Registry를 설계한다.
