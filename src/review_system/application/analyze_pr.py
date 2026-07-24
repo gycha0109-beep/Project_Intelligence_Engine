@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ..github_connector import GitHubCLI, collect_pull_request, refresh_source_hash
+from ..identity import pull_request_run_identity, write_identity_manifest
 from ..intelligence_config import load_intelligence_config, load_rules, path_matches
 from ..intelligence_graph import build_project_graph
 from ..intelligence_impact import analyze_change
@@ -227,6 +228,9 @@ def analyze_pull_request(
         if diff_file.exists():
             diff_file.unlink()
         diff_path = None
+
+    identity = pull_request_run_identity(profile["project"]["id"], source)
+    write_identity_manifest(output_dir, identity)
 
     return AnalyzePullRequestResult(
         source=source,
