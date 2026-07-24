@@ -3,7 +3,7 @@
 기준일: 2026-07-24  
 선행 기준선: PR #15 HEAD `f97b7367a66bb3a7b077536350d5f604bfb83fe9`  
 작업 브랜치: `agent/stage-8-reground-foundation`  
-상태: `DESIGN_APPROVED / IMPLEMENTATION_PENDING`
+상태: `PASS`
 
 ## 1. 목적
 
@@ -158,10 +158,10 @@ TARGET_MISSING
 }
 ```
 
-- `snapshot_sha256`는 generated time과 report hash를 제외한 source state projection의 canonical digest다.
-- `report_id`는 project, graph hash, last verified Run identity, snapshot hash의 deterministic digest다.
+- `snapshot_sha256`는 generated time, report hash와 mutable import time을 제외한 source state projection의 canonical digest다.
+- `report_id`는 project, graph hash, stable last verified Run identity, snapshot hash의 deterministic digest다.
 - `report_sha256`는 자기 field를 제외한 report 전체 canonical digest다.
-- verifier는 hash만 대조하지 않고 file status, relation status, summary, impacted recheck와 report ID를 재계산한다.
+- verifier는 hash만 대조하지 않고 canonical file·relation projection, status, summary, impacted recheck와 report ID를 재계산한다.
 - self-contained report 검증은 source replay와 구분한다.
 
 ## 7. CLI
@@ -225,12 +225,14 @@ pie-reground verify-report
 
 ## 9. 안전 규칙
 
-- Graph와 Ledger input의 symlink component를 거부한다.
+- Graph, Ledger와 report input의 symlink component를 거부한다.
 - repository root 자체와 tracked path의 symlink traversal을 거부한다.
 - output symlink를 거부한다.
 - Graph validation과 Ledger integrity·migration·artifact verification을 선행한다.
+- file node ID와 normalized path의 자연키 일치를 강제한다.
 - duplicate normalized file path와 duplicate relation natural key를 거부한다.
-- current file은 binary 여부와 무관하게 raw bytes SHA-256으로 비교한다.
+- current file은 binary 여부와 무관하게 한 번의 raw-byte read로 SHA-256과 size를 계산한다.
+- report verifier는 canonical ordering과 허용 field 집합을 강제한다.
 - report write는 temporary file + fsync + atomic replace를 사용한다.
 - atomic replace 실패 시 기존 output bytes를 유지한다.
 
@@ -250,12 +252,14 @@ pie-reground verify-report
 12. traversal·absolute·symlink path 거부
 13. non-file edge 제외
 14. report identity·snapshot·report hash 재계산
-15. rehashed summary/relation/recheck tamper 탐지
-16. atomic output rollback
-17. CLI exit contract
-18. Python 3.11·3.13·3.14 full matrix
-19. existing CLI/profile/finding validation
-20. wheel build including `pie-reground`
+15. stable logical Run identity와 mutable import time 분리
+16. rehashed summary/relation/recheck tamper 탐지
+17. reordered·extended projection tamper 탐지
+18. atomic output rollback
+19. CLI exit contract
+20. Python 3.11·3.13·3.14 full matrix
+21. existing CLI/profile/finding validation
+22. wheel build including `pie-reground`
 
 ## 11. Exit Criteria
 
