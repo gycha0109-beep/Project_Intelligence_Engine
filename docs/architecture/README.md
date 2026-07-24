@@ -40,6 +40,9 @@
 29. [STAGE-7-POLICY-REGISTRY.md](STAGE-7-POLICY-REGISTRY.md) — version·parent·evaluation·lifecycle Policy Registry 설계
 30. [STAGE-7-IMPLEMENTATION-REVIEW.md](STAGE-7-IMPLEMENTATION-REVIEW.md) — Stage 7 구현 리뷰와 보완
 31. [STAGE-7-VALIDATION.md](STAGE-7-VALIDATION.md) — Stage 7 검증 결과
+32. [STAGE-8-REGROUND-FOUNDATION.md](STAGE-8-REGROUND-FOUNDATION.md) — Graph·Ledger freshness와 impacted recheck 설계
+33. [STAGE-8-IMPLEMENTATION-REVIEW.md](STAGE-8-IMPLEMENTATION-REVIEW.md) — Stage 8 구현 리뷰와 보완
+34. [STAGE-8-VALIDATION.md](STAGE-8-VALIDATION.md) — Stage 8 검증 결과
 
 ## 권위 규칙
 
@@ -64,7 +67,8 @@
 - Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
 - Stage 6 — Evaluation Lab: `PASS`, PR #14 검토 대기
 - Stage 7 — Policy Registry: `PASS`, PR #15 검토 대기
+- Stage 8 — Reground Foundation: `PASS`, PR #16 검토 대기
 
 ## 다음 단계
 
-Stage 8 Reground Foundation에서 Graph·Ledger의 source/target hash, last verified Run, stale reason과 impacted recheck 목록을 설계한다.
+Stage 9 BuildMap Export에서 PIE의 결정 근거를 중복 저장 없이 참조할 schema와 stable export identity를 설계한다.
