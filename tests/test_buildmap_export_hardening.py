@@ -83,6 +83,18 @@ class BuildMapExportIntegrityTests(unittest.TestCase):
                 verify_buildmap_export_source(export, fixture.database),
             )
 
+    def test_rehashed_defect_artifact_links_are_source_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = BuildMapFixture(Path(tmp))
+            export = fixture.export()
+            export["projection"]["defects"][0]["artifact_refs"] = []
+            rehash_export(export)
+            self.assertEqual([], verify_buildmap_export_data(export))
+            self.assertIn(
+                "BuildMap source projection mismatch",
+                verify_buildmap_export_source(export, fixture.database),
+            )
+
     def test_rehashed_path_traversal_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = BuildMapFixture(Path(tmp))

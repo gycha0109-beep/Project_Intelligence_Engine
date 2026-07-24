@@ -176,6 +176,18 @@ def _load_source_rows(database: Path, project_id: str, run_id: str) -> dict[str,
             """,
             (run_id,),
         )
+        defect_artifacts = _rows(
+            connection,
+            """
+            SELECT DISTINCT da.*
+            FROM defect_artifacts da
+            JOIN finding_defects fd ON fd.defect_id = da.defect_id
+            JOIN findings f ON f.finding_id = fd.finding_id
+            WHERE f.run_id = ?
+            ORDER BY da.defect_id, da.artifact_id, da.relation
+            """,
+            (run_id,),
+        )
         decisions = _rows(
             connection,
             "SELECT * FROM decisions WHERE run_id = ? ORDER BY decision_id",
@@ -195,6 +207,7 @@ def _load_source_rows(database: Path, project_id: str, run_id: str) -> dict[str,
         "findings": findings,
         "finding_defects": finding_defects,
         "defects": defects,
+        "defect_artifacts": defect_artifacts,
         "decisions": decisions,
         "policy_snapshots": policy_snapshots,
     }
@@ -231,6 +244,7 @@ def _stable_source_rows(rows: dict[str, Any]) -> dict[str, Any]:
         "findings": without(rows["findings"], {"imported_at"}),
         "finding_defects": without(rows["finding_defects"], set()),
         "defects": without(rows["defects"], set()),
+        "defect_artifacts": without(rows["defect_artifacts"], set()),
         "decisions": without(rows["decisions"], set()),
         "policy_snapshots": without(rows["policy_snapshots"], {"imported_at"}),
     }
@@ -436,6 +450,20 @@ def _project_rows(rows: dict[str, Any], included_artifacts: set[str]) -> dict[st
                 "artifact_redacted": redacted,
             }
         )
+    artifact_refs_by_defect: dict[str, list[dict[str, Any]]] = {}
+    for link in rows["defect_artifacts"]:
+        artifact_id, redacted = _artifact_reference(link.get("artifact_id"), included_artifacts)
+        if artifact_id is None:
+            continue
+        artifact_refs_by_defect.setdefault(str(link["defect_id"]), []).append(
+            {
+                "artifact_id": artifact_id,
+                "relation": str(link["relation"]),
+                "artifact_redacted": redacted,
+            }
+        )
+    for refs in artifact_refs_by_defect.values():
+        refs.sort(key=lambda item: (item["artifact_id"], item["relation"]))
     defects = [
         {
             "defect_id": str(row["defect_id"]),
@@ -444,6 +472,7 @@ def _project_rows(rows: dict[str, Any], included_artifacts: set[str]) -> dict[st
             "signature_sha256": canonical_json_sha256({"signature": row.get("signature")}),
             "first_seen_run_id": row.get("first_seen_run_id"),
             "last_seen_run_id": row.get("last_seen_run_id"),
+            "artifact_refs": artifact_refs_by_defect.get(str(row["defect_id"]), []),
         }
         for row in rows["defects"]
     ]
@@ -669,6 +698,43 @@ def _canonical_projection_errors(export: dict[str, Any]) -> list[str]:
                 errors.append(f"projection.findings[{index}].defect_ids canonical mismatch")
             elif defect_ids != sorted(set(defect_ids)):
                 errors.append(f"projection.findings[{index}].defect_ids canonical mismatch")
+
+    defects = projection.get("defects")
+    if isinstance(defects, list):
+        for index, item in enumerate(defects):
+            if not isinstance(item, dict):
+                continue
+            refs = item.get("artifact_refs")
+            if not isinstance(refs, list):
+                errors.append(f"projection.defects[{index}].artifact_refs canonical mismatch")
+                continue
+            canonical: list[dict[str, Any]] = []
+            seen: set[tuple[str, str]] = set()
+            malformed = False
+            for ref in refs:
+                if not isinstance(ref, dict):
+                    malformed = True
+                    continue
+                artifact_id = ref.get("artifact_id")
+                relation = ref.get("relation")
+                if not isinstance(artifact_id, str) or not artifact_id or not isinstance(relation, str) or not relation:
+                    malformed = True
+                    continue
+                key = (artifact_id, relation)
+                if key in seen:
+                    malformed = True
+                    continue
+                seen.add(key)
+                canonical.append(
+                    {
+                        "artifact_id": artifact_id,
+                        "relation": relation,
+                        "artifact_redacted": artifact_id not in artifact_ids,
+                    }
+                )
+            canonical.sort(key=lambda ref: (ref["artifact_id"], ref["relation"]))
+            if malformed or refs != canonical:
+                errors.append(f"projection.defects[{index}].artifact_refs canonical mismatch")
 
     decisions = projection.get("decisions")
     if isinstance(decisions, list):

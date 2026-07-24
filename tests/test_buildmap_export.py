@@ -10,7 +10,12 @@ from review_system.buildmap_export import (
     verify_buildmap_export_source,
     write_buildmap_export,
 )
-from review_system.defects import create_defect, initialize_defect_registry, link_finding
+from review_system.defects import (
+    create_defect,
+    initialize_defect_registry,
+    link_defect_artifact,
+    link_finding,
+)
 from review_system.identity import derive_run_identity, write_identity_manifest
 from review_system.io import dump_json
 from review_system.ledger import import_artifact_directory
@@ -200,6 +205,35 @@ class BuildMapFixture:
             approved_by="reviewer",
             occurred_at="2026-07-24T00:11:00Z",
         )
+        with sqlite3.connect(self.database) as connection:
+            public_artifact = connection.execute(
+                "SELECT artifact_id FROM artifacts WHERE run_id = ? AND relative_path = 'evidence.txt'",
+                (self.run_id,),
+            ).fetchone()[0]
+            private_artifact = connection.execute(
+                "SELECT artifact_id FROM artifacts WHERE run_id = ? AND relative_path = 'github-source.json'",
+                (self.run_id,),
+            ).fetchone()[0]
+        link_defect_artifact(
+            registry,
+            self.database,
+            defect_id=self.defect_id,
+            artifact_id=str(public_artifact),
+            relation="diagnostic",
+            linked_by="reviewer",
+            note="PRIVATE_DEFECT_ARTIFACT_NOTE",
+            occurred_at="2026-07-24T00:12:00Z",
+        )
+        link_defect_artifact(
+            registry,
+            self.database,
+            defect_id=self.defect_id,
+            artifact_id=str(private_artifact),
+            relation="reproducer",
+            linked_by="reviewer",
+            note="PRIVATE_DISCUSSION_ARTIFACT_NOTE",
+            occurred_at="2026-07-24T00:13:00Z",
+        )
 
     def export(self, *, generated_at: str = "2026-07-24T12:00:00Z", redaction_paths=()):
         return build_buildmap_export(
@@ -234,6 +268,8 @@ class BuildMapExportTests(unittest.TestCase):
                 "PRIVATE_DEFECT_SIGNATURE",
                 "PRIVATE_DEFECT_TITLE",
                 "PRIVATE_ROOT_CAUSE",
+                "PRIVATE_DEFECT_ARTIFACT_NOTE",
+                "PRIVATE_DISCUSSION_ARTIFACT_NOTE",
                 str(fixture.directory),
                 "/absolute/private/locator",
             ):
@@ -247,7 +283,13 @@ class BuildMapExportTests(unittest.TestCase):
             finding = export["projection"]["findings"][0]
             self.assertEqual(fixture.finding_id, finding["finding_id"])
             self.assertEqual([fixture.defect_id], finding["defect_ids"])
-            self.assertEqual(fixture.defect_id, export["projection"]["defects"][0]["defect_id"])
+            defect = export["projection"]["defects"][0]
+            self.assertEqual(fixture.defect_id, defect["defect_id"])
+            self.assertEqual(2, len(defect["artifact_refs"]))
+            self.assertEqual(
+                [False, True],
+                [item["artifact_redacted"] for item in defect["artifact_refs"]],
+            )
             redacted_evidence = next(
                 item
                 for item in export["projection"]["evidence"]
