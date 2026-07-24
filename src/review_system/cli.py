@@ -19,6 +19,7 @@ from .application import (
     index_project,
 )
 from .baseline import verify_snapshot_file, write_snapshot
+from .buildmap_cli import cmd_export as cmd_export_buildmap, cmd_validate as cmd_validate_buildmap_export
 from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
 from .io import dump_json, dump_yaml, load_data
@@ -718,6 +719,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--gh-executable", help=argparse.SUPPRESS)
     p.add_argument("--output-dir")
     p.set_defaults(func=cmd_analyze_pr)
+
+    p = sub.add_parser("export-buildmap", help="Export one verified PIE Run as a metadata-only BuildMap reference")
+    p.add_argument("--ledger", required=True)
+    p.add_argument("--project-id", required=True)
+    p.add_argument("--run-id", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--redact-path", action="append", default=[])
+    p.add_argument("--generated-at")
+    p.set_defaults(func=cmd_export_buildmap)
+
+    p = sub.add_parser("validate-buildmap-export", help="Validate a BuildMap export and optionally replay it against a Ledger")
+    p.add_argument("export")
+    p.add_argument("--ledger")
+    p.set_defaults(func=cmd_validate_buildmap_export)
     return parser
 
 

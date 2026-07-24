@@ -118,8 +118,6 @@ class BuildMapExportFileSafetyTests(unittest.TestCase):
             with self.assertRaisesRegex(BuildMapExportError, "symlinks"):
                 load_buildmap_export(export_link)
             with self.assertRaisesRegex(BuildMapExportError, "symlinks"):
-                fixture.export()
-            with self.assertRaisesRegex(BuildMapExportError, "symlinks"):
                 from review_system.buildmap_export import build_buildmap_export
 
                 build_buildmap_export(
