@@ -1,6 +1,6 @@
 # Stage 6 Implementation Review
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #13 HEAD `f171129935b6617ed5d69983b50f07fab2399b3c`
 
@@ -76,4 +76,4 @@ Dataset validator는 Windows separator를 정상 경로로 검증했지만 실�
 
 검증된 hardening 코드 HEAD: `f507c61491b5950dc16f0966420e633a6b206564`
 
-Stage 6 hardening workflow에서 focused Evaluation Lab suite, 전체 repository regression, `pie-eval`·기존 `pie` smoke가 통과한 뒤 제품 변경만 위 HEAD에 반영됐다. 임시 적용 workflow와 script는 이후 제거했다.
+문서와 Architecture index를 포함하고 임시 자산을 제거한 HEAD `7b3d5d756a3802f58eed78d83cf24519369fdc4c`의 GitHub Actions run `30083113087`에서 Python 3.11·3.13·3.14 전체 matrix가 통과했다.
