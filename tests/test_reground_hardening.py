@@ -65,6 +65,17 @@ class RegroundIntegrityHardeningTests(unittest.TestCase):
             errors = verify_reground_report_data(report)
             self.assertTrue(any("path traversal" in error for error in errors))
 
+    def test_rehashed_reordered_or_extended_projection_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = RegroundFixture(Path(tmp))
+            report = fixture.analyze()
+            report["files"].reverse()
+            report["relations"][0]["unexpected"] = "forged"
+            rehash_report(report)
+            errors = verify_reground_report_data(report)
+            self.assertIn("files canonical projection mismatch", errors)
+            self.assertIn("relations canonical projection mismatch", errors)
+
     def test_report_id_and_snapshot_hash_are_natural_key_verified(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = RegroundFixture(Path(tmp))
@@ -89,6 +100,17 @@ class RegroundInputSafetyTests(unittest.TestCase):
             graph["nodes"][0]["sha256"] = "0" * 64
             dump_json(fixture.graph, graph)
             with self.assertRaisesRegex(RegroundError, "invalid Project Graph"):
+                fixture.analyze()
+
+    def test_file_node_id_must_match_normalized_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = RegroundFixture(Path(tmp))
+            graph = load_data(fixture.graph)
+            graph["nodes"][0]["id"] = "file:src/other.py"
+            graph["edges"][0]["source"] = "file:src/other.py"
+            graph["graph_sha256"] = calculate_graph_sha256(graph)
+            dump_json(fixture.graph, graph)
+            with self.assertRaisesRegex(RegroundError, "id does not match"):
                 fixture.analyze()
 
     def test_duplicate_file_relation_is_rejected_even_with_valid_graph_hash(self):

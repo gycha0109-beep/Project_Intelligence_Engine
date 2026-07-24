@@ -5,11 +5,11 @@ import json
 import sys
 from typing import Sequence
 
-from .io import load_data
 from .reground import (
     RegroundError,
+    RegroundVerificationError,
     analyze_reground,
-    verify_reground_report_data,
+    load_reground_report,
     write_reground_report,
 )
 
@@ -64,11 +64,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
 
         if args.command == "verify-report":
-            data = load_data(args.report)
-            errors = verify_reground_report_data(data)
-            result = {"valid": not errors, "report": str(args.report), "errors": errors}
-            _print_json(result, stream=sys.stdout if not errors else sys.stderr)
-            return 0 if not errors else 4
+            try:
+                source, _ = load_reground_report(args.report)
+            except RegroundVerificationError as exc:
+                _print_json(
+                    {"valid": False, "report": str(args.report), "errors": list(exc.errors)},
+                    stream=sys.stderr,
+                )
+                return 4
+            _print_json({"valid": True, "report": str(source), "errors": []})
+            return 0
     except (RegroundError, OSError, ValueError) as exc:
         _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
         return 3

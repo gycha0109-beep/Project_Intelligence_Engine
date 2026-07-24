@@ -105,12 +105,14 @@ def _safe_output(path: str | Path) -> Path:
     return target.resolve()
 
 
-def _file_sha256(path: Path) -> str:
+def _file_digest(path: Path) -> tuple[str, int]:
     digest = hashlib.sha256()
+    size = 0
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            size += len(chunk)
             digest.update(chunk)
-    return digest.hexdigest()
+    return digest.hexdigest(), size
 
 
 def _tracked_file(root: Path, value: str) -> tuple[str, Path | None]:
@@ -161,6 +163,8 @@ def _file_nodes(graph: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[
         node_id = node.get("id")
         if not isinstance(node_id, str) or not node_id:
             raise RegroundError(f"Graph file node {index} id is invalid")
+        if node_id != f"file:{path}":
+            raise RegroundError(f"Graph file node id does not match normalized path: {node_id}")
         recorded = node.get("sha256")
         if not isinstance(recorded, str) or not _HASH_RE.fullmatch(recorded):
             raise RegroundError(f"Graph file node {path} sha256 is invalid")
@@ -184,8 +188,7 @@ def _file_state(root: Path, path: str, node: dict[str, Any]) -> dict[str, Any]:
             "status": "MISSING",
             "reasons": ["FILE_MISSING"],
         }
-    current_hash = _file_sha256(current)
-    current_size = current.stat().st_size
+    current_hash, current_size = _file_digest(current)
     if current_hash == recorded:
         status = "CURRENT"
         reasons: list[str] = []
@@ -359,16 +362,34 @@ def _last_verified_run(database: Path, project_id: str) -> dict[str, Any] | None
     return dict(row) if row is not None else None
 
 
+_LAST_RUN_FIELDS = (
+    "run_id",
+    "run_key_sha256",
+    "project_id",
+    "run_type",
+    "source_revision",
+    "source_identifier",
+    "manifest_sha256",
+    "imported_at",
+)
+_STABLE_LAST_RUN_FIELDS = tuple(field for field in _LAST_RUN_FIELDS if field != "imported_at")
+
+
+def _stable_last_run(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    return {field: deepcopy(value.get(field)) for field in _STABLE_LAST_RUN_FIELDS}
+
+
 def _snapshot_payload(report: dict[str, Any]) -> dict[str, Any]:
+    ledger = report.get("ledger") if isinstance(report.get("ledger"), dict) else {}
     return {
         "schema_version": report.get("schema_version"),
         "project_id": report.get("project_id"),
         "graph_sha256": report.get("graph", {}).get("graph_sha256")
         if isinstance(report.get("graph"), dict)
         else None,
-        "last_verified_run": report.get("ledger", {}).get("last_verified_run")
-        if isinstance(report.get("ledger"), dict)
-        else None,
+        "last_verified_run": _stable_last_run(ledger.get("last_verified_run")),
         "files": deepcopy(report.get("files")),
         "relations": deepcopy(report.get("relations")),
         "impacted_rechecks": deepcopy(report.get("impacted_rechecks")),
@@ -492,7 +513,15 @@ def _validate_file_record(item: Any, index: int, errors: list[str]) -> dict[str,
         errors.append(f"{prefix}.status mismatch")
     if item.get("reasons") != expected_reasons:
         errors.append(f"{prefix}.reasons mismatch")
-    return {**item, "path": path, "status": expected_status, "reasons": expected_reasons}
+    return {
+        "node_id": f"file:{path}",
+        "path": path,
+        "recorded_sha256": recorded,
+        "current_sha256": current,
+        "size_bytes": size,
+        "status": expected_status,
+        "reasons": expected_reasons,
+    }
 
 
 def verify_reground_report_data(report: Any) -> list[str]:
@@ -533,10 +562,9 @@ def verify_reground_report_data(report: Any) -> list[str]:
             errors.append("ledger.last_verified_run must be an object or null")
             last_run = None
         else:
-            for field in (
-                "run_id", "run_key_sha256", "project_id", "run_type",
-                "source_revision", "source_identifier", "manifest_sha256", "imported_at",
-            ):
+            if set(last_run) != set(_LAST_RUN_FIELDS):
+                errors.append("ledger.last_verified_run fields mismatch")
+            for field in _LAST_RUN_FIELDS:
                 if not isinstance(last_run.get(field), str) or not last_run[field]:
                     errors.append(f"ledger.last_verified_run.{field} is required")
             if last_run.get("project_id") != report.get("project_id"):
@@ -557,6 +585,9 @@ def verify_reground_report_data(report: Any) -> list[str]:
             errors.append(f"duplicate file path: {path}")
         paths.add(path)
         files.append(normalized)
+    files = sorted(files, key=lambda item: item["path"])
+    if files_raw != files:
+        errors.append("files canonical projection mismatch")
     files_by_path = {str(item["path"]): item for item in files}
 
     relations_raw = report.get("relations")
@@ -609,6 +640,12 @@ def verify_reground_report_data(report: Any) -> list[str]:
                 "reasons": reasons,
             }
         )
+    relations = sorted(
+        relations,
+        key=lambda item: (item["source_path"], item["target_path"], item["type"]),
+    )
+    if relations_raw != relations:
+        errors.append("relations canonical projection mismatch")
 
     expected_impacted = _impacted_rechecks(files, relations)
     if report.get("impacted_rechecks") != expected_impacted:

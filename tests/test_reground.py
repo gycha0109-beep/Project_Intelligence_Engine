@@ -166,6 +166,24 @@ class RegroundProjectionTests(unittest.TestCase):
             report = fixture.analyze()
             self.assertEqual(second_id, report["ledger"]["last_verified_run"]["run_id"])
 
+    def test_idempotent_reimport_time_does_not_change_snapshot_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = RegroundFixture(Path(tmp))
+            first = fixture.analyze()
+            with sqlite3.connect(fixture.ledger) as connection:
+                connection.execute(
+                    "UPDATE runs SET imported_at = ? WHERE run_id = ?",
+                    ("2026-07-25T12:00:00+00:00", fixture.run_id),
+                )
+            second = fixture.analyze()
+            self.assertNotEqual(
+                first["ledger"]["last_verified_run"]["imported_at"],
+                second["ledger"]["last_verified_run"]["imported_at"],
+            )
+            self.assertEqual(first["snapshot_sha256"], second["snapshot_sha256"])
+            self.assertEqual(first["report_id"], second["report_id"])
+            self.assertNotEqual(first["report_sha256"], second["report_sha256"])
+
     def test_windows_graph_path_normalizes_to_posix(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = RegroundFixture(Path(tmp))
@@ -210,6 +228,21 @@ class RegroundReportAndCliTests(unittest.TestCase):
             self.assertEqual("STALE", json.loads(stdout.getvalue())["status"])
             with redirect_stdout(io.StringIO()):
                 self.assertEqual(0, reground_main(["verify-report", "--report", str(output)]))
+
+    @unittest.skipUnless(hasattr(__import__("os"), "symlink"), "symlink support required")
+    def test_cli_verify_rejects_symlink_report_as_input_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = RegroundFixture(root)
+            output = root / "report.json"
+            write_reground_report(output, fixture.analyze())
+            link = root / "report-link.json"
+            try:
+                link.symlink_to(output)
+            except OSError:
+                self.skipTest("symlink creation unavailable")
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(3, reground_main(["verify-report", "--report", str(link)]))
 
     def test_cli_invalid_report_returns_verification_exit(self):
         with tempfile.TemporaryDirectory() as tmp:
