@@ -6,6 +6,7 @@ on:
       - agent/stage-5-defect-registry
     paths:
       - scripts/apply_stage5_defect_registry.py
+      - scripts/fix_stage5_event_hash.py
       - .github/workflows/stage5-apply.yml
       - docs/architecture/.stage5-apply-trigger
   pull_request:
@@ -27,25 +28,10 @@ jobs:
         with:
           python-version: "3.11"
       - run: python scripts/apply_stage5_defect_registry.py
+      - run: python scripts/fix_stage5_event_hash.py
       - run: pip install -e .
       - run: python -m compileall -q src tests
-      - name: Run focused Stage 5 tests
-        id: focused
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          python -m unittest discover -s tests -p 'test_defects.py' -v 2>&1 | tee stage5-test.log
-      - name: Commit focused failure diagnostics
-        if: steps.focused.outcome == 'failure'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add stage5-test.log
-          git diff --cached --quiet || git commit -m "record Stage 5 focused test failure"
-          git push origin HEAD:agent/stage-5-defect-registry
-      - name: Stop after focused failure
-        if: steps.focused.outcome == 'failure'
-        run: exit 1
+      - run: python -m unittest discover -s tests -p 'test_defects.py' -v
       - run: python -m unittest discover -s tests -v
       - run: pie-defect --help
       - run: pie-ledger --help
@@ -56,6 +42,8 @@ jobs:
           git add \
             src/review_system/ledger.py \
             src/review_system/ledger_cli.py \
+            src/review_system/defects.py \
+            tests/test_defects.py \
             pyproject.toml \
             docs/architecture/README.md
           git diff --cached --quiet || git commit -m "integrate Defect Registry with Evidence Ledger"
