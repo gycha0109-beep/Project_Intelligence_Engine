@@ -11,8 +11,8 @@ class EvaluatePolicyRequest:
     baseline_policy: str | Path
     challenger_policy: str | Path
     output: str | Path
-    min_precision: float = 0.0
-    min_recall: float = 0.0
+    min_precision: float = 1.0
+    min_recall: float = 1.0
     max_protected_negative_regressions: int = 0
     repeatability_runs: int = 2
 

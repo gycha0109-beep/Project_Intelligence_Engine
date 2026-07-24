@@ -15,11 +15,13 @@ from .intelligence_config import load_rules, normalize_path, validate_rules
 from .intelligence_graph import validate_project_graph
 from .intelligence_impact import analyze_change
 from .io import load_data
+from .version import get_version
 
 
 EVALUATION_SCHEMA_VERSION = "1.0"
 DATASET_SPLITS = ("development", "validation", "holdout")
 PROTECTED_RESULTS = ("PASS", "FAIL")
+EVALUATOR_CONTRACT_VERSION = "1.0"
 
 
 class EvaluationError(RuntimeError):
@@ -193,6 +195,22 @@ def validate_evaluation_dataset_data(data: Any, *, root: str | Path | None = Non
     return errors
 
 
+def _normalize_dataset_data(data: dict[str, Any], root: Path) -> dict[str, Any]:
+    normalized_cases: list[dict[str, Any]] = []
+    for index, case in enumerate(data["cases"]):
+        normalized, errors = _validate_case(case, index, root)
+        if errors or normalized is None:
+            raise EvaluationError(
+                "invalid evaluation dataset: " + "; ".join(errors or [f"cases[{index}] is invalid"])
+            )
+        normalized_cases.append(normalized)
+    return {
+        "schema_version": EVALUATION_SCHEMA_VERSION,
+        "dataset_id": _require_text(data["dataset_id"], "dataset_id"),
+        "cases": normalized_cases,
+    }
+
+
 def load_evaluation_dataset(path: str | Path) -> tuple[Path, dict[str, Any]]:
     source = Path(path).expanduser().resolve()
     if not source.is_file():
@@ -201,7 +219,7 @@ def load_evaluation_dataset(path: str | Path) -> tuple[Path, dict[str, Any]]:
     errors = validate_evaluation_dataset_data(data, root=source.parent)
     if errors:
         raise EvaluationError("invalid evaluation dataset: " + "; ".join(errors))
-    return source, data
+    return source, _normalize_dataset_data(data, source.parent)
 
 
 def _dataset_descriptor(source: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -230,6 +248,14 @@ def _dataset_descriptor(source: Path, data: dict[str, Any]) -> dict[str, Any]:
         "sha256": canonical_json_sha256(payload),
         "case_count": len(data["cases"]),
         "split_counts": split_counts,
+    }
+
+
+def _evaluator_descriptor() -> dict[str, str]:
+    return {
+        "name": "review_system.intelligence_impact.analyze_change",
+        "contract_version": EVALUATOR_CONTRACT_VERSION,
+        "product_version": get_version(),
     }
 
 
@@ -513,8 +539,10 @@ def _gate(
     thresholds: dict[str, Any],
 ) -> dict[str, Any]:
     overall = metrics["overall"]["challenger"]["combined"]
+    holdout_cases = [case for case in cases if case["split"] == "holdout"]
     conditions = {
         "repeatability": bool(repeatability["baseline"] and repeatability["challenger"]),
+        "holdout_present": bool(holdout_cases),
         "minimum_precision": overall["precision"] >= thresholds["min_precision"],
         "minimum_recall": overall["recall"] >= thresholds["min_recall"],
         "protected_negative_regressions": (
@@ -522,7 +550,6 @@ def _gate(
             <= thresholds["max_protected_negative_regressions"]
         ),
     }
-    holdout_cases = [case for case in cases if case["split"] == "holdout"]
     if holdout_cases:
         holdout = metrics["holdout"]["challenger"]["combined"]
         holdout_negative = [
@@ -561,8 +588,8 @@ def run_evaluation(
     baseline_policy: str | Path,
     challenger_policy: str | Path,
     *,
-    min_precision: float = 0.0,
-    min_recall: float = 0.0,
+    min_precision: float = 1.0,
+    min_recall: float = 1.0,
     max_protected_negative_regressions: int = 0,
     repeatability_runs: int = 2,
 ) -> dict[str, Any]:
@@ -589,6 +616,7 @@ def run_evaluation(
     dataset_descriptor = _dataset_descriptor(dataset_source, dataset_data)
     _, baseline_rules, baseline_descriptor = _policy_descriptor(baseline_policy)
     _, challenger_rules, challenger_descriptor = _policy_descriptor(challenger_policy)
+    evaluator = _evaluator_descriptor()
     thresholds = {
         "min_precision": round(float(min_precision), 6),
         "min_recall": round(float(min_recall), 6),
@@ -642,6 +670,7 @@ def run_evaluation(
         "dataset_sha256": dataset_descriptor["sha256"],
         "baseline_policy_sha256": baseline_descriptor["sha256"],
         "challenger_policy_sha256": challenger_descriptor["sha256"],
+        "evaluator": evaluator,
         "thresholds": thresholds,
         "repeatability_runs": repeatability_runs,
     }
@@ -651,6 +680,7 @@ def run_evaluation(
         "dataset": dataset_descriptor,
         "baseline_policy": baseline_descriptor,
         "challenger_policy": challenger_descriptor,
+        "evaluator": evaluator,
         "thresholds": thresholds,
         "repeatability": repeatability,
         "cases": case_results,
@@ -726,6 +756,7 @@ def verify_evaluation_report_data(report: Any) -> list[str]:
         "dataset",
         "baseline_policy",
         "challenger_policy",
+        "evaluator",
         "thresholds",
         "repeatability",
         "cases",
@@ -743,6 +774,7 @@ def verify_evaluation_report_data(report: Any) -> list[str]:
             "dataset_sha256": report["dataset"]["sha256"],
             "baseline_policy_sha256": report["baseline_policy"]["sha256"],
             "challenger_policy_sha256": report["challenger_policy"]["sha256"],
+            "evaluator": report["evaluator"],
             "thresholds": report["thresholds"],
             "repeatability_runs": report["repeatability"]["runs"],
         }

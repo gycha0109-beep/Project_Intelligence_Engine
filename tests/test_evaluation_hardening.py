@@ -23,6 +23,57 @@ from test_evaluation import EvaluationFixture
 
 
 class EvaluationHardeningTests(unittest.TestCase):
+    def test_no_holdout_cannot_pass_approval_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = EvaluationFixture(Path(tmp))
+            dataset = load_data(fixture.dataset)
+            dataset["cases"] = [
+                case for case in dataset["cases"] if case["split"] != "holdout"
+            ]
+            dump_yaml(fixture.dataset, dataset)
+            report = run_evaluation(
+                fixture.dataset,
+                fixture.baseline,
+                fixture.challenger,
+            )
+            self.assertEqual("FAIL", report["gate"]["decision"])
+            self.assertIn("holdout_present", report["gate"]["failed_conditions"])
+
+    def test_dataset_paths_are_normalized_before_scoring(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = EvaluationFixture(Path(tmp))
+            dataset = load_data(fixture.dataset)
+            for case in dataset["cases"]:
+                case["expected_changed_scope"] = [
+                    value.replace("/", "\\")
+                    for value in case["expected_changed_scope"]
+                ]
+                case["input_artifacts"]["graph"] = case["input_artifacts"]["graph"].replace("/", "\\")
+            dump_yaml(fixture.dataset, dataset)
+            _, normalized = load_evaluation_dataset(fixture.dataset)
+            self.assertIn("src/a.py", normalized["cases"][0]["expected_changed_scope"])
+            report = run_evaluation(
+                fixture.dataset,
+                fixture.baseline,
+                fixture.challenger,
+            )
+            self.assertEqual("PASS", report["gate"]["decision"])
+
+    def test_evaluator_contract_participates_in_evaluation_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = EvaluationFixture(Path(tmp))
+            report = run_evaluation(fixture.dataset, fixture.baseline, fixture.challenger)
+            self.assertEqual(
+                "review_system.intelligence_impact.analyze_change",
+                report["evaluator"]["name"],
+            )
+            tampered = copy.deepcopy(report)
+            tampered["evaluator"]["contract_version"] = "2.0"
+            payload = copy.deepcopy(tampered)
+            payload.pop("report_sha256")
+            tampered["report_sha256"] = canonical_json_sha256(payload)
+            self.assertIn("evaluation_id mismatch", verify_evaluation_report_data(tampered))
+
     def test_duplicate_case_id_and_invalid_policy_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = EvaluationFixture(Path(tmp))

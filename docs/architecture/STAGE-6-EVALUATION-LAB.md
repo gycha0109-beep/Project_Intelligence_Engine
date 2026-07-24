@@ -139,10 +139,10 @@ Gate 기본 조건:
 
 - dataset, policies, outcomes 모두 schema·hash valid
 - repeatability run 2회 결과 hash 동일
-- challenger combined precision >= configured threshold
-- challenger combined recall >= configured threshold
+- challenger combined precision >= configured threshold, 기본 `1.0`
+- challenger combined recall >= configured threshold, 기본 `1.0`
 - protected negative regression <= configured maximum, 기본 0
-- holdout split이 존재할 경우 holdout에도 같은 조건 적용
+- holdout split이 반드시 존재해야 하며 holdout에도 같은 조건 적용
 
 Gate는 `PASS` 또는 `FAIL`이다. threshold는 report에 고정한다.
 
@@ -164,7 +164,8 @@ gate
 report_sha256
 ```
 
-- `evaluation_id`는 dataset hash + baseline hash + challenger hash + threshold의 digest다.
+- `evaluation_id`는 dataset hash + baseline hash + challenger hash + evaluator contract + threshold의 digest다.
+- evaluator name, contract version, PIE product version을 report에 고정한다.
 - `outcome_sha256`과 `report_sha256`은 자기 hash field를 제외한 canonical JSON SHA-256이다.
 - 같은 입력을 다시 실행하면 byte-equivalent JSON을 생성해야 한다.
 - `verify-report`는 report hash와 내부 outcome hash를 모두 재검증한다.
