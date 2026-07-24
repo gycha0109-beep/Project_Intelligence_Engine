@@ -828,6 +828,7 @@ def show_run(database: str | Path, run_id: str) -> dict[str, Any] | None:
         result = {"run": dict(run)}
         for key, table, order in (
             ("artifacts", "artifacts", "relative_path"),
+            ("findings", "findings", "finding_id"),
             ("claims", "claims", "claim_id"),
             ("evidence", "evidence", "evidence_id"),
             ("decisions", "decisions", "decision_id"),

@@ -227,24 +227,43 @@ def validate_registry_data(registry: dict[str, Any]) -> list[str]:
         payload.pop("event_id", None)
         if recorded_hash != canonical_json_sha256(payload):
             errors.append(f"{prefix}.event_sha256 mismatch")
+        if isinstance(recorded_hash, str) and event_id != f"event-{recorded_hash[:32]}":
+            errors.append(f"{prefix}.event_id does not match event_sha256")
         status_from = item.get("status_from")
         status_to = item.get("status_to")
-        if item.get("event_type") == "CREATED":
+        event_type = item.get("event_type")
+        if event_type != "CREATED" and current_status[defect_id] is None:
+            errors.append(f"{prefix} occurs before the Defect CREATED event")
+        if event_type == "CREATED":
             if current_status[defect_id] is not None or status_from is not None or status_to != "OBSERVED":
                 errors.append(f"{prefix} has invalid CREATED transition")
             current_status[defect_id] = "OBSERVED"
-        elif item.get("event_type") == "TRANSITIONED":
+        elif event_type == "TRANSITIONED":
             if current_status[defect_id] != status_from:
                 errors.append(f"{prefix}.status_from does not match event history")
             if status_to not in ALLOWED_TRANSITIONS.get(str(status_from), set()):
                 errors.append(f"{prefix} has an invalid lifecycle transition")
             current_status[defect_id] = str(status_to)
-        elif item.get("event_type") not in {"FINDING_LINKED", "ARTIFACT_LINKED"}:
+        elif event_type not in {"FINDING_LINKED", "ARTIFACT_LINKED"}:
             errors.append(f"{prefix}.event_type is invalid")
 
+    resolution_evidence_defects = {
+        str(item.get("defect_id"))
+        for item in artifact_links
+        if isinstance(item, dict) and item.get("relation") == "resolution_evidence"
+    }
     for defect_id, defect in defect_by_id.items():
         if current_status.get(defect_id) != defect.get("lifecycle_status"):
             errors.append(f"defect {defect_id} lifecycle_status does not match event history")
+        for field in ("root_cause", "first_seen_run_id", "last_seen_run_id", "owner", "resolution"):
+            value = defect.get(field)
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                errors.append(f"defect {defect_id} {field} must be null or a non-empty string")
+        if defect.get("lifecycle_status") == "CLOSED":
+            if not isinstance(defect.get("resolution"), str) or not defect["resolution"].strip():
+                errors.append(f"defect {defect_id} CLOSED requires a resolution")
+            if defect_id not in resolution_evidence_defects:
+                errors.append(f"defect {defect_id} CLOSED requires resolution_evidence")
 
     recorded_hash = registry.get("registry_sha256")
     if not isinstance(recorded_hash, str) or recorded_hash != _registry_payload_hash(registry):
