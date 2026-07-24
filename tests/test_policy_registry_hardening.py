@@ -66,6 +66,61 @@ class PolicyRegistryHardeningTests(unittest.TestCase):
             self.assertTrue(any("cycle" in error for error in errors))
             self.assertTrue(any("multiple ACTIVE" in error or "lifecycle" in error for error in errors))
 
+    def test_rehashed_registry_and_policy_identity_tamper_are_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = PolicyFixture(Path(tmp))
+            fixture.build_root()
+            registry = load_data(fixture.registry)
+            registry["registry_id"] = "policy-registry-forged"
+            registry["policies"][0]["policy_id"] = "policy-forged"
+            rehash_policy(registry["policies"][0])
+            rehash_registry(registry)
+            errors = verify_policy_registry_data(registry)
+            self.assertIn("registry_id mismatch", errors)
+            self.assertTrue(any("policy_id mismatch" in error for error in errors))
+
+    def test_parent_version_must_increase(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = PolicyFixture(Path(tmp))
+            parent = fixture.build_root()
+            with self.assertRaisesRegex(PolicyRegistryError, "greater than its parent"):
+                build_policy(
+                    fixture.registry,
+                    project_id="demo",
+                    version="0.9.0",
+                    rules=fixture.rules_ab,
+                    evaluation_report=fixture.report_ab,
+                    created_by="builder",
+                    created_at="2026-07-24T03:00:00Z",
+                    parent_policy_id=parent["policy_id"],
+                )
+
+    def test_rehashed_unsafe_report_reference_and_event_projection_are_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = PolicyFixture(Path(tmp))
+            fixture.activate_root()
+            registry = load_data(fixture.registry)
+            policy = registry["policies"][0]
+            policy["evaluation"]["report"] = "../outside.json"
+            policy["approval"]["approved_by"] = "forged"
+            duplicate = copy.deepcopy(policy["events"][0])
+            duplicate["sequence"] = len(policy["events"]) + 1
+            duplicate["previous_event_sha256"] = policy["events"][-1]["event_sha256"]
+            base = copy.deepcopy(duplicate)
+            base.pop("event_id", None)
+            base.pop("event_sha256", None)
+            duplicate["event_id"] = f"policy-event-{canonical_json_sha256(base)[:24]}"
+            event_payload = copy.deepcopy(duplicate)
+            event_payload.pop("event_sha256", None)
+            duplicate["event_sha256"] = canonical_json_sha256(event_payload)
+            policy["events"].append(duplicate)
+            rehash_policy(policy)
+            rehash_registry(registry)
+            errors = verify_policy_registry_data(registry)
+            self.assertTrue(any("unsafe relative path" in error for error in errors))
+            self.assertTrue(any("approval does not match" in error for error in errors))
+            self.assertTrue(any("BUILT may only" in error for error in errors))
+
     def test_registry_policy_and_materialized_tamper_are_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = PolicyFixture(Path(tmp))
