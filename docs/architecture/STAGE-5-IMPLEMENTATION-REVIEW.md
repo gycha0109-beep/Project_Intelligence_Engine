@@ -1,6 +1,6 @@
 # Stage 5 Implementation Review
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 ## 구현 결과
 
@@ -80,4 +80,4 @@ Finding이 저장돼도 `show_run()` 결과에는 노출되지 않았다.
 
 검증된 코드 HEAD: `d7711308e7a9eb4912148657736eb6746fcac6b3`
 
-GitHub Actions run `30075607439`에서 Python 3.11·3.13·3.14의 전체 regression, package asset sync, 기존 CLI/profile/finding smoke와 wheel build가 통과했다.
+문서와 Architecture index를 포함한 HEAD `bac95a21dc81e094f5e3124eaa0a9db216a2fe6e`의 GitHub Actions run `30075765879`에서도 Python 3.11·3.13·3.14 전체 regression, package asset sync, 기존 CLI/profile/finding smoke와 wheel build가 통과했다.
