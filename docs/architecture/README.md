@@ -34,6 +34,9 @@
 23. [STAGE-5-DEFECT-REGISTRY.md](STAGE-5-DEFECT-REGISTRY.md) — Finding·Defect identity·lifecycle·registry 설계
 24. [STAGE-5-IMPLEMENTATION-REVIEW.md](STAGE-5-IMPLEMENTATION-REVIEW.md) — Stage 5 구현 리뷰와 보완
 25. [STAGE-5-VALIDATION.md](STAGE-5-VALIDATION.md) — Stage 5 검증 결과
+26. [STAGE-6-EVALUATION-LAB.md](STAGE-6-EVALUATION-LAB.md) — Dataset·baseline/challenger·metric·Gate·report 설계
+27. [STAGE-6-IMPLEMENTATION-REVIEW.md](STAGE-6-IMPLEMENTATION-REVIEW.md) — Stage 6 구현 리뷰와 보완
+28. [STAGE-6-VALIDATION.md](STAGE-6-VALIDATION.md) — Stage 6 검증 결과
 
 ## 권위 규칙
 
@@ -56,7 +59,8 @@
 - Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
 - Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
+- Stage 6 — Evaluation Lab: 구현 리뷰 `PASS`, 최종 exact-head CI 대기
 
 ## 다음 단계
 
-Stage 6 Evaluation Lab의 dataset·runner·metric 계약을 상세 설계한다.
+Stage 6 승인 후 Stage 7 Policy Registry의 version·parent·ruleset hash·evaluation reference 계약을 상세 설계한다.
