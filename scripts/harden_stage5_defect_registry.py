@@ -1,7 +1,9 @@
 from pathlib import Path
 
 
-def replace_once(text: str, old: str, new: str, label: str) -> str:
+def ensure_replace(text: str, old: str, new: str, label: str) -> str:
+    if new in text:
+        return text
     if old not in text:
         raise SystemExit(f"missing {label}")
     return text.replace(old, new, 1)
@@ -9,7 +11,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 defects_path = Path("src/review_system/defects.py")
 defects = defects_path.read_text(encoding="utf-8")
-defects = replace_once(
+defects = ensure_replace(
     defects,
     '''        recorded_hash = payload.pop("event_sha256", None)
         payload.pop("event_id", None)
@@ -34,7 +36,7 @@ defects = replace_once(
 ''',
     "event identity and creation ordering",
 )
-defects = replace_once(
+defects = ensure_replace(
     defects,
     '''        elif item.get("event_type") == "TRANSITIONED":
 ''',
@@ -42,7 +44,7 @@ defects = replace_once(
 ''',
     "transition event branch",
 )
-defects = replace_once(
+defects = ensure_replace(
     defects,
     '''        elif item.get("event_type") not in {"FINDING_LINKED", "ARTIFACT_LINKED"}:
 ''',
@@ -50,7 +52,7 @@ defects = replace_once(
 ''',
     "link event branch",
 )
-defects = replace_once(
+defects = ensure_replace(
     defects,
     '''    for defect_id, defect in defect_by_id.items():
         if current_status.get(defect_id) != defect.get("lifecycle_status"):
@@ -85,7 +87,7 @@ defects_path.write_text(defects, encoding="utf-8")
 
 ledger_path = Path("src/review_system/ledger.py")
 ledger = ledger_path.read_text(encoding="utf-8")
-ledger = replace_once(
+ledger = ensure_replace(
     ledger,
     '''            ("artifacts", "artifacts", "relative_path"),
             ("claims", "claims", "claim_id"),
