@@ -1,13 +1,10 @@
 name: Stage 5 Apply
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/stage-5-defect-registry
-    paths:
-      - scripts/harden_stage5_defect_registry.py
-      - .github/workflows/stage5-apply.yml
-      - docs/architecture/.stage5-hardening-trigger
+      - agent/stage-4-evidence-ledger-foundation
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
