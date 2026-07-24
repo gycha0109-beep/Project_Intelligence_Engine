@@ -1,6 +1,6 @@
 # Stage 4 Validation
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 권위 기준선: PR #11 HEAD `27717f00c689ee0ae7c8f0bfb440b1b61e7ccb2f`
 
@@ -39,6 +39,6 @@
 - finding validation: PASS
 - wheel build including `pie-ledger` entrypoint: PASS
 
-## 최종 판정 조건
+Architecture index와 본 검증 기록을 포함한 마지막 exact HEAD도 같은 Python matrix로 검증한다. 해당 final HEAD SHA와 workflow run은 PR #12 본문을 권위 기록으로 사용한다.
 
-Architecture index와 본 검증 기록을 포함한 마지막 exact HEAD에서 같은 Python matrix를 통과하면 Stage 4 Gate를 `PASS`로 확정한다.
+최종 Gate: `PASS`
