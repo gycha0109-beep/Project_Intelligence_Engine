@@ -3,7 +3,7 @@
 기준일: 2026-07-24  
 선행 기준선: PR #14 HEAD `e3d9aedc8b66e53a2cae61a3c18fc9280137354a`  
 작업 브랜치: `agent/stage-7-policy-registry`  
-상태: `DESIGN_APPROVED / IMPLEMENTATION_PENDING`
+상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
 
 ## 1. 목적
 
@@ -220,6 +220,13 @@ pie-policy materialize
 - 기존 CLI·artifact·Ledger·Defect·Evaluation 계약 회귀가 없다.
 - 최종 diff에 임시 workflow·script·trigger·log가 없다.
 
-## 11. Rollback
+## 11. 구현 결과
+
+- 설계된 Registry·Policy·event identity와 lifecycle을 구현했다.
+- 구현 리뷰에서 ID 재계산, parent version 증가, report traversal, lifecycle metadata projection 누락을 보완했다.
+- 코드 HEAD `9980bff910bb8f524d27836c052c726ab5c30291`의 Python 3.11·3.13·3.14 matrix가 통과했다.
+- 최종 문서 포함 exact HEAD의 재검증 결과는 `STAGE-7-VALIDATION.md`와 PR #15에 기록한다.
+
+## 12. Rollback
 
 Stage 7 변경을 revert하면 기존 `approved-rules.yml` workflow와 Stage 6 Evaluation Lab은 그대로 남는다. Registry는 별도 파일 계층이므로 schema/data migration rollback이 필요 없다.
