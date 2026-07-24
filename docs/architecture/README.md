@@ -63,7 +63,7 @@
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
 - Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
 - Stage 6 — Evaluation Lab: `PASS`, PR #14 검토 대기
-- Stage 7 — Policy Registry: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #15 검토 준비
+- Stage 7 — Policy Registry: `PASS`, PR #15 검토 대기
 
 ## 다음 단계
 
