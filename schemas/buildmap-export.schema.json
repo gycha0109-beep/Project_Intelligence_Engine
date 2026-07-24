@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/buildmap-export.schema.json",
+  "title": "PIE BuildMap Reference Export",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "export_id",
+    "project_id",
+    "generated_at",
+    "source",
+    "projection",
+    "redaction",
+    "source_fingerprint_sha256",
+    "projection_sha256",
+    "export_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "export_id": {"type": "string", "pattern": "^buildmap-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "source": {"$ref": "#/$defs/source"},
+    "projection": {"$ref": "#/$defs/projection"},
+    "redaction": {"$ref": "#/$defs/redaction"},
+    "source_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+    "projection_sha256": {"$ref": "#/$defs/sha256"},
+    "export_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableString": {
+      "type": ["string", "null"]
+    },
+    "nullableId": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pie_run_uri",
+        "run_id",
+        "run_key_sha256",
+        "run_type",
+        "source_revision",
+        "source_identifier",
+        "manifest_sha256"
+      ],
+      "properties": {
+        "pie_run_uri": {"type": "string", "pattern": "^pie://runs/[A-Za-z0-9._:-]+$"},
+        "run_id": {"type": "string", "minLength": 1},
+        "run_key_sha256": {"$ref": "#/$defs/sha256"},
+        "run_type": {"enum": ["review", "pull_request"]},
+        "source_revision": {"type": "string", "minLength": 1},
+        "source_identifier": {"type": "string", "minLength": 1},
+        "manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_type",
+        "relative_path",
+        "sha256",
+        "media_type",
+        "size_bytes"
+      ],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "artifact_type": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "media_type": {"type": "string", "minLength": 1},
+        "size_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim_type", "status", "policy_version"],
+      "properties": {
+        "claim_id": {"type": "string", "minLength": 1},
+        "claim_type": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "minLength": 1},
+        "policy_version": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "evidence_level",
+        "evidence_type",
+        "result_sha256",
+        "artifact_id",
+        "artifact_redacted"
+      ],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1},
+        "evidence_level": {"type": "string", "minLength": 1},
+        "evidence_type": {"type": "string", "minLength": 1},
+        "result_sha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "artifact_id": {"$ref": "#/$defs/nullableId"},
+        "artifact_redacted": {"type": "boolean"}
+      }
+    },
+    "claimEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "evidence_id", "relation", "strength"],
+      "properties": {
+        "claim_id": {"type": "string", "minLength": 1},
+        "evidence_id": {"type": "string", "minLength": 1},
+        "relation": {"type": "string", "minLength": 1},
+        "strength": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "category",
+        "severity",
+        "confidence",
+        "status",
+        "finding_sha256",
+        "artifact_id",
+        "artifact_redacted"
+      ],
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "category": {"type": "string", "minLength": 1},
+        "severity": {"type": "string", "minLength": 1},
+        "confidence": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "minLength": 1},
+        "finding_sha256": {"$ref": "#/$defs/sha256"},
+        "artifact_id": {"$ref": "#/$defs/nullableId"},
+        "artifact_redacted": {"type": "boolean"}
+      }
+    },
+    "defect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defect_id",
+        "category",
+        "lifecycle_status",
+        "signature_sha256",
+        "first_seen_run_id",
+        "last_seen_run_id"
+      ],
+      "properties": {
+        "defect_id": {"type": "string", "minLength": 1},
+        "category": {"type": "string", "minLength": 1},
+        "lifecycle_status": {"type": "string", "minLength": 1},
+        "signature_sha256": {"$ref": "#/$defs/sha256"},
+        "first_seen_run_id": {"$ref": "#/$defs/nullableId"},
+        "last_seen_run_id": {"$ref": "#/$defs/nullableId"}
+      }
+    },
+    "reasonReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "reason_id"],
+      "properties": {
+        "group": {"type": "string", "minLength": 1},
+        "reason_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "decision_type",
+        "outcome",
+        "policy_version",
+        "decided_at",
+        "artifact_id",
+        "artifact_redacted",
+        "reason_refs"
+      ],
+      "properties": {
+        "decision_id": {"type": "string", "minLength": 1},
+        "decision_type": {"type": "string", "minLength": 1},
+        "outcome": {"type": "string", "minLength": 1},
+        "policy_version": {"$ref": "#/$defs/nullableString"},
+        "decided_at": {"$ref": "#/$defs/nullableString"},
+        "artifact_id": {"$ref": "#/$defs/nullableId"},
+        "artifact_redacted": {"type": "boolean"},
+        "reason_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reasonReference"}
+        }
+      }
+    },
+    "policySnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_snapshot_id",
+        "policy_version",
+        "sha256",
+        "artifact_id",
+        "artifact_redacted"
+      ],
+      "properties": {
+        "policy_snapshot_id": {"type": "string", "minLength": 1},
+        "policy_version": {"$ref": "#/$defs/nullableString"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "artifact_id": {"$ref": "#/$defs/nullableId"},
+        "artifact_redacted": {"type": "boolean"}
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifacts",
+        "claims",
+        "evidence",
+        "claim_evidence",
+        "findings",
+        "defects",
+        "decisions",
+        "policy_snapshots"
+      ],
+      "properties": {
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+        "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+        "claim_evidence": {"type": "array", "items": {"$ref": "#/$defs/claimEvidence"}},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "defects": {"type": "array", "items": {"$ref": "#/$defs/defect"}},
+        "decisions": {"type": "array", "items": {"$ref": "#/$defs/decision"}},
+        "policy_snapshots": {"type": "array", "items": {"$ref": "#/$defs/policySnapshot"}}
+      }
+    },
+    "omittedCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_github_discussion", "sensitive_path", "custom_pattern"],
+      "properties": {
+        "raw_github_discussion": {"type": "integer", "minimum": 0},
+        "sensitive_path": {"type": "integer", "minimum": 0},
+        "custom_pattern": {"type": "integer", "minimum": 0}
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "content_included",
+        "raw_github_discussion_included",
+        "source_identifier_redacted",
+        "custom_patterns_sha256",
+        "omitted_artifacts"
+      ],
+      "properties": {
+        "policy_id": {"const": "buildmap-default-1"},
+        "content_included": {"const": false},
+        "raw_github_discussion_included": {"const": false},
+        "source_identifier_redacted": {"type": "boolean"},
+        "custom_patterns_sha256": {"$ref": "#/$defs/sha256"},
+        "omitted_artifacts": {"$ref": "#/$defs/omittedCounts"}
+      }
+    }
+  }
+}
