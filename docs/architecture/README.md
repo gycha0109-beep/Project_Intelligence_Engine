@@ -59,8 +59,8 @@
 - Stage 3 — Run and Artifact Identity: `PASS`, PR #11 검토 대기
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
 - Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
-- Stage 6 — Evaluation Lab: 구현 리뷰 `PASS`, 최종 exact-head CI 대기
+- Stage 6 — Evaluation Lab: `PASS`, PR #14 검토 대기
 
 ## 다음 단계
 
-Stage 6 승인 후 Stage 7 Policy Registry의 version·parent·ruleset hash·evaluation reference 계약을 상세 설계한다.
+Stage 7 Policy Registry의 version·parent·ruleset hash·evaluation reference 계약을 상세 설계한다.
