@@ -38,3 +38,4 @@ jobs:
           git add src/review_system/reground.py src/review_system/reground_cli.py tests/test_reground.py tests/test_reground_hardening.py
           git diff --cached --quiet || git commit -m "harden Reground identity and canonical verification"
           git push origin HEAD:agent/stage-8-reground-foundation
+# trigger 2
