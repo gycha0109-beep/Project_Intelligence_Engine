@@ -1,0 +1,44 @@
+name: Stage 8 Diagnose
+
+on:
+  push:
+    branches:
+      - agent/stage-8-reground-foundation
+    paths:
+      - .github/workflows/stage8-diagnose.yml
+      - tests/test_reground.py
+      - tests/test_reground_hardening.py
+      - src/review_system/reground.py
+      - src/review_system/reground_cli.py
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-8-reground-foundation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Capture focused and full tests
+        run: |
+          set +e
+          python -m unittest discover -s tests -p 'test_reground*.py' -v > stage8-test.log 2>&1
+          focused=$?
+          echo "FOCUSED_EXIT=$focused" >> stage8-test.log
+          python -m unittest discover -s tests -v >> stage8-test.log 2>&1
+          full=$?
+          echo "FULL_EXIT=$full" >> stage8-test.log
+          exit 0
+      - name: Commit diagnosis log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stage8-test.log
+          git commit -m "capture Stage 8 test diagnosis" || true
+          git push origin HEAD:agent/stage-8-reground-foundation
