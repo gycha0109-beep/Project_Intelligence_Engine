@@ -1,0 +1,27 @@
+name: Stage 2C Final Cleanup
+
+on:
+  push:
+    branches:
+      - agent/stage-2c-repository-binding
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-2c-repository-binding
+      - name: Remove final temporary Stage 2C assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f \
+            .github/workflows/stage2c-ci-cleanup.yml \
+            docs/architecture/.stage2c-ci-trigger \
+            docs/architecture/.stage2c-ci-cleanup-trigger
+          git commit -m "remove final temporary Stage 2C assets"
+          git push origin HEAD:agent/stage-2c-repository-binding
