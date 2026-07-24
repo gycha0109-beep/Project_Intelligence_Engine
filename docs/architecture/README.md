@@ -37,6 +37,9 @@
 26. [STAGE-6-EVALUATION-LAB.md](STAGE-6-EVALUATION-LAB.md) — Dataset·baseline/challenger·metric·Gate·report 설계
 27. [STAGE-6-IMPLEMENTATION-REVIEW.md](STAGE-6-IMPLEMENTATION-REVIEW.md) — Stage 6 구현 리뷰와 보완
 28. [STAGE-6-VALIDATION.md](STAGE-6-VALIDATION.md) — Stage 6 검증 결과
+29. [STAGE-7-POLICY-REGISTRY.md](STAGE-7-POLICY-REGISTRY.md) — version·parent·evaluation·lifecycle Policy Registry 설계
+30. [STAGE-7-IMPLEMENTATION-REVIEW.md](STAGE-7-IMPLEMENTATION-REVIEW.md) — Stage 7 구현 리뷰와 보완
+31. [STAGE-7-VALIDATION.md](STAGE-7-VALIDATION.md) — Stage 7 검증 결과
 
 ## 권위 규칙
 
@@ -60,7 +63,8 @@
 - Stage 4 — Evidence Ledger Foundation: `PASS`, PR #12 검토 대기
 - Stage 5 — Defect Registry: `PASS`, PR #13 검토 대기
 - Stage 6 — Evaluation Lab: `PASS`, PR #14 검토 대기
+- Stage 7 — Policy Registry: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #15 검토 준비
 
 ## 다음 단계
 
-Stage 7 Policy Registry의 version·parent·ruleset hash·evaluation reference 계약을 상세 설계한다.
+Stage 8 Reground Foundation에서 Graph·Ledger의 source/target hash, last verified Run, stale reason과 impacted recheck 목록을 설계한다.
