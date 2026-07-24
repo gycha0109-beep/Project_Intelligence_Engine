@@ -1,0 +1,30 @@
+name: Stage 2C Document Cleanup
+
+on:
+  push:
+    branches:
+      - agent/stage-2c-repository-binding
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-2c-repository-binding
+      - name: Remove redundant Stage 2C notes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f \
+            .github/workflows/stage2c-doc-cleanup.yml \
+            docs/architecture/.stage2c-doc-cleanup-trigger \
+            docs/architecture/STAGE-2C-VALIDATION-NOTE.md \
+            docs/architecture/STAGE-2C-SUMMARY.md \
+            docs/architecture/STAGE-2C-PR-READY.md \
+            docs/architecture/STAGE-2C-PR-CONTEXT.md
+          git commit -m "remove redundant Stage 2C notes"
+          git push origin HEAD:agent/stage-2c-repository-binding
