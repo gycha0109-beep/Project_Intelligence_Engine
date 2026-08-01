@@ -49,6 +49,9 @@
 38. [STAGE-10A-TRUST-GATE-READINESS.md](STAGE-10A-TRUST-GATE-READINESS.md) — report-only Risk Band와 readiness evidence 설계
 39. [STAGE-10A-IMPLEMENTATION-REVIEW.md](STAGE-10A-IMPLEMENTATION-REVIEW.md) — Stage 10A 구현 리뷰와 보완
 40. [STAGE-10A-VALIDATION.md](STAGE-10A-VALIDATION.md) — Stage 10A 검증 결과
+41. [STAGE-10B-DECISION-OUTCOME-AUDIT.md](STAGE-10B-DECISION-OUTCOME-AUDIT.md) — 사람 decision 수준과 Outcome Audit Registry 설계
+42. [STAGE-10B-IMPLEMENTATION-REVIEW.md](STAGE-10B-IMPLEMENTATION-REVIEW.md) — Stage 10B 구현 리뷰와 보완
+43. [STAGE-10B-VALIDATION.md](STAGE-10B-VALIDATION.md) — Stage 10B 검증 결과
 
 ## 권위 규칙
 
@@ -76,7 +79,8 @@
 - Stage 8 — Reground Foundation: `PASS`, PR #16 검토 대기
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 - Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
+- Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #19 검토 대기
 
 ## 다음 단계
 
-Stage 10B는 report-only 결과와 사람이 확정한 최종 결정을 비교하는 human-confirmed decision comparison을 설계한다. R0 auto-pass pilot과 R1 conditional auto-approval은 그 비교 데이터와 별도 안전 검토 전에는 시작하지 않는다.
+Stage 10C는 Registry assessment를 원본 Trust report·Defect Registry·Evaluation Outcome과 대조하는 source replay 및 Outcome reconciliation을 설계한다. R0 auto-pass와 R1 conditional auto-approval은 confirmed Outcome 표본과 별도 안전 검토 전에는 시작하지 않는다.
