@@ -13,6 +13,8 @@ from .trust import (
     verify_trust_report_sources,
     write_trust_report,
 )
+from .trust_comparison import TrustComparisonError, TrustComparisonVerificationError
+from .trust_comparison_cli import add_comparison_subparsers
 
 
 def _print_json(value: object, *, stream=None) -> None:
@@ -30,24 +32,17 @@ def _add_sources(parser: argparse.ArgumentParser, *, required_core: bool) -> Non
 
 
 def cmd_assess(args: argparse.Namespace) -> int:
-    try:
-        report = assess_trust(
-            args.request,
-            args.profile,
-            ledger=args.ledger,
-            policy_registry=args.policy_registry,
-            evaluation_report=args.evaluation_report,
-            reground_report=args.reground_report,
-            reground_observations=args.reground_observations,
-            generated_at=args.generated_at,
-        )
-        output = write_trust_report(args.output, report)
-    except TrustVerificationError as exc:
-        _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
-        return 4
-    except (TrustError, OSError, ValueError) as exc:
-        _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
-        return 3
+    report = assess_trust(
+        args.request,
+        args.profile,
+        ledger=args.ledger,
+        policy_registry=args.policy_registry,
+        evaluation_report=args.evaluation_report,
+        reground_report=args.reground_report,
+        reground_observations=args.reground_observations,
+        generated_at=args.generated_at,
+    )
+    output = write_trust_report(args.output, report)
     _print_json(
         {
             "valid": True,
@@ -65,18 +60,7 @@ def cmd_assess(args: argparse.Namespace) -> int:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
-    try:
-        source, report = load_trust_report(args.report)
-    except TrustVerificationError as exc:
-        _print_json(
-            {"valid": False, "report": str(args.report), "errors": list(exc.errors)},
-            stream=sys.stderr,
-        )
-        return 4
-    except (TrustError, OSError, ValueError) as exc:
-        _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
-        return 3
-
+    source, report = load_trust_report(args.report)
     replay_requested = any(
         value is not None
         for value in (
@@ -91,14 +75,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
     )
     if replay_requested:
         if args.request is None or args.profile is None:
-            _print_json(
-                {
-                    "valid": False,
-                    "error": "source replay requires both --request and --profile",
-                },
-                stream=sys.stderr,
-            )
-            return 3
+            raise TrustError("source replay requires both --request and --profile")
         errors = verify_trust_report_sources(
             report,
             request=args.request,
@@ -110,12 +87,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             reground_observations=args.reground_observations,
         )
         if errors:
-            _print_json(
-                {"valid": False, "report": str(source), "errors": errors},
-                stream=sys.stderr,
-            )
-            return 4
-
+            raise TrustVerificationError(errors)
     _print_json(
         {
             "valid": True,
@@ -134,7 +106,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate and verify report-only Trust Gate readiness evidence.",
+        description="Generate report-only Trust evidence and record human comparison outcomes.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -148,12 +120,21 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--report", required=True)
     _add_sources(command, required_core=False)
     command.set_defaults(func=cmd_validate)
+
+    add_comparison_subparsers(sub)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except (TrustVerificationError, TrustComparisonVerificationError) as exc:
+        _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
+        return 4
+    except (TrustError, TrustComparisonError, OSError, ValueError) as exc:
+        _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
+        return 3
 
 
 if __name__ == "__main__":
