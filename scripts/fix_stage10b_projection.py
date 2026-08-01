@@ -20,12 +20,20 @@ new = '''    request = report.get("request")
     ):
         raise TrustComparisonError("Trust report projections are incomplete")
 '''
-if old not in text:
+if old in text:
+    text = text.replace(old, new, 1)
+elif new not in text:
     raise SystemExit("projection anchor missing")
-text = text.replace(old, new, 1)
 old = '        "predicted_risk_band": advisory.get("risk_band"),\n'
 new = '        "predicted_risk_band": risk.get("effective_band"),\n'
-if old not in text:
+if old in text:
+    text = text.replace(old, new, 1)
+elif new not in text:
     raise SystemExit("risk band anchor missing")
-text = text.replace(old, new, 1)
+old = '    path = asset("schemas", "trust-comparison-registry.schema.json")\n'
+new = '    path = asset("schemas/trust-comparison-registry.schema.json")\n'
+if old in text:
+    text = text.replace(old, new, 1)
+elif new not in text:
+    raise SystemExit("schema asset anchor missing")
 path.write_text(text, encoding="utf-8")
