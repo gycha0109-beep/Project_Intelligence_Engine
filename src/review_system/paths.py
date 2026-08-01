@@ -7,9 +7,8 @@ def package_root() -> Path:
     return Path(__file__).resolve().parent
 
 
-def asset(path: str, *parts: str) -> Path:
-    relative = Path(path).joinpath(*parts)
-    target = package_root() / "assets" / relative
+def asset(path: str) -> Path:
+    target = package_root() / "assets" / path
     if not target.exists():
-        raise FileNotFoundError(f"review-system asset not found: {relative.as_posix()}")
+        raise FileNotFoundError(f"review-system asset not found: {path}")
     return target
