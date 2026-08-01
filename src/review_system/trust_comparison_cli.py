@@ -46,28 +46,17 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 
 def cmd_capture(args: argparse.Namespace) -> int:
+    from .trust import load_trust_report
+
     registry = _load_or_new(args.registry, args.project_id)
+    _, report = load_trust_report(args.trust_report)
     updated = capture_assessment(registry, args.trust_report, captured_at=args.captured_at)
     output = write_registry(args.registry, updated)
     assessment = next(
-        item for item in updated["assessments"] if item["trust_report_id"] == load_registry_reference(args.trust_report)
+        item for item in updated["assessments"] if item["trust_report_id"] == report["report_id"]
     )
-    _print_json(
-        {
-            "valid": True,
-            "registry": str(output),
-            "assessment_id": assessment["assessment_id"],
-            "assessment_count": len(updated["assessments"]),
-        }
-    )
+    _print_json({"valid": True, "registry": str(output), "assessment_id": assessment["assessment_id"], "assessment_count": len(updated["assessments"])})
     return 0
-
-
-def load_registry_reference(trust_report: str) -> str:
-    from .trust import load_trust_report
-
-    _, report = load_trust_report(trust_report)
-    return str(report["report_id"])
 
 
 def cmd_decision(args: argparse.Namespace) -> int:
@@ -84,15 +73,7 @@ def cmd_decision(args: argparse.Namespace) -> int:
     )
     output = write_registry(args.registry, updated)
     event = updated["events"][-1]
-    _print_json(
-        {
-            "valid": True,
-            "registry": str(output),
-            "event_id": event["event_id"],
-            "event_type": event["event_type"],
-            "review_level": event["payload"]["review_level"],
-        }
-    )
+    _print_json({"valid": True, "registry": str(output), "event_id": event["event_id"], "event_type": event["event_type"], "review_level": event["payload"]["review_level"]})
     return 0
 
 
@@ -110,25 +91,13 @@ def cmd_outcome(args: argparse.Namespace) -> int:
     )
     output = write_registry(args.registry, updated)
     event = updated["events"][-1]
-    _print_json(
-        {
-            "valid": True,
-            "registry": str(output),
-            "event_id": event["event_id"],
-            "event_type": event["event_type"],
-            "confirmed_status": next(
-                item["confirmed_status"]
-                for item in updated["comparisons"]
-                if item["assessment_id"] == args.assessment_id
-            ),
-        }
-    )
+    _print_json({"valid": True, "registry": str(output), "event_id": event["event_id"], "event_type": event["event_type"], "confirmed_status": next(item["confirmed_status"] for item in updated["comparisons"] if item["assessment_id"] == args.assessment_id)})
     return 0
 
 
 def cmd_sample(args: argparse.Namespace) -> int:
     _, registry = load_registry(args.registry)
-    result = sample_audit(registry, count=args.count, seed=args.seed, bands=args.band)
+    result = sample_audit(registry, count=args.count, seed=args.seed, bands=args.band or ["R0", "R1"])
     if args.output:
         target = Path(args.output).expanduser().resolve()
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -139,39 +108,18 @@ def cmd_sample(args: argparse.Namespace) -> int:
 
 def cmd_metrics(args: argparse.Namespace) -> int:
     _, registry = load_registry(args.registry)
-    _print_json(
-        {
-            "valid": True,
-            "registry_id": registry["registry_id"],
-            "registry_sha256": registry["registry_sha256"],
-            "metrics": registry["metrics"],
-        }
-    )
+    _print_json({"valid": True, "registry_id": registry["registry_id"], "registry_sha256": registry["registry_sha256"], "metrics": registry["metrics"]})
     return 0
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
     source, registry = load_registry(args.registry)
     errors = verify_registry_data(registry)
-    _print_json(
-        {
-            "valid": not errors,
-            "registry": str(source),
-            "registry_id": registry["registry_id"],
-            "registry_sha256": registry["registry_sha256"],
-            "errors": errors,
-        }
-    )
+    _print_json({"valid": not errors, "registry": str(source), "registry_id": registry["registry_id"], "registry_sha256": registry["registry_sha256"], "errors": errors})
     return 0 if not errors else 4
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="pie-trust-comparison",
-        description="Record human decisions and confirmed outcomes without authorizing automation.",
-    )
-    sub = parser.add_subparsers(dest="command", required=True)
-
+def add_comparison_subparsers(sub: argparse._SubParsersAction) -> None:
     command = sub.add_parser("init-comparison-registry")
     command.add_argument("--registry", required=True)
     command.add_argument("--project-id", required=True)
@@ -199,18 +147,7 @@ def build_parser() -> argparse.ArgumentParser:
     command = sub.add_parser("record-outcome")
     command.add_argument("--registry", required=True)
     command.add_argument("--assessment-id", required=True)
-    command.add_argument(
-        "--outcome-type",
-        choices=[
-            "INDEPENDENT_AUDIT",
-            "PRODUCTION_DEFECT",
-            "REGRESSION",
-            "SECURITY_INCIDENT",
-            "CONTROLLED_EVALUATION",
-            "FALSE_POSITIVE_REVIEW",
-        ],
-        required=True,
-    )
+    command.add_argument("--outcome-type", choices=["INDEPENDENT_AUDIT", "PRODUCTION_DEFECT", "REGRESSION", "SECURITY_INCIDENT", "CONTROLLED_EVALUATION", "FALSE_POSITIVE_REVIEW"], required=True)
     command.add_argument("--verdict", choices=["SAFE", "UNSAFE", "INCONCLUSIVE"], required=True)
     command.add_argument("--actor", required=True)
     command.add_argument("--occurred-at")
@@ -222,7 +159,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--registry", required=True)
     command.add_argument("--count", type=int, required=True)
     command.add_argument("--seed", required=True)
-    command.add_argument("--band", action="append", default=["R0", "R1"])
+    command.add_argument("--band", action="append")
     command.add_argument("--output")
     command.set_defaults(func=cmd_sample)
 
@@ -233,6 +170,12 @@ def build_parser() -> argparse.ArgumentParser:
     command = sub.add_parser("verify-comparison-registry")
     command.add_argument("--registry", required=True)
     command.set_defaults(func=cmd_verify)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="pie-trust-comparison", description="Record human decisions and confirmed outcomes without authorizing automation.")
+    sub = parser.add_subparsers(dest="command", required=True)
+    add_comparison_subparsers(sub)
     return parser
 
 
