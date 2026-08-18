@@ -14,28 +14,28 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "minimum_assessment_count",
-        "minimum_reviewed_count",
-        "minimum_conclusive_outcome_count",
-        "minimum_confirmed_safe_count",
-        "minimum_confirmed_unsafe_count",
-        "minimum_independent_audit_count",
-        "minimum_outcome_coverage",
-        "minimum_evidence_span_days",
-        "maximum_confirmed_false_negatives",
-        "maximum_false_negative_rate"
+        "minimum_r0_assessment_count",
+        "minimum_r0_reviewed_count",
+        "minimum_r0_conclusive_outcome_count",
+        "minimum_r0_confirmed_safe_count",
+        "minimum_confirmed_unsafe_challenge_count",
+        "minimum_r0_independent_audit_count",
+        "minimum_r0_outcome_coverage",
+        "minimum_r0_evidence_span_days",
+        "maximum_r0_false_negatives",
+        "maximum_r0_false_negative_rate"
       ],
       "properties": {
-        "minimum_assessment_count": {"type": "integer", "minimum": 1},
-        "minimum_reviewed_count": {"type": "integer", "minimum": 1},
-        "minimum_conclusive_outcome_count": {"type": "integer", "minimum": 1},
-        "minimum_confirmed_safe_count": {"type": "integer", "minimum": 1},
-        "minimum_confirmed_unsafe_count": {"type": "integer", "minimum": 1},
-        "minimum_independent_audit_count": {"type": "integer", "minimum": 1},
-        "minimum_outcome_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
-        "minimum_evidence_span_days": {"type": "number", "minimum": 1},
-        "maximum_confirmed_false_negatives": {"const": 0},
-        "maximum_false_negative_rate": {"const": 0.0}
+        "minimum_r0_assessment_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_reviewed_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_conclusive_outcome_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_confirmed_safe_count": {"type": "integer", "minimum": 1},
+        "minimum_confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_independent_audit_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_outcome_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "minimum_r0_evidence_span_days": {"type": "number", "minimum": 1},
+        "maximum_r0_false_negatives": {"const": 0},
+        "maximum_r0_false_negative_rate": {"const": 0.0}
       }
     }
   }
