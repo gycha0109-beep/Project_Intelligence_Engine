@@ -245,7 +245,7 @@ class TrustReconciliationImplementationReviewTests(unittest.TestCase):
             fixture.add_outcome(
                 assessment_id=assessment_id,
                 outcome_type="INDEPENDENT_AUDIT",
-                verdict="SAFE",
+                verdict="UNSAFE",
                 evidence_refs=["AUDIT-123"],
                 actor="independent-auditor",
                 occurred_at="2026-08-06T00:00:00Z",
@@ -272,7 +272,7 @@ class TrustReconciliationImplementationReviewTests(unittest.TestCase):
             tampered["report_sha256"] = canonical_json_sha256(_report_payload(tampered))
             errors = verify_reconciliation_report_data(tampered)
             self.assertTrue(errors)
-            self.assertTrue(any("False was expected" in error for error in errors))
+            self.assertTrue(any("authority_supported" in error or "independent_provenance_verified" in error for error in errors))
 
     def test_orphan_manifest_assessment_and_outcome_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
