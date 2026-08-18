@@ -22,7 +22,11 @@ from .trust_audit_verified import (
     write_audit_artifact,
     write_authority_registry,
 )
-from .trust_comparison import load_registry
+from .trust_comparison import (
+    TrustComparisonError,
+    TrustComparisonVerificationError,
+    load_registry,
+)
 
 
 def _print_json(value: object, *, stream=None) -> None:
