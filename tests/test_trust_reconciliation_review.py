@@ -1,11 +1,20 @@
 import copy
 from pathlib import Path
+import sqlite3
 import tempfile
 import unittest
 
+from review_system.defects import (
+    create_defect,
+    initialize_defect_registry,
+    link_defect_artifact,
+    link_finding,
+    transition_defect,
+)
 from review_system.evaluation import run_evaluation, write_evaluation_report
 from review_system.identity import canonical_json_sha256
 from review_system.io import dump_json, dump_yaml, load_data
+from review_system.ledger import import_artifact_directory
 from review_system.trust_reconciliation import (
     TrustReconciliationError,
     _report_id,
@@ -14,22 +23,101 @@ from review_system.trust_reconciliation import (
     reconcile_sources,
     verify_reconciliation_report_data,
 )
+from test_defects import DefectFixture
 from test_evaluation import EvaluationFixture
 from test_trust_reconciliation import ReconciliationFixture
+
+
+def _late_defect_authority(
+    root: Path,
+    *,
+    create_at: str,
+    finding_at: str,
+    artifact_at: str,
+    transition_at: str,
+) -> tuple[str, Path, Path]:
+    authority_root = root / "late-defect-authority"
+    authority_root.mkdir()
+    directory, _ = DefectFixture.run(authority_root, "stage10c-late-defect-run")
+    ledger = authority_root / "evidence.sqlite"
+    import_artifact_directory(ledger, directory)
+    registry = authority_root / "defects.json"
+    initialize_defect_registry(registry, "demo")
+    with sqlite3.connect(ledger) as connection:
+        finding_id = connection.execute(
+            """
+            SELECT f.finding_id
+            FROM findings f JOIN runs r ON r.run_id = f.run_id
+            WHERE r.source_identifier = 'review://demo/stage10c-late-defect-run'
+            """
+        ).fetchone()[0]
+        artifact_id = connection.execute(
+            """
+            SELECT a.artifact_id
+            FROM artifacts a JOIN runs r ON r.run_id = a.run_id
+            WHERE r.source_identifier = 'review://demo/stage10c-late-defect-run'
+              AND a.relative_path = 'evidence.txt'
+            """
+        ).fetchone()[0]
+    defect = create_defect(
+        registry,
+        ledger,
+        signature="stage10c-late-production-defect",
+        title="Stage 10C late production defect",
+        category="trust.reconciliation",
+        actor="defect-owner",
+        occurred_at=create_at,
+    )
+    link_finding(
+        registry,
+        ledger,
+        finding_id=finding_id,
+        defect_id=defect["defect_id"],
+        match_method="deterministic_signature",
+        confidence=1.0,
+        approved_by="defect-reviewer",
+        occurred_at=finding_at,
+    )
+    link_defect_artifact(
+        registry,
+        ledger,
+        defect_id=defect["defect_id"],
+        artifact_id=artifact_id,
+        relation="reproducer",
+        linked_by="defect-reviewer",
+        occurred_at=artifact_at,
+    )
+    transition_defect(
+        registry,
+        ledger,
+        defect_id=defect["defect_id"],
+        target_status="REPRODUCED",
+        actor="defect-owner",
+        reason="Reproduced after the earlier Outcome boundary",
+        occurred_at=transition_at,
+    )
+    return defect["defect_id"], registry, ledger
 
 
 class TrustReconciliationImplementationReviewTests(unittest.TestCase):
     def test_future_defect_transition_cannot_backfill_old_unsafe_outcome(self):
         with tempfile.TemporaryDirectory() as tmp:
-            fixture = ReconciliationFixture(Path(tmp))
-            defect_id, registry, ledger = fixture.add_valid_defect_authority()
+            root = Path(tmp)
+            fixture = ReconciliationFixture(root)
             assessment_id = fixture.capture()
+            defect_id, registry, ledger = _late_defect_authority(
+                root,
+                create_at="2026-08-03T00:00:00Z",
+                finding_at="2026-08-03T06:00:00Z",
+                artifact_at="2026-08-04T00:00:00Z",
+                transition_at="2026-08-06T00:00:00Z",
+            )
             event_id = fixture.add_outcome(
                 assessment_id=assessment_id,
                 outcome_type="PRODUCTION_DEFECT",
                 verdict="UNSAFE",
                 defect_id=defect_id,
-                occurred_at="2026-07-28T12:00:00Z",
+                occurred_at="2026-08-05T00:00:00Z",
             )
             fixture.outcome_sources.append({
                 "event_id": event_id,
@@ -46,15 +134,22 @@ class TrustReconciliationImplementationReviewTests(unittest.TestCase):
 
     def test_future_finding_link_cannot_backfill_old_revision_relation(self):
         with tempfile.TemporaryDirectory() as tmp:
-            fixture = ReconciliationFixture(Path(tmp))
-            defect_id, registry, ledger = fixture.add_valid_defect_authority()
+            root = Path(tmp)
+            fixture = ReconciliationFixture(root)
             assessment_id = fixture.capture()
+            defect_id, registry, ledger = _late_defect_authority(
+                root,
+                create_at="2026-08-03T00:00:00Z",
+                finding_at="2026-08-04T00:00:00Z",
+                artifact_at="2026-08-04T06:00:00Z",
+                transition_at="2026-08-05T00:00:00Z",
+            )
             event_id = fixture.add_outcome(
                 assessment_id=assessment_id,
                 outcome_type="PRODUCTION_DEFECT",
                 verdict="UNSAFE",
                 defect_id=defect_id,
-                occurred_at="2026-07-26T12:00:00Z",
+                occurred_at="2026-08-03T12:00:00Z",
             )
             fixture.outcome_sources.append({
                 "event_id": event_id,
