@@ -6,6 +6,7 @@ import sys
 from typing import Sequence
 
 from .trust_pilot_evidence_run import (
+    ELIGIBLE_STATUS,
     PilotEvidenceRunError,
     PilotEvidenceRunVerificationError,
     load_pilot_evidence_run_report,
@@ -40,6 +41,8 @@ def cmd_run(args: argparse.Namespace) -> int:
 def cmd_verify(args: argparse.Namespace) -> int:
     source, report = load_pilot_evidence_run_report(args.report)
     replayed = args.evidence_root is not None
+    if report["status"] == ELIGIBLE_STATUS and not replayed:
+        raise PilotEvidenceRunError("eligible evidence-run verification requires --evidence-root exact source replay")
     if replayed:
         errors = verify_pilot_evidence_run_report_sources(report, evidence_root=args.evidence_root)
         if errors:
@@ -69,7 +72,7 @@ def add_pilot_evidence_run_subparsers(sub: argparse._SubParsersAction) -> None:
 
     command = sub.add_parser(
         "verify-r0-pilot-evidence-run",
-        help="Verify a Stage 10G evidence-run report and optionally replay the exact evidence package.",
+        help="Verify a Stage 10G evidence-run report; eligible reports require exact evidence-root replay.",
     )
     command.add_argument("--report", required=True)
     command.add_argument("--evidence-root")
