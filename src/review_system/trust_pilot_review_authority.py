@@ -10,7 +10,7 @@ from .trust_observation import (
     load_report as load_observation_report,
     verify_report_sources as verify_observation_report_sources,
 )
-from .trust_reconciliation_verified import (
+from .trust_reconciliation_hardened import (
     TrustReconciliationError,
     TrustReconciliationVerificationError,
     load_reconciliation_report,
