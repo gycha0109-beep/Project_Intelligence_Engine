@@ -15,21 +15,40 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: Diagnose Stage 10C core tests
+      - name: Diagnose application-buildmap group
         continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_reconciliation.py' -v
-      - name: Diagnose Stage 10C hardening tests
+        run: |
+          python -m unittest discover -s tests -p 'test_application*.py' -v
+          python -m unittest discover -s tests -p 'test_asset*.py' -v
+          python -m unittest discover -s tests -p 'test_baseline*.py' -v
+          python -m unittest discover -s tests -p 'test_buildmap*.py' -v
+      - name: Diagnose cli-defect-evaluation-github group
         continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_reconciliation_hardening.py' -v
-      - name: Diagnose existing Trust gate
+        run: |
+          python -m unittest discover -s tests -p 'test_cli*.py' -v
+          python -m unittest discover -s tests -p 'test_defect*.py' -v
+          python -m unittest discover -s tests -p 'test_evaluation*.py' -v
+          python -m unittest discover -s tests -p 'test_gate*.py' -v
+          python -m unittest discover -s tests -p 'test_github*.py' -v
+      - name: Diagnose intelligence-ledger-policy group
         continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_gate.py' -v
-      - name: Diagnose existing Trust comparison
+        run: |
+          python -m unittest discover -s tests -p 'test_identity*.py' -v
+          python -m unittest discover -s tests -p 'test_intelligence*.py' -v
+          python -m unittest discover -s tests -p 'test_ledger*.py' -v
+          python -m unittest discover -s tests -p 'test_merge*.py' -v
+          python -m unittest discover -s tests -p 'test_packs*.py' -v
+          python -m unittest discover -s tests -p 'test_path*.py' -v
+          python -m unittest discover -s tests -p 'test_policy*.py' -v
+          python -m unittest discover -s tests -p 'test_profile*.py' -v
+      - name: Diagnose project-reground-run group
         continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_comparison.py' -v
-      - name: Diagnose existing Trust observation
-        continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_observation.py' -v
+        run: |
+          python -m unittest discover -s tests -p 'test_project*.py' -v
+          python -m unittest discover -s tests -p 'test_reground*.py' -v
+          python -m unittest discover -s tests -p 'test_review*.py' -v
+          python -m unittest discover -s tests -p 'test_run*.py' -v
+          python -m unittest discover -s tests -p 'test_validation*.py' -v
       - name: Diagnose combined Trust cluster
         continue-on-error: true
         run: python -m unittest discover -s tests -p 'test_trust*.py' -v
