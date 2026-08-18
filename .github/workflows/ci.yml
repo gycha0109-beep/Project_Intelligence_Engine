@@ -6,6 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.13", "3.14"]
     steps:
@@ -15,33 +16,39 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: Capture full-suite failure ids
+      - name: Capture full-suite result identities
         run: |
           python - <<'PY'
           from pathlib import Path
           import unittest
           suite = unittest.defaultTestLoader.discover('tests')
           result = unittest.TextTestRunner(verbosity=0).run(suite)
-          ids = [test.id() for test, _ in result.failures + result.errors]
-          Path('failure-ids.txt').write_text('\n'.join(ids) + '\n', encoding='utf-8')
+          rows = [f"FAIL:{test.id()}" for test, _ in result.failures]
+          rows += [f"ERROR:{test.id()}" for test, _ in result.errors]
+          rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
+          Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
       - name: Failure is Stage 10C core
         continue-on-error: true
-        run: if grep -q 'test_trust_reconciliation\.' failure-ids.txt; then exit 1; fi
+        run: if grep -q 'test_trust_reconciliation\.' suite-result-ids.txt; then exit 1; fi
       - name: Failure is Stage 10C hardening
         continue-on-error: true
-        run: if grep -q 'test_trust_reconciliation_hardening' failure-ids.txt; then exit 1; fi
-      - name: Failure is Trust existing
+        run: if grep -q 'test_trust_reconciliation_hardening' suite-result-ids.txt; then exit 1; fi
+      - name: Failure is Stage 10C review
         continue-on-error: true
-        run: if grep -E -q 'test_trust_(gate|comparison|observation)' failure-ids.txt; then exit 1; fi
-      - name: Failure is validation
+        run: if grep -q 'test_trust_reconciliation_review' suite-result-ids.txt; then exit 1; fi
+      - name: Failure is existing Trust
         continue-on-error: true
-        run: if grep -q 'test_validation' failure-ids.txt; then exit 1; fi
+        run: if grep -E -q 'test_trust_(gate|comparison|observation)' suite-result-ids.txt; then exit 1; fi
+      - name: Unexpected success present
+        continue-on-error: true
+        run: if grep -q '^UNEXPECTED:' suite-result-ids.txt; then exit 1; fi
       - name: Failure is other existing domain
         continue-on-error: true
         run: |
-          if test -s failure-ids.txt && ! grep -E -q 'test_trust_reconciliation|test_trust_(gate|comparison|observation)|test_validation' failure-ids.txt; then exit 1; fi
-      - run: python -m unittest discover -s tests -v
+          if test -s suite-result-ids.txt && ! grep -E -q 'test_trust_reconciliation|test_trust_(gate|comparison|observation)' suite-result-ids.txt; then exit 1; fi
+      - name: Captured full suite must be clean
+        run: test ! -s suite-result-ids.txt
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
       - run: urs validate-profile profiles/examples/bejewely.yml
