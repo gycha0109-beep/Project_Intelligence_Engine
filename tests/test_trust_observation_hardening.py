@@ -20,6 +20,14 @@ from test_trust_observation import ObservationFixture
 
 
 class TrustObservationHardeningTests(unittest.TestCase):
+    def test_repository_sample_policy_is_valid_and_non_authorizing(self):
+        sample = Path(__file__).resolve().parents[1] / "examples" / "trust-observation-policy.sample.json"
+        _, policy = load_policy(sample)
+        self.assertEqual("REPORT_ONLY", policy["mode"])
+        self.assertEqual("R0", policy["target_band"])
+        self.assertEqual(0, policy["thresholds"]["maximum_r0_false_negatives"])
+        self.assertEqual(0.0, policy["thresholds"]["maximum_r0_false_negative_rate"])
+
     def test_output_symlink_is_rejected_as_observation_input_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
