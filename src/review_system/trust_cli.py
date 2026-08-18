@@ -17,6 +17,8 @@ from .trust_audit import TrustAuditError, TrustAuditVerificationError
 from .trust_audit_cli import add_audit_subparsers
 from .trust_comparison import TrustComparisonError, TrustComparisonVerificationError
 from .trust_comparison_cli import add_comparison_subparsers
+from .trust_evidence_acquisition import EvidenceAcquisitionError, EvidenceAcquisitionVerificationError
+from .trust_evidence_acquisition_cli import add_evidence_acquisition_subparsers
 from .trust_observation import TrustObservationError, TrustObservationVerificationError
 from .trust_observation_cli import add_observation_subparsers
 from .trust_pilot_evidence_run import PilotEvidenceRunError, PilotEvidenceRunVerificationError
@@ -109,7 +111,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, R0 pilot safety review, and pilot eligibility evidence-run reports.",
+        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, R0 pilot safety review, pilot eligibility evidence-run, and runtime evidence acquisition reports.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -130,6 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_reconciliation_subparsers(sub)
     add_pilot_review_subparsers(sub)
     add_pilot_evidence_run_subparsers(sub)
+    add_evidence_acquisition_subparsers(sub)
     return parser
 
 
@@ -145,6 +148,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustReconciliationVerificationError,
         PilotSafetyReviewVerificationError,
         PilotEvidenceRunVerificationError,
+        EvidenceAcquisitionVerificationError,
     ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -156,6 +160,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustReconciliationError,
         PilotSafetyReviewError,
         PilotEvidenceRunError,
+        EvidenceAcquisitionError,
         OSError,
         ValueError,
     ) as exc:
