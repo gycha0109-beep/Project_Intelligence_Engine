@@ -51,6 +51,17 @@
               "authority_type": {"const": "CONTROLLED_EVALUATION"},
               "evaluation_report": {"type": "string", "minLength": 1}
             }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event_id", "authority_type", "audit_artifact", "audit_authority_registry"],
+            "properties": {
+              "event_id": {"type": "string", "minLength": 1},
+              "authority_type": {"const": "INDEPENDENT_AUDIT"},
+              "audit_artifact": {"type": "string", "minLength": 1},
+              "audit_authority_registry": {"type": "string", "minLength": 1}
+            }
           }
         ]
       }
