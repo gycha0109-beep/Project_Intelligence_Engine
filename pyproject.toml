@@ -30,6 +30,7 @@ pie-trust = "review_system.trust_cli:main"
 pie-trust-comparison = "review_system.trust_comparison_cli:main"
 pie-trust-observation = "review_system.trust_observation_cli:main"
 pie-trust-reconciliation = "review_system.trust_reconciliation_cli:main"
+pie-trust-pilot-review = "review_system.trust_pilot_review_cli:main"
 
 [tool.setuptools]
 include-package-data = true
