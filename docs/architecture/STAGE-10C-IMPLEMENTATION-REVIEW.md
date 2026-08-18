@@ -130,6 +130,41 @@ semantic field를 바꾸고 외부 hash를 다시 만든 report가 source replay
 - 별도 regression에서 symlink를 `relative_to(root)` lexical path 그대로 manifest에 기록한다.
 - reconciliation resolver가 symlink component를 직접 탐지해 reject하는지 검증한다.
 
+### 8. Authority 없는 Outcome의 self-verifier boolean escalation
+
+최종 diff review에서 `INDEPENDENT_AUDIT`와 현재 unsupported Outcome의 내부 boolean check까지 공격자가 함께 바꾸는 경우를 추가로 검토했다.
+
+초기 projection helper는 다음 check를 true로 만든 상태를 이론상 `RECONCILED`로 계산할 수 있었다.
+
+```text
+independent_provenance_verified=true
+authority_supported=true
+```
+
+문제:
+
+이 Outcome 유형에는 현재 replay 가능한 원본 authority가 존재하지 않는다. 따라서 외부 source replay가 이 self-asserted boolean을 교정해 줄 수 없으며, status/summary/hash까지 함께 재작성하는 semantic tamper는 schema 단계에서 절대 승격되지 않아야 한다.
+
+보완:
+
+`trust-reconciliation-report.schema.json`에 Outcome type별 fail-closed invariant를 추가했다.
+
+```text
+INDEPENDENT_AUDIT
+  base_status=PROVENANCE_UNVERIFIED
+  status=PROVENANCE_UNVERIFIED
+  reconciled=false
+  independent_provenance_verified=false
+
+REGRESSION / SECURITY_INCIDENT / FALSE_POSITIVE_REVIEW
+  base_status=UNSUPPORTED_SOURCE
+  status=UNSUPPORTED_SOURCE
+  reconciled=false
+  authority_supported=false
+```
+
+root schema와 packaged schema asset에 동일 contract를 적용했다. check boolean, status, summary, evidence snapshot, report ID, outer hash를 모두 공격자 값으로 다시 계산해도 schema semantic verification이 거부하도록 regression을 추가했다.
+
 ## 검증 결과
 
 구현 리뷰 회귀는 다음을 직접 고정한다.
@@ -138,6 +173,7 @@ semantic field를 바꾸고 외부 hash를 다시 만든 report가 source replay
 - future Finding link cannot backfill old revision relation
 - same-revision non-holdout duplicates do not invalidate a unique holdout authority
 - Outcome base-status semantic tamper + rehash reject
+- unsupported/unproven authority boolean escalation + full rehash reject
 - orphan manifest assessment/event reject
 - lexical symlink source reject
 
@@ -148,6 +184,7 @@ semantic field를 바꾸고 외부 hash를 다시 만든 report가 source replay
 - Defect UNSAFE는 문자열 `defect_id`가 아니라 exact registry + ledger import + same-revision historical relation + as-of lifecycle + as-of reproducer/diagnostic를 요구한다.
 - Evaluation SAFE/UNSAFE는 exact Trust-bound Evaluation authority와 matching holdout case를 요구한다.
 - unsupported provenance는 confirmed로 승격하지 않는다.
+- authority가 존재하지 않는 Outcome의 fail-closed 상태는 report schema에서도 상수 불변식으로 고정한다.
 - report semantic verifier와 source replay verifier를 분리해 각각 self-consistency와 external authority mutation을 담당한다.
 
 ## 잔여 리스크
