@@ -15,6 +15,8 @@ from .trust import (
 )
 from .trust_comparison import TrustComparisonError, TrustComparisonVerificationError
 from .trust_comparison_cli import add_comparison_subparsers
+from .trust_observation import TrustObservationError, TrustObservationVerificationError
+from .trust_observation_cli import add_observation_subparsers
 
 
 def _print_json(value: object, *, stream=None) -> None:
@@ -106,7 +108,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence and record human comparison outcomes.",
+        description="Generate report-only Trust evidence, comparison outcomes, and observation readiness evidence.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -122,6 +124,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.set_defaults(func=cmd_validate)
 
     add_comparison_subparsers(sub)
+    add_observation_subparsers(sub)
     return parser
 
 
@@ -129,10 +132,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
     try:
         return args.func(args)
-    except (TrustVerificationError, TrustComparisonVerificationError) as exc:
+    except (
+        TrustVerificationError,
+        TrustComparisonVerificationError,
+        TrustObservationVerificationError,
+    ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
-    except (TrustError, TrustComparisonError, OSError, ValueError) as exc:
+    except (
+        TrustError,
+        TrustComparisonError,
+        TrustObservationError,
+        OSError,
+        ValueError,
+    ) as exc:
         _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
         return 3
 
