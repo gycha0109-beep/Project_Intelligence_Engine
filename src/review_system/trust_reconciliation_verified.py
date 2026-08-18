@@ -65,13 +65,51 @@ def _audit_outcome_with_assessment_time(
 authority._audit_outcome = _audit_outcome_with_assessment_time
 
 
+_ORIGINAL_OUTCOME_RECONCILIATION = authority._outcome_reconciliation
+
+
+def _outcome_reconciliation_with_audit_assessment_boundary(
+    event: dict[str, Any], assessment: dict[str, Any], assessment_result: dict[str, Any],
+    assessment_report: dict[str, Any] | None, source_entry: dict[str, Any] | None, root: Path, project_id: str,
+) -> dict[str, Any]:
+    result = _ORIGINAL_OUTCOME_RECONCILIATION(
+        event,
+        assessment,
+        assessment_result,
+        assessment_report,
+        source_entry,
+        root,
+        project_id,
+    )
+    if event.get("payload", {}).get("outcome_type") == "INDEPENDENT_AUDIT" and not assessment_result.get("reconciled"):
+        checks = authority._audit_checks()
+        checks["assessment_reconciled"] = False
+        result["checks"] = checks
+        result["base_status"] = "ASSESSMENT_UNRECONCILED"
+        result["status"] = "ASSESSMENT_UNRECONCILED"
+        result["reconciled"] = False
+        result["authority_key"] = None
+        result["authority"] = None
+        result["reason_codes"] = sorted(set([*result.get("reason_codes", []), "ASSESSMENT_SOURCE_UNRECONCILED"]))
+    return result
+
+
+authority._outcome_reconciliation = _outcome_reconciliation_with_audit_assessment_boundary
+
+
+def _audit_expected_base(checks: dict[str, Any]) -> str:
+    if checks.get("assessment_reconciled") is False:
+        return "ASSESSMENT_UNRECONCILED"
+    return authority._audit_status(checks)
+
+
 def _audit_projection_errors(item: dict[str, Any], index: int) -> list[str]:
     errors: list[str] = []
     checks = item.get("checks") if isinstance(item.get("checks"), dict) else {}
     expected_provenance = all(checks.get(field) is True for field in _AUDIT_PROVENANCE_INPUTS)
     if checks.get("independent_provenance_verified") is not expected_provenance:
         errors.append(f"outcome_reconciliation[{index}] independent_provenance_verified projection mismatch")
-    expected_base = authority._audit_status(checks)
+    expected_base = _audit_expected_base(checks)
     if item.get("base_status") != expected_base:
         errors.append(f"outcome_reconciliation[{index}] audit base_status projection mismatch")
     projected_authority = item.get("authority")
@@ -97,8 +135,9 @@ def _audit_projection_errors(item: dict[str, Any], index: int) -> list[str]:
 
 
 def _expected_base(item: dict[str, Any]) -> str:
+    checks = item.get("checks") if isinstance(item.get("checks"), dict) else {}
     if item.get("outcome_type") == "INDEPENDENT_AUDIT":
-        return authority._audit_status(item.get("checks") if isinstance(item.get("checks"), dict) else {})
+        return _audit_expected_base(checks)
     return legacy._expected_outcome_base_status(item)
 
 
