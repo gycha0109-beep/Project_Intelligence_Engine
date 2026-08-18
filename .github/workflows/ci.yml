@@ -16,15 +16,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: Stage 10C core focused
-        continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_reconciliation.py' -v
-      - name: Stage 10C hardening focused
-        continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_reconciliation_hardening.py' -v
-      - name: Stage 10C review focused
-        continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust_reconciliation_review.py' -v
       - name: Capture full-suite result identities
         run: |
           python - <<'PY'
@@ -37,15 +28,25 @@ jobs:
           rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
           Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
-      - name: FailedTest is Stage 10C core
+      - name: Failure group application-asset-buildmap
         continue-on-error: true
-        run: if grep -q 'FailedTest.test_trust_reconciliation' suite-result-ids.txt; then exit 1; fi
-      - name: Any Stage 10C result failure
+        run: if grep -E -q 'test_(application|asset|baseline|buildmap)' suite-result-ids.txt; then exit 1; fi
+      - name: Failure group cli-defect-evaluation-github
         continue-on-error: true
-        run: if grep -q 'trust_reconciliation' suite-result-ids.txt; then exit 1; fi
-      - name: Any unexpected success
+        run: if grep -E -q 'test_(cli|defect|evaluation|gate|github)' suite-result-ids.txt; then exit 1; fi
+      - name: Failure group identity-ledger-policy-profile
         continue-on-error: true
-        run: if grep -q '^UNEXPECTED:' suite-result-ids.txt; then exit 1; fi
+        run: if grep -E -q 'test_(identity|intelligence|ledger|merge|packs|path|policy|profile)' suite-result-ids.txt; then exit 1; fi
+      - name: Failure group project-reground-review-run-validation
+        continue-on-error: true
+        run: if grep -E -q 'test_(project|reground|review|run|validation)' suite-result-ids.txt; then exit 1; fi
+      - name: Failure group trust
+        continue-on-error: true
+        run: if grep -q 'test_trust' suite-result-ids.txt; then exit 1; fi
+      - name: Failure group uncategorized
+        continue-on-error: true
+        run: |
+          if test -s suite-result-ids.txt && ! grep -E -q 'test_(application|asset|baseline|buildmap|cli|defect|evaluation|gate|github|identity|intelligence|ledger|merge|packs|path|policy|profile|project|reground|review|run|validation|trust)' suite-result-ids.txt; then exit 1; fi
       - name: Captured full suite must be clean
         run: test ! -s suite-result-ids.txt
       - run: urs version
