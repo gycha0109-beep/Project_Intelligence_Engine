@@ -82,7 +82,7 @@ Stage 10D에는 서로 다른 두 종류의 표본이 필요하다.
 - `REVIEWED`/`AUDITED` count
 - conclusive Outcome count
 - confirmed SAFE count
-- independent Audit count
+- distinct assessment 단위 independent Audit count
 - Outcome coverage
 - evidence span
 - reviewer alignment(정보용)
@@ -93,15 +93,17 @@ Stage 10D에는 서로 다른 두 종류의 표본이 필요하다.
 - `REVIEWED`: reviewed count에는 포함하지만 ground truth가 아님
 - `AUDITED`: reviewed count에 포함
 
+`r0_independent_audit_count`는 Audit event 개수가 아니라 **conclusive INDEPENDENT_AUDIT Outcome을 가진 서로 다른 R0 assessment 수**다. 동일 assessment에 Audit event를 반복 추가해 minimum threshold를 채울 수 없다.
+
 ### confirmed unsafe challenge cohort
 
 R0만 보아서는 "실제로 위험한 사례를 R0 밖으로 밀어낼 수 있는가"를 검증할 수 없다. 따라서 `outcome_verdict=UNSAFE`인 **모든 band의 conclusive Outcome**을 challenge denominator로 사용한다.
 
 ```text
-predicted R0   + actual SAFE   = R0 TN
-predicted R0   + actual UNSAFE = R0 FN
-predicted > R0 + actual UNSAFE = R0 TP
-predicted > R0 + actual SAFE   = R0 FP
+predicted R0    + actual SAFE   = R0 TN
+predicted R0    + actual UNSAFE = R0 FN
+predicted > R0  + actual UNSAFE = R0 TP
+predicted > R0  + actual SAFE   = R0 FP
 ```
 
 여기서 TP/FP/TN/FN은 전체 Trust classifier의 일반 confusion matrix가 아니라 **R0 auto-pass boundary만을 위한 binary projection**이다.
@@ -174,6 +176,8 @@ Report에는 다음을 보존한다.
 
 Reviewer alignment는 safety threshold로 사용하지 않는다.
 
+Standalone report verification은 schema, hash, embedded policy, threshold projection과 내부 arithmetic 일관성을 검증한다. **Registry에서 유도된 관찰값 자체의 진실성은 `--registry`와 `--policy` source replay를 수행해야 검증된다.** 따라서 standalone verification을 source-backed safety evidence로 해석하지 않는다.
+
 ## 9. CLI
 
 ```text
@@ -198,14 +202,16 @@ pie-trust-observation
 ## 10. Identity / Integrity
 
 - policy ID와 SHA-256은 semantic policy body에서 deterministic 생성
-- report는 policy threshold snapshot을 내장하고 self-contained 재검산
+- report는 policy threshold snapshot을 내장하고 structural/semantic projection을 self-contained 재검산
+- malformed schema는 semantic projection 단계에 진입하지 않고 fail-closed 반환
 - report ID는 project + registry identity + policy identity로 deterministic 생성
 - threshold check set/order, status, blocker, next step을 재계산
 - internal observation arithmetic와 denominator를 재계산
 - optional source replay 시 현재 Stage 10B registry와 policy에서 report 전체를 재생성해 exact match 확인
 - root/package schema asset drift regression 유지
+- policy sample contract regression 유지
 - symlink input/output 거부
-- atomic temp + fsync + replace write
+- atomic temp + file fsync + replace write
 
 ## 11. 하지 않는 것
 
@@ -224,6 +230,7 @@ pie-trust-observation
 
 - R0 safe cohort와 all-band unsafe challenge cohort를 구분한다.
 - `WORKFLOW_ACCEPTED`가 reviewed 분모에 들어가지 않는다.
+- independent Audit threshold는 distinct assessment 수로 계산한다.
 - R0 confirmed SAFE와 confirmed unsafe challenge 양쪽 표본이 없으면 readiness가 성립하지 않는다.
 - unsafe challenge denominator 0이면 R0 FNR은 null이며 PASS 불가다.
 - `predicted R0 + actual UNSAFE`가 1건이라도 있으면 `THRESHOLD_BLOCKED`다.
@@ -231,5 +238,5 @@ pie-trust-observation
 - generated time 변경으로 evidence span을 늘릴 수 없다.
 - threshold 만족 상태도 `pilot_authorized=false`다.
 - source reconciliation이 pilot 전 별도 선행조건으로 고정된다.
-- embedded-policy tamper, re-hash, source mismatch, symlink, atomic replace failure가 fail closed다.
+- embedded-policy tamper, re-hash, source mismatch, malformed report, symlink, atomic replace failure가 fail closed다.
 - Python 3.11·3.13·3.14 전체 회귀와 wheel build가 통과한다.
