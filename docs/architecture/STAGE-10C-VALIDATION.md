@@ -51,6 +51,7 @@ Stage 10C Source Replay & Outcome Reconciliation이 기존 PIE 계약을 깨지 
 
 - unsupported source authority fail closed
 - independent audit provenance-unverified
+- unsupported/unproven authority boolean escalation + full rehash reject
 - duplicate conclusive authority reuse reject
 - orphan manifest mapping reject
 - path traversal reject
@@ -118,7 +119,20 @@ sample findings validation SUCCESS
 wheel build SUCCESS
 ```
 
-이 run은 구현/hardening 회귀가 clean함을 확인하기 위한 진단 workflow다. 문서 finalization 이후에는 임시 diagnostic step을 제거하고 원래 authoritative CI workflow 그대로 documentation-inclusive exact-head 검증을 다시 수행한다. 최종 Stage 10C terminal authority는 그 마지막 run으로 판단한다.
+이 run은 구현/hardening 회귀가 clean함을 확인하기 위한 진단 workflow다.
+
+그 뒤 최종 diff review에서 replay 가능한 authority가 없는 Outcome 유형의 self-verifier escalation 가능성을 추가 발견했다. `independent_provenance_verified` 또는 `authority_supported` check까지 공격자가 true로 바꾸고 status/summary/hash를 함께 재계산하는 경우를 차단하기 위해 report schema에 type별 상수 불변식을 추가했다.
+
+```text
+INDEPENDENT_AUDIT → PROVENANCE_UNVERIFIED / reconciled=false
+REGRESSION → UNSUPPORTED_SOURCE / reconciled=false
+SECURITY_INCIDENT → UNSUPPORTED_SOURCE / reconciled=false
+FALSE_POSITIVE_REVIEW → UNSUPPORTED_SOURCE / reconciled=false
+```
+
+root schema와 package asset schema를 동일하게 갱신하고, check boolean + status + summary + evidence snapshot + report ID + report SHA 전체를 재작성하는 공격 regression을 추가했다.
+
+최종 Stage 10C terminal authority는 이 마지막 hardening을 포함한 documentation-inclusive exact-head 원본 workflow run으로 판단한다.
 
 ## 구현 리뷰에서 발견한 문제
 
@@ -133,8 +147,9 @@ wheel build SUCCESS
 5. orphan source manifest mapping silent ignore
 6. symlink hardening regression의 lexical-path 검증 필요
 7. temporal-backfill review fixture의 Stage 10B event ordering 위반
+8. authority 없는 Outcome의 self-verifier boolean escalation 가능성
 
-모두 최종 documentation-inclusive exact-head regression 전에 코드/회귀 테스트로 보완했다.
+모두 최종 documentation-inclusive exact-head regression 전에 코드/schema/회귀 테스트로 보완했다.
 
 ## 보완 사항
 
@@ -145,6 +160,7 @@ wheel build SUCCESS
 - source replay verifier를 통해 source mutation을 최종적으로 검출
 - symlink regression은 lexical path 그대로 manifest에 넣어 실제 resolver rejection을 검증
 - temporal-backfill regression은 Trust assessment Ledger와 분리된 Outcome Defect authority를 사용해 source replay mutation 없이 시간축을 검증
+- 원본 authority가 없는 Outcome의 allowed status/check는 schema에서 상수로 fail closed
 
 ## 잔여 리스크
 
@@ -156,7 +172,7 @@ wheel build SUCCESS
 
 ## 다음 단계
 
-문서 finalization과 원래 CI workflow 복원 이후 documentation-inclusive exact-head CI가 3.11/3.13/3.14에서 모두 green이면 PR을 Ready for Review로 전환한다.
+마지막 hardening을 포함한 documentation-inclusive exact-head CI가 3.11/3.13/3.14에서 모두 green이면 PR을 Ready for Review로 전환한다.
 
 그 이후에도:
 
