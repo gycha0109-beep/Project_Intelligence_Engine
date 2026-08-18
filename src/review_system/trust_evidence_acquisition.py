@@ -373,14 +373,12 @@ def populate_r0_evidence_package(
             return _finalize(report)
 
         package_files = _package_files(staging)
-        package_manifest_sha = _package_manifest_sha256(package_files)
-        os.replace(staging, target)
         report["package"] = {
             "attempted": True,
             "published": True,
             "file_count": len(package_files),
             "files": package_files,
-            "manifest_sha256": package_manifest_sha,
+            "manifest_sha256": _package_manifest_sha256(package_files),
         }
         report["blockers"] = list(pilot_run["blockers"])
         if pilot_run["status"] == ELIGIBLE_STATUS:
@@ -388,7 +386,9 @@ def populate_r0_evidence_package(
         else:
             report["status"] = "PACKAGE_POPULATED_NOT_ELIGIBLE"
         report["next_step"] = pilot_run["next_step"]
-        return _finalize(report)
+        finalized = _finalize(report)
+        os.replace(staging, target)
+        return finalized
     finally:
         if staging.exists():
             shutil.rmtree(staging, ignore_errors=True)
@@ -471,8 +471,11 @@ def verify_acquisition_report_data(report: Any) -> list[str]:
         errors.append("verified source replay requires package attempt")
     if package.get("published"):
         canonical_files = sorted(package_files, key=lambda item: item.get("path", "") if isinstance(item, dict) else "")
+        paths = [item.get("path") for item in package_files if isinstance(item, dict)]
         if package_files != canonical_files:
             errors.append("package files must be canonically sorted")
+        if len(paths) != len(set(paths)):
+            errors.append("package files must not contain duplicate paths")
         if package.get("file_count") != len(package_files):
             errors.append("package file_count mismatch")
         if package.get("manifest_sha256") != canonical_json_sha256(package_files):
