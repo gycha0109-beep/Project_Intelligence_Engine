@@ -70,6 +70,9 @@
 59. [STAGE-10H-R0-EVIDENCE-ACQUISITION.md](STAGE-10H-R0-EVIDENCE-ACQUISITION.md) — 실제 runtime evidence acquisition workspace와 package population 계약
 60. [STAGE-10H-IMPLEMENTATION-REVIEW.md](STAGE-10H-IMPLEMENTATION-REVIEW.md) — Stage 10H source-closure, replay, publication hardening 리뷰
 61. [STAGE-10H-VALIDATION.md](STAGE-10H-VALIDATION.md) — Stage 10H implementation 검증과 external-evidence blocker 해석
+62. [STAGE-10I-PROSPECTIVE-R0-EVIDENCE-COLLECTION.md](STAGE-10I-PROSPECTIVE-R0-EVIDENCE-COLLECTION.md) — 미래 실제 변경을 R0 evidence case로 수집하는 계약
+63. [STAGE-10I-IMPLEMENTATION-REVIEW.md](STAGE-10I-IMPLEMENTATION-REVIEW.md) — Stage 10I exact revision, replay, transaction, snapshot hardening 리뷰
+64. [STAGE-10I-VALIDATION.md](STAGE-10I-VALIDATION.md) — Stage 10I focused/full regression 검증과 runtime 해석
 
 ## 권위 규칙
 
@@ -103,7 +106,8 @@
 - Stage 10E — R0 Pilot Safety Review: `PASS`, PR #22 merged into Stage 10D stacked branch; merge commit `3614442ba0797e8b26f65daa7c9879ff8caa3934`
 - Stage 10F — Independent Audit Authority Contract: `PASS`, PR #23 merged into Stage 10D stacked branch; merge commit `35697b32c1bc751b4831ea92756db44495e6c792`
 - Stage 10G — R0 Pilot Eligibility Evidence Run: `PASS`, PR #24 merged into Stage 10D stacked branch; merge commit `0b705a5d9ca2dddd3e4e77bc7ddcd3f99417b5df`
-- Stage 10H — R0 Evidence Acquisition & Runtime Package Population: implementation on PR #25; real-main prospective baseline initialized, runtime eligibility `NOT_ELIGIBLE`
+- Stage 10H — R0 Evidence Acquisition & Runtime Package Population: `PASS`, PR #25 merged into Stage 10D stacked branch; merge commit `9bc98964d74105fadd3cbc89ac3fc17d83fd6734`; runtime eligibility `NOT_ELIGIBLE`
+- Stage 10I — Prospective R0 Evidence Collection & Case Intake: implementation on PR #26; runtime campaign remains zero-case until future real changes are captured
 
 ## Stage 10G evidence boundary
 
@@ -144,6 +148,22 @@ source_replay_verified=true
 ```
 
 The runtime package is gitignored/local evidence, not committed repository truth. Current blockers are prospective observation, unsafe-challenge, and Independent Audit evidence rather than workspace absence.
+
+## Stage 10I prospective collection boundary
+
+Stage 10I operationalizes future evidence collection without changing the approved thresholds. Each new case must bind an exact git revision, replay its Stage 10A Trust sources, use an explicit Stage 10B `REVIEWED`/`AUDITED` decision, and attach only source-reconcilable Outcome authority.
+
+```text
+actual change
+  -> exact Trust assessment
+  -> prospective capture
+  -> explicit human review
+  -> authoritative Outcome
+  -> reconciliation / observation
+  -> immutable Stage 10H/10G snapshot
+```
+
+Historical workflow actions are not backfilled. The initialized runtime campaign remains zero-case until future real changes are captured.
 
 Only a real package whose Stage 10G exact replay reaches:
 
