@@ -1,3 +1,4 @@
+import copy
 import io
 from pathlib import Path
 import tempfile
@@ -5,10 +6,12 @@ import unittest
 from contextlib import redirect_stderr
 from unittest.mock import patch
 
-from review_system.trust_comparison import record_decision, write_registry
+from review_system.trust_comparison import record_decision, record_outcome, write_registry
 from review_system.trust_observation import (
     TrustObservationError,
     assess_observation,
+    load_policy,
+    verify_report_data,
     verify_report_sources,
     write_report,
 )
@@ -43,6 +46,18 @@ class TrustObservationHardeningTests(unittest.TestCase):
                 ])
             self.assertEqual(3, code)
             self.assertIn("symlink", stderr.getvalue().lower())
+
+    def test_input_symlink_is_rejected_as_observation_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = ObservationFixture(root)
+            link = root / "policy-link.json"
+            try:
+                link.symlink_to(fixture.policy_path)
+            except OSError:
+                self.skipTest("symlinks unavailable")
+            with self.assertRaises(TrustObservationError):
+                load_policy(link)
 
     def test_atomic_replace_failure_preserves_existing_report_bytes(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -97,6 +112,40 @@ class TrustObservationHardeningTests(unittest.TestCase):
                 ["observation report does not replay from registry and policy sources"],
                 errors,
             )
+
+    def test_repeated_independent_audits_do_not_inflate_distinct_audit_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = ObservationFixture(root)
+            fixture.passing_registry()
+            r0 = next(
+                item for item in fixture.registry["assessments"]
+                if item["predicted_risk_band"] == "R0"
+            )
+            fixture.registry = record_outcome(
+                fixture.registry,
+                assessment_id=r0["assessment_id"],
+                outcome_type="INDEPENDENT_AUDIT",
+                verdict="SAFE",
+                actor="second-independent-auditor",
+                occurred_at="2026-08-16T00:00:00Z",
+                evidence_refs=["pie://audit/r0-safe-repeat"],
+            )
+            fixture.persist()
+            report = assess_observation(fixture.registry_path, fixture.policy_path)
+            self.assertEqual(1, report["observation"]["r0_independent_audit_count"])
+
+    def test_malformed_report_returns_schema_errors_without_semantic_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = ObservationFixture(root)
+            fixture.passing_registry()
+            report = assess_observation(fixture.registry_path, fixture.policy_path)
+            malformed = copy.deepcopy(report)
+            malformed["checks"] = [{"id": "BROKEN"}]
+            errors = verify_report_data(malformed)
+            self.assertTrue(errors)
+            self.assertTrue(any("required property" in item or "too short" in item for item in errors))
 
 
 if __name__ == "__main__":
