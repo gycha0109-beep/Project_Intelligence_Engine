@@ -183,7 +183,11 @@ def _checks(
         "REGISTRY_IDENTITY_MATCH": registry_match,
         "RECONCILIATION_SOURCE_REPLAY": source_replay["reconciliation_verified"],
         "OBSERVATION_SOURCE_REPLAY": source_replay["observation_verified"],
-        "RECONCILIATION_COMPLETE": reconciliation["source_reconciliation_complete"] and reconciliation["status"] == "RECONCILED",
+        "RECONCILIATION_COMPLETE": (
+            reconciliation["source_reconciliation_complete"]
+            and reconciliation["status"] == "RECONCILED"
+            and reconciliation["assessment_unreconciled_count"] == 0
+        ),
         "NO_CONCLUSIVE_UNRECONCILED_OUTCOMES": reconciliation["conclusive_outcome_unreconciled_count"] == 0,
         "NO_CONCLUSIVE_DUPLICATE_AUTHORITY": reconciliation["conclusive_duplicate_authority_count"] == 0,
         "NO_CONCLUSIVE_UNSUPPORTED_SOURCE": reconciliation["conclusive_unsupported_source_count"] == 0,
@@ -205,12 +209,12 @@ def _decision(checks: list[dict[str, Any]]) -> tuple[str, list[str], str]:
     if not blockers:
         return ELIGIBLE_STATUS, [], "REQUEST_EXPLICIT_HUMAN_PILOT_AUTHORIZATION"
     blocker_set = set(blockers)
-    if blocker_set & {"NO_CONCLUSIVE_PROVENANCE_UNVERIFIED", "VERIFIED_R0_INDEPENDENT_AUDIT_THRESHOLD"}:
-        return NOT_ELIGIBLE_STATUS, blockers, "ESTABLISH_INDEPENDENT_AUDIT_AUTHORITY"
     if blocker_set & {
         "PROJECT_ID_MATCH", "REGISTRY_IDENTITY_MATCH", "RECONCILIATION_SOURCE_REPLAY", "OBSERVATION_SOURCE_REPLAY",
     }:
         return NOT_ELIGIBLE_STATUS, blockers, "REPAIR_AND_REPLAY_SOURCE_EVIDENCE"
+    if blocker_set & {"NO_CONCLUSIVE_PROVENANCE_UNVERIFIED", "VERIFIED_R0_INDEPENDENT_AUDIT_THRESHOLD"}:
+        return NOT_ELIGIBLE_STATUS, blockers, "ESTABLISH_INDEPENDENT_AUDIT_AUTHORITY"
     if blocker_set & {
         "OBSERVATION_THRESHOLDS_SATISFIED", "R0_FALSE_NEGATIVES_ZERO", "R0_FALSE_NEGATIVE_RATE_ZERO",
         "UNSAFE_CHALLENGE_EVIDENCE_PRESENT", "R0_AUDIT_COUNT_PROJECTION_MATCH",
