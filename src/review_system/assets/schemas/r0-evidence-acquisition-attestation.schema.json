@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/r0-evidence-acquisition-attestation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "evidence_origin",
+    "synthetic_evidence_used",
+    "sample_evidence_used",
+    "thresholds_relaxed",
+    "attested_by",
+    "attested_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project_id": {"type": "string", "minLength": 1},
+    "evidence_origin": {"const": "RUNTIME_OBSERVED"},
+    "synthetic_evidence_used": {"const": false},
+    "sample_evidence_used": {"const": false},
+    "thresholds_relaxed": {"const": false},
+    "attested_by": {"type": "string", "minLength": 1},
+    "attested_at": {"type": "string", "format": "date-time"}
+  }
+}
