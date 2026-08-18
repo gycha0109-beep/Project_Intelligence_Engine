@@ -17,10 +17,12 @@ from .trust_audit_verified import (
     new_authority_registry,
     revoke_issuer,
     verify_audit_artifact_data,
+    verify_audit_assessment_binding,
     verify_authority_registry_data,
     write_audit_artifact,
     write_authority_registry,
 )
+from .trust_comparison import load_registry
 
 
 def _print_json(value: object, *, stream=None) -> None:
@@ -116,21 +118,26 @@ def cmd_verify_registry(args: argparse.Namespace) -> int:
 
 def cmd_verify_artifact(args: argparse.Namespace) -> int:
     source, artifact = load_audit_artifact(args.artifact)
-    errors = verify_audit_artifact_data(artifact)
+    errors = list(verify_audit_artifact_data(artifact))
     authority_verified = None
-    authority_errors: list[str] = []
+    assessment_verified = None
     if args.authority_registry is not None:
         _, registry = load_authority_registry(args.authority_registry)
         authority = evaluate_audit_authority(artifact, registry)
         authority_verified = authority["valid"]
-        authority_errors = authority["errors"]
-        errors.extend(authority_errors)
+        errors.extend(authority["errors"])
+    if args.comparison_registry is not None:
+        _, comparison = load_registry(args.comparison_registry)
+        assessment = verify_audit_assessment_binding(artifact, comparison)
+        assessment_verified = assessment["valid"]
+        errors.extend(assessment["errors"])
     _print_json({
         "valid": not errors,
         "artifact": str(source),
         "audit_id": artifact["audit_id"],
         "artifact_sha256": artifact["artifact_sha256"],
         "authority_verified": authority_verified,
+        "assessment_verified": assessment_verified,
         "automation_authorized": artifact["automation_authorized"],
         "pilot_authorized": artifact["pilot_authorized"],
         "errors": sorted(set(errors)),
@@ -191,9 +198,10 @@ def add_audit_subparsers(sub: argparse._SubParsersAction) -> None:
     command.add_argument("--registry", required=True)
     command.set_defaults(func=cmd_verify_registry)
 
-    command = sub.add_parser("verify-independent-audit", help="Verify an Independent Audit artifact and optional exact authority source.")
+    command = sub.add_parser("verify-independent-audit", help="Verify an Independent Audit artifact and optional authority/assessment sources.")
     command.add_argument("--artifact", required=True)
     command.add_argument("--authority-registry")
+    command.add_argument("--comparison-registry")
     command.set_defaults(func=cmd_verify_artifact)
 
 
@@ -214,7 +222,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     except TrustAuditVerificationError as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
-    except (TrustAuditError, OSError, ValueError) as exc:
+    except (TrustAuditError, TrustComparisonError, TrustComparisonVerificationError, OSError, ValueError) as exc:
+        errors = list(exc.errors) if hasattr(exc, "errors") else None
+        if errors is not None:
+            _print_json({"valid": False, "errors": errors}, stream=sys.stderr)
+            return 4
         _print_json({"valid": False, "error": str(exc)}, stream=sys.stderr)
         return 3
 
