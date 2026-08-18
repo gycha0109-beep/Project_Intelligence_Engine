@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Sequence
 
-from .trust_audit import (
+from .trust_audit_verified import (
     TrustAuditError,
     TrustAuditVerificationError,
     add_trust_root,
