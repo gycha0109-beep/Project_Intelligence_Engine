@@ -28,21 +28,19 @@ jobs:
           rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
           Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
-      - name: Stop if trust-gate failed
-        run: if grep -q 'test_trust_gate' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if trust-comparison failed
-        run: if grep -q 'test_trust_comparison' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if trust-observation failed
-        run: if grep -q 'test_trust_observation' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if reconciliation-core failed
-        run: if grep -E -q 'test_trust_reconciliation\.' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if reconciliation-hardening failed
-        run: if grep -q 'test_trust_reconciliation_hardening' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if reconciliation-review failed
-        run: if grep -q 'test_trust_reconciliation_review' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if other Trust result remains
-        run: if grep -q 'test_trust' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if uncategorized result remains
+      - name: Stop if future-transition review failed
+        run: if grep -q 'test_future_defect_transition_cannot_backfill_old_unsafe_outcome' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if future-finding review failed
+        run: if grep -q 'test_future_finding_link_cannot_backfill_old_revision_relation' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if evaluation-ambiguity review failed
+        run: if grep -q 'test_same_revision_nonholdout_duplicates_do_not_make_holdout_ambiguous' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if base-status-tamper review failed
+        run: if grep -q 'test_outcome_base_status_semantic_tamper_is_rejected_after_rehash' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if orphan-manifest review failed
+        run: if grep -q 'test_orphan_manifest_assessment_and_outcome_are_rejected' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if lexical-symlink review failed
+        run: if grep -q 'test_lexical_symlink_reference_is_rejected' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if any other result remains
         run: test ! -s suite-result-ids.txt
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
