@@ -231,6 +231,49 @@ class TrustReconciliationImplementationReviewTests(unittest.TestCase):
             errors = verify_reconciliation_report_data(tampered)
             self.assertTrue(any("base_status projection mismatch" in error for error in errors))
 
+    def test_unsupported_and_unproven_authority_checks_cannot_escalate_after_rehash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = ReconciliationFixture(Path(tmp))
+            assessment_id = fixture.capture()
+            fixture.add_outcome(
+                assessment_id=assessment_id,
+                outcome_type="SECURITY_INCIDENT",
+                verdict="UNSAFE",
+                evidence_refs=["INCIDENT-123"],
+                actor="incident-observer",
+            )
+            fixture.add_outcome(
+                assessment_id=assessment_id,
+                outcome_type="INDEPENDENT_AUDIT",
+                verdict="SAFE",
+                evidence_refs=["AUDIT-123"],
+                actor="independent-auditor",
+                occurred_at="2026-08-06T00:00:00Z",
+            )
+            fixture.persist()
+            report = reconcile_sources(fixture.registry_path, fixture.sources_path)
+            tampered = copy.deepcopy(report)
+            for outcome in tampered["outcome_reconciliation"]:
+                outcome["base_status"] = "RECONCILED"
+                outcome["status"] = "RECONCILED"
+                outcome["reconciled"] = True
+                if outcome["outcome_type"] == "SECURITY_INCIDENT":
+                    outcome["checks"]["authority_supported"] = True
+                else:
+                    outcome["checks"]["independent_provenance_verified"] = True
+            tampered["summary"]["conclusive_outcome_reconciled_count"] = 2
+            tampered["summary"]["conclusive_outcome_unreconciled_count"] = 0
+            tampered["summary"]["unsupported_source_count"] = 0
+            tampered["summary"]["provenance_unverified_count"] = 0
+            tampered["summary"]["source_reconciliation_complete"] = True
+            tampered["status"] = "RECONCILED"
+            tampered["evidence_snapshot_sha256"] = canonical_json_sha256(_snapshot_payload(tampered))
+            tampered["report_id"] = _report_id(tampered, tampered["evidence_snapshot_sha256"])
+            tampered["report_sha256"] = canonical_json_sha256(_report_payload(tampered))
+            errors = verify_reconciliation_report_data(tampered)
+            self.assertTrue(errors)
+            self.assertTrue(any("False was expected" in error for error in errors))
+
     def test_orphan_manifest_assessment_and_outcome_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
