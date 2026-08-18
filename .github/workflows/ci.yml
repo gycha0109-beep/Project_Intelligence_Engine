@@ -16,6 +16,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
+      - name: Stage 10C core focused
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_reconciliation.py' -v
+      - name: Stage 10C hardening focused
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_reconciliation_hardening.py' -v
+      - name: Stage 10C review focused
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_reconciliation_review.py' -v
       - name: Capture full-suite result identities
         run: |
           python - <<'PY'
@@ -28,25 +37,15 @@ jobs:
           rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
           Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
-      - name: Failure is Stage 10C core
+      - name: FailedTest is Stage 10C core
         continue-on-error: true
-        run: if grep -q 'test_trust_reconciliation\.' suite-result-ids.txt; then exit 1; fi
-      - name: Failure is Stage 10C hardening
+        run: if grep -q 'FailedTest.test_trust_reconciliation' suite-result-ids.txt; then exit 1; fi
+      - name: Any Stage 10C result failure
         continue-on-error: true
-        run: if grep -q 'test_trust_reconciliation_hardening' suite-result-ids.txt; then exit 1; fi
-      - name: Failure is Stage 10C review
-        continue-on-error: true
-        run: if grep -q 'test_trust_reconciliation_review' suite-result-ids.txt; then exit 1; fi
-      - name: Failure is existing Trust
-        continue-on-error: true
-        run: if grep -E -q 'test_trust_(gate|comparison|observation)' suite-result-ids.txt; then exit 1; fi
-      - name: Unexpected success present
+        run: if grep -q 'trust_reconciliation' suite-result-ids.txt; then exit 1; fi
+      - name: Any unexpected success
         continue-on-error: true
         run: if grep -q '^UNEXPECTED:' suite-result-ids.txt; then exit 1; fi
-      - name: Failure is other existing domain
-        continue-on-error: true
-        run: |
-          if test -s suite-result-ids.txt && ! grep -E -q 'test_trust_reconciliation|test_trust_(gate|comparison|observation)' suite-result-ids.txt; then exit 1; fi
       - name: Captured full suite must be clean
         run: test ! -s suite-result-ids.txt
       - run: urs version
