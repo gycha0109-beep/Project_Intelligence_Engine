@@ -1,6 +1,6 @@
 # Stage 10D Implementation Review
 
-상태: `PASS_PENDING_FINAL_EXACT_HEAD_CI`
+상태: `PASS`
 
 기준선: PR #19 HEAD `c3a9facd6e2f530dfea069cb092636be734cee2e`
 
@@ -11,7 +11,8 @@
 - R0 auto-pass boundary 전용 TP/FP/TN/FN projection
 - observed R0 false negative zero-tolerance policy floor
 - evidence timestamp 기반 관찰 span
-- embedded policy threshold snapshot과 self-contained semantic verification
+- distinct R0 assessment 단위 independent Audit count
+- embedded policy threshold snapshot과 self-contained projection verification
 - Stage 10B registry + threshold policy source replay
 - `pie-trust` additive commands와 `pie-trust-observation` entry point
 - symlink input/output fail-closed 및 atomic output preservation
@@ -26,8 +27,8 @@
 수정:
 
 ```text
-R0 + SAFE   = TN
-R0 + UNSAFE = FN
+R0 + SAFE    = TN
+R0 + UNSAFE  = FN
 >R0 + UNSAFE = TP
 >R0 + SAFE   = FP
 ```
@@ -58,6 +59,8 @@ policy ID/hash reference만 보존하면 outer hash를 다시 만든 변조에�
 - status, blocker, next step을 다시 계산한다.
 - R0 conclusive count, safe count, unsafe denominator, coverage, FNR arithmetic을 재검산한다.
 
+단, Registry에서 유도된 source metric 자체의 진실성은 standalone report만으로 증명할 수 없다. 그 부분은 `--registry` + `--policy` source replay가 권위 검증이다.
+
 ### 4. 생성 시각으로 observation span을 부풀릴 위험
 
 수정:
@@ -79,9 +82,34 @@ Stage 10B atomic writer의 path guard가 `TrustComparisonError`를 발생시켜 
 
 추가 hardening:
 
-- output symlink reject
+- input/output symlink reject
 - atomic replace 실패 시 기존 report bytes 보존
 - outer corruption이 아닌 **유효한 Stage 10B registry 변경**도 source replay mismatch로 탐지
+
+### 7. repeated Audit event로 threshold를 부풀릴 수 있는 cardinality 오류
+
+초기 구현은 `INDEPENDENT_AUDIT` event 개수를 직접 세었다. 같은 assessment에 Audit event를 반복 추가하면 minimum audit threshold를 부풀릴 수 있었다.
+
+수정:
+
+- `r0_independent_audit_count`는 conclusive independent Audit이 존재하는 **distinct R0 assessment 수**로 계산한다.
+- 동일 assessment 반복 Audit이 count를 늘리지 않는 regression을 추가했다.
+
+### 8. malformed report에서 semantic verifier가 비정상 종료할 가능성
+
+Schema가 이미 깨진 report에 대해 semantic projection을 계속 수행하면 누락 field에서 `KeyError`가 발생할 수 있었다.
+
+수정:
+
+- schema-invalid report는 semantic projection에 진입하지 않고 validation errors를 반환한다.
+- malformed checks 회귀를 추가했다.
+
+### 9. repository sample policy가 CI 검증 대상이 아니었던 문제
+
+수정:
+
+- `examples/trust-observation-policy.sample.json`을 실제 `load_policy`로 검증하는 regression을 추가했다.
+- sample에서도 report-only/R0/zero-miss invariant를 확인한다.
 
 ## Policy governance 경계
 
@@ -94,7 +122,7 @@ Stage 10D는 다음을 하지 않는다.
 - threshold 자동 완화
 - 조직 정책으로 sample 값을 승격
 
-코드가 강제하는 유일한 안전 floor는 최소 표본/coverage/span이 0이 아니어야 한다는 구조적 조건과 observed R0 FN/FNR 허용치가 0이라는 조건이다.
+코드가 강제하는 유일한 안전 floor는 minimum count/coverage/span이 0이 아니어야 한다는 구조적 조건과 observed R0 FN/FNR 허용치가 0이라는 조건이다.
 
 ## 안전 경계
 
@@ -116,7 +144,8 @@ Stage 10D는 다음을 하지 않는다.
 
 ## 검증 근거
 
-- initial exact-head CI: run `32084224419` / run #641 — Python 3.11·3.13·3.14 전체 성공
-- hardening exact-head CI: HEAD `b9e1c1b8b1a3e3c5088b9a1474be882211ee0519`, run `32084469804` / run #647 — Python 3.11·3.13·3.14 전체 성공
+- initial exact-head CI: HEAD `4e7f55d75416acb009110a4c490c9ce78a7252c4`, run `32084224419` / #641 — Python 3.11·3.13·3.14 성공
+- first hardening CI: HEAD `b9e1c1b8b1a3e3c5088b9a1474be882211ee0519`, run `32084469804` / #647 — Python 3.11·3.13·3.14 성공
+- final code hardening CI: HEAD `20f13be01f2c5c768ae4a9100016473baf3bfedd`, run `32084758761` / #659 — Python 3.11·3.13·3.14 성공
 
-문서 finalization이 포함된 exact HEAD에서 matrix를 한 번 더 통과시킨 뒤 `PASS`로 닫는다.
+Documentation-inclusive final exact-head CI authority는 PR #20 body에 기록한다.
