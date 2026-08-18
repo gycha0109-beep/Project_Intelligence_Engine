@@ -25,7 +25,6 @@ from .trust_comparison import TrustComparisonError, TrustComparisonVerificationE
 SCHEMA_VERSION = "1.0"
 MODE = "REPORT_ONLY"
 CONCLUSIVE_VERDICTS = {"SAFE", "UNSAFE"}
-SUPPORTED_AUTHORITIES = {"PRODUCTION_DEFECT", "CONTROLLED_EVALUATION"}
 UNSUPPORTED_AUTHORITIES = {"REGRESSION", "SECURITY_INCIDENT", "FALSE_POSITIVE_REVIEW"}
 DEFECT_UNSAFE_STATUSES = {
     "REPRODUCED", "CLASSIFIED", "RULE_CANDIDATE", "MITIGATED",
@@ -58,6 +57,24 @@ def _timestamp(value: Any, field: str) -> str:
     if parsed.tzinfo is None:
         raise TrustReconciliationError(f"{field} must include a timezone")
     return parsed.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _as_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _before_or_equal(value: Any, limit: str) -> bool:
+    left = _as_datetime(value)
+    right = _as_datetime(limit)
+    return left is not None and right is not None and left <= right
 
 
 def _path_has_symlink(path: Path) -> bool:
@@ -113,7 +130,7 @@ def _relative_ref(value: Any, field: str) -> str:
     return PurePosixPath(*parts).as_posix()
 
 
-def _resolve_ref(root: Path, value: str, field: str, *, required: bool = True) -> Path | None:
+def _resolve_ref(root: Path, value: str, field: str) -> Path | None:
     relative = _relative_ref(value, field)
     candidate = root.joinpath(*PurePosixPath(relative).parts)
     if _path_has_symlink(candidate):
@@ -122,8 +139,6 @@ def _resolve_ref(root: Path, value: str, field: str, *, required: bool = True) -
         resolved = candidate.resolve(strict=True)
         resolved.relative_to(root.resolve())
     except (OSError, ValueError):
-        if required:
-            return None
         return None
     if not resolved.is_file():
         return None
@@ -135,9 +150,8 @@ def _normalize_manifest(data: Any) -> dict[str, Any]:
     if errors:
         raise TrustReconciliationError("invalid Trust reconciliation source manifest: " + "; ".join(errors))
     assert isinstance(data, dict)
-    project_id = str(data["project_id"]).strip()
-    assessments: list[dict[str, Any]] = []
     assessment_ids: set[str] = set()
+    assessments: list[dict[str, Any]] = []
     for index, item in enumerate(data["assessment_sources"]):
         assessment_id = str(item["assessment_id"]).strip()
         if assessment_id in assessment_ids:
@@ -153,8 +167,8 @@ def _normalize_manifest(data: Any) -> dict[str, Any]:
             value = item.get(field)
             normalized[field] = None if value is None else _relative_ref(value, f"assessment_sources[{index}].{field}")
         assessments.append(normalized)
-    outcomes: list[dict[str, Any]] = []
     event_ids: set[str] = set()
+    outcomes: list[dict[str, Any]] = []
     for index, item in enumerate(data["outcome_sources"]):
         event_id = str(item["event_id"]).strip()
         if event_id in event_ids:
@@ -165,12 +179,12 @@ def _normalize_manifest(data: Any) -> dict[str, Any]:
         if authority_type == "PRODUCTION_DEFECT":
             normalized["defect_registry"] = _relative_ref(item["defect_registry"], f"outcome_sources[{index}].defect_registry")
             normalized["ledger"] = _relative_ref(item["ledger"], f"outcome_sources[{index}].ledger")
-        elif authority_type == "CONTROLLED_EVALUATION":
+        else:
             normalized["evaluation_report"] = _relative_ref(item["evaluation_report"], f"outcome_sources[{index}].evaluation_report")
         outcomes.append(normalized)
     return {
         "schema_version": SCHEMA_VERSION,
-        "project_id": project_id,
+        "project_id": str(data["project_id"]).strip(),
         "assessment_sources": sorted(assessments, key=lambda item: item["assessment_id"]),
         "outcome_sources": sorted(outcomes, key=lambda item: item["event_id"]),
     }
@@ -186,17 +200,13 @@ def load_source_manifest(path: str | Path) -> tuple[Path, dict[str, Any]]:
 
 
 def manifest_sha256(manifest: dict[str, Any]) -> str:
-    normalized = _normalize_manifest(manifest)
-    return canonical_json_sha256(normalized)
+    return canonical_json_sha256(_normalize_manifest(manifest))
 
 
 def _source_descriptor(path: Path | None, reference: str | None) -> dict[str, Any] | None:
     if reference is None:
         return None
-    return {
-        "source": PurePosixPath(reference).name,
-        "file_sha256": file_sha256(path) if path is not None else None,
-    }
+    return {"source": reference, "file_sha256": file_sha256(path) if path is not None else None}
 
 
 def _assessment_status(checks: dict[str, bool]) -> str:
@@ -222,10 +232,7 @@ def _assessment_status(checks: dict[str, bool]) -> str:
 
 
 def _assessment_reconciliation(
-    assessment: dict[str, Any],
-    source_entry: dict[str, Any] | None,
-    root: Path,
-    project_id: str,
+    assessment: dict[str, Any], source_entry: dict[str, Any] | None, root: Path, project_id: str,
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     checks = {
         "source_present": False,
@@ -241,8 +248,8 @@ def _assessment_reconciliation(
         "source_replay_match": False,
     }
     reasons: list[str] = []
-    descriptor = None
     report: dict[str, Any] | None = None
+    descriptor = None
     if source_entry is not None:
         trust_path = _resolve_ref(root, source_entry["trust_report"], "assessment trust_report")
         descriptor = _source_descriptor(trust_path, source_entry["trust_report"])
@@ -268,31 +275,31 @@ def _assessment_reconciliation(
             "hard_gates_match": sorted(advisory.get("triggered_hard_gates", [])) == sorted(assessment.get("triggered_hard_gates", [])),
             "readiness_match": readiness.get("status") == assessment.get("readiness_status"),
         })
-        if source_entry is not None:
-            paths: dict[str, Path | None] = {}
-            for field in ("request", "profile", "ledger", "policy_registry", "evaluation_report", "reground_report", "reground_observations"):
-                reference = source_entry.get(field)
-                paths[field] = None if reference is None else _resolve_ref(root, reference, f"assessment {field}")
-            required_missing = [field for field in ("request", "profile") if paths[field] is None]
-            optional_declared_missing = [
-                field for field in ("ledger", "policy_registry", "evaluation_report", "reground_report", "reground_observations")
-                if source_entry.get(field) is not None and paths[field] is None
-            ]
-            if required_missing or optional_declared_missing:
-                reasons.extend(f"SOURCE_MISSING:{field}" for field in [*required_missing, *optional_declared_missing])
-            else:
-                replay_errors = verify_trust_report_sources(
-                    report,
-                    request=paths["request"],
-                    profile=paths["profile"],
-                    ledger=paths["ledger"],
-                    policy_registry=paths["policy_registry"],
-                    evaluation_report=paths["evaluation_report"],
-                    reground_report=paths["reground_report"],
-                    reground_observations=paths["reground_observations"],
-                )
-                checks["source_replay_match"] = not replay_errors
-                reasons.extend(f"SOURCE_REPLAY:{error}" for error in replay_errors)
+        assert source_entry is not None
+        paths: dict[str, Path | None] = {}
+        for field in ("request", "profile", "ledger", "policy_registry", "evaluation_report", "reground_report", "reground_observations"):
+            reference = source_entry.get(field)
+            paths[field] = None if reference is None else _resolve_ref(root, reference, f"assessment {field}")
+        missing = [field for field in ("request", "profile") if paths[field] is None]
+        missing += [
+            field for field in ("ledger", "policy_registry", "evaluation_report", "reground_report", "reground_observations")
+            if source_entry.get(field) is not None and paths[field] is None
+        ]
+        if missing:
+            reasons.extend(f"SOURCE_MISSING:{field}" for field in missing)
+        else:
+            replay_errors = verify_trust_report_sources(
+                report,
+                request=paths["request"],
+                profile=paths["profile"],
+                ledger=paths["ledger"],
+                policy_registry=paths["policy_registry"],
+                evaluation_report=paths["evaluation_report"],
+                reground_report=paths["reground_report"],
+                reground_observations=paths["reground_observations"],
+            )
+            checks["source_replay_match"] = not replay_errors
+            reasons.extend(f"SOURCE_REPLAY:{error}" for error in replay_errors)
     status = _assessment_status(checks)
     return ({
         "assessment_id": assessment["assessment_id"],
@@ -313,25 +320,19 @@ def _read_only_connection(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def _before_or_equal(value: Any, limit: str) -> bool:
-    if not isinstance(value, str) or not value.strip():
-        return False
-    try:
-        left = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        right = datetime.fromisoformat(limit.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if left.tzinfo is None or right.tzinfo is None:
-        return False
-    return left.astimezone(timezone.utc) <= right.astimezone(timezone.utc)
+def _defect_status_as_of(registry: dict[str, Any], defect_id: str, occurred_at: str) -> str | None:
+    status = None
+    for item in sorted(registry.get("events", []), key=lambda value: (value.get("occurred_at", ""), value.get("event_id", ""))):
+        if item.get("defect_id") != defect_id or not _before_or_equal(item.get("occurred_at"), occurred_at):
+            continue
+        status_to = item.get("status_to")
+        if isinstance(status_to, str) and status_to:
+            status = status_to
+    return status
 
 
 def _defect_outcome(
-    event: dict[str, Any],
-    assessment: dict[str, Any],
-    source_entry: dict[str, Any],
-    root: Path,
-    project_id: str,
+    event: dict[str, Any], assessment: dict[str, Any], source_entry: dict[str, Any], root: Path, project_id: str,
 ) -> tuple[str, dict[str, bool], list[str], str | None, dict[str, Any] | None]:
     checks = {
         "source_present": False,
@@ -382,85 +383,80 @@ def _defect_outcome(
     if defect is None:
         return "OUTCOME_REFERENCE_MISMATCH", checks, reasons, None, None
     occurred_at = event["occurred_at"]
-    relation_run_ids: set[str] = set()
-    support_artifacts: list[dict[str, Any]] = []
-    stored_defect: dict[str, Any] | None = None
+    status_as_of = _defect_status_as_of(registry, defect_id, occurred_at)
+    eligible_finding_ids = {
+        item["finding_id"] for item in registry.get("finding_links", [])
+        if item.get("defect_id") == defect_id and _before_or_equal(item.get("linked_at"), occurred_at)
+    }
+    eligible_artifact_links = [
+        item for item in registry.get("artifact_links", [])
+        if item.get("defect_id") == defect_id
+        and item.get("relation") in {"reproducer", "diagnostic"}
+        and _before_or_equal(item.get("linked_at"), occurred_at)
+    ]
+    same_revision_findings: list[str] = []
+    same_revision_artifacts: list[str] = []
+    stored_defect = None
     try:
         with _read_only_connection(ledger_path) as connection:
-            row = connection.execute("SELECT * FROM defects WHERE defect_id = ?", (defect_id,)).fetchone()
-            if row is not None:
-                stored_defect = dict(row)
-            for row in connection.execute(
-                """
-                SELECT DISTINCT r.run_id
-                FROM finding_defects fd
-                JOIN findings f ON f.finding_id = fd.finding_id
-                JOIN runs r ON r.run_id = f.run_id
-                WHERE fd.defect_id = ? AND r.project_id = ? AND r.source_revision = ?
-                """,
-                (defect_id, project_id, assessment["source_revision"]),
-            ).fetchall():
-                relation_run_ids.add(str(row["run_id"]))
-            for run_field in ("first_seen_run_id", "last_seen_run_id"):
-                run_id = defect.get(run_field)
-                if isinstance(run_id, str):
-                    run = connection.execute(
-                        "SELECT run_id FROM runs WHERE run_id = ? AND project_id = ? AND source_revision = ?",
-                        (run_id, project_id, assessment["source_revision"]),
-                    ).fetchone()
-                    if run is not None:
-                        relation_run_ids.add(str(run["run_id"]))
-            support_artifacts = [dict(row) for row in connection.execute(
-                """
-                SELECT da.relation, da.linked_at, a.artifact_id, r.run_id, r.source_revision
-                FROM defect_artifacts da
-                JOIN artifacts a ON a.artifact_id = da.artifact_id
-                JOIN runs r ON r.run_id = a.run_id
-                WHERE da.defect_id = ?
-                  AND da.relation IN ('reproducer', 'diagnostic')
-                  AND r.project_id = ?
-                  AND r.source_revision = ?
-                ORDER BY a.artifact_id, da.relation
-                """,
-                (defect_id, project_id, assessment["source_revision"]),
-            ).fetchall()]
+            stored = connection.execute("SELECT * FROM defects WHERE defect_id = ?", (defect_id,)).fetchone()
+            stored_defect = dict(stored) if stored is not None else None
+            if eligible_finding_ids:
+                placeholders = ",".join("?" for _ in eligible_finding_ids)
+                rows = connection.execute(
+                    f"""
+                    SELECT DISTINCT f.finding_id
+                    FROM findings f JOIN runs r ON r.run_id = f.run_id
+                    WHERE f.finding_id IN ({placeholders})
+                      AND r.project_id = ? AND r.source_revision = ?
+                    """,
+                    (*sorted(eligible_finding_ids), project_id, assessment["source_revision"]),
+                ).fetchall()
+                same_revision_findings = [str(row["finding_id"]) for row in rows]
+            for link in eligible_artifact_links:
+                row = connection.execute(
+                    """
+                    SELECT a.artifact_id
+                    FROM artifacts a JOIN runs r ON r.run_id = a.run_id
+                    WHERE a.artifact_id = ? AND r.project_id = ? AND r.source_revision = ?
+                    """,
+                    (link["artifact_id"], project_id, assessment["source_revision"]),
+                ).fetchone()
+                if row is not None:
+                    same_revision_artifacts.append(str(row["artifact_id"]))
     except sqlite3.DatabaseError as exc:
         reasons.append(f"LEDGER_QUERY:{exc}")
         return "SOURCE_VERIFICATION_FAILED", checks, reasons, None, None
     if stored_defect is not None:
         compared_fields = (
-            "defect_id", "defect_key_sha256", "project_id", "signature", "title", "category",
-            "root_cause", "lifecycle_status", "first_seen_run_id", "last_seen_run_id", "owner",
-            "resolution", "created_at", "updated_at",
+            "defect_id", "defect_key_sha256", "signature", "title", "category", "root_cause",
+            "lifecycle_status", "first_seen_run_id", "last_seen_run_id", "owner", "resolution",
+            "created_at", "updated_at",
         )
-        checks["defect_projection_match"] = all(stored_defect.get(field) == ({**defect, "project_id": project_id}).get(field) for field in compared_fields)
-    checks["revision_relation_match"] = bool(relation_run_ids)
+        checks["defect_projection_match"] = all(stored_defect.get(field) == defect.get(field) for field in compared_fields)
+        checks["defect_projection_match"] = checks["defect_projection_match"] and stored_defect.get("project_id") == project_id
+    checks["revision_relation_match"] = bool(same_revision_findings)
+    checks["lifecycle_sufficient"] = status_as_of in DEFECT_UNSAFE_STATUSES
+    checks["supporting_artifact_present"] = bool(same_revision_artifacts)
+    checks["supporting_evidence_precedes_outcome"] = bool(same_revision_artifacts)
     verdict = event["payload"]["verdict"]
-    status = str(defect.get("lifecycle_status"))
-    checks["lifecycle_sufficient"] = status in DEFECT_UNSAFE_STATUSES
-    checks["supporting_artifact_present"] = bool(support_artifacts)
-    checks["supporting_evidence_precedes_outcome"] = bool(support_artifacts) and all(
-        _before_or_equal(item.get("linked_at"), occurred_at) for item in support_artifacts
-    )
     if verdict == "UNSAFE":
         checks["verdict_supported"] = all([
-            checks["defect_projection_match"], checks["revision_relation_match"],
-            checks["lifecycle_sufficient"], checks["supporting_artifact_present"],
-            checks["supporting_evidence_precedes_outcome"],
+            checks["defect_projection_match"], checks["revision_relation_match"], checks["lifecycle_sufficient"],
+            checks["supporting_artifact_present"], checks["supporting_evidence_precedes_outcome"],
         ])
     elif verdict == "INCONCLUSIVE":
         checks["verdict_supported"] = checks["defect_projection_match"] and checks["revision_relation_match"]
     else:
-        checks["verdict_supported"] = False
         reasons.append("PRODUCTION_DEFECT_CANNOT_PROVE_SAFE")
     authority_key = f"defect:{registry['registry_sha256']}:{defect_id}"
     authority = {
         "authority_type": "PRODUCTION_DEFECT",
         "defect_id": defect_id,
         "registry_sha256": registry["registry_sha256"],
-        "lifecycle_status": status,
-        "revision_run_count": len(relation_run_ids),
-        "supporting_artifact_count": len(support_artifacts),
+        "lifecycle_status": status_as_of,
+        "revision_run_count": len(same_revision_findings),
+        "supporting_artifact_count": len(same_revision_artifacts),
     }
     if verdict == "SAFE":
         return "OUTCOME_VERDICT_MISMATCH", checks, reasons, authority_key, authority
@@ -474,11 +470,8 @@ def _defect_outcome(
 
 
 def _evaluation_outcome(
-    event: dict[str, Any],
-    assessment: dict[str, Any],
-    assessment_report: dict[str, Any] | None,
-    source_entry: dict[str, Any],
-    root: Path,
+    event: dict[str, Any], assessment: dict[str, Any], assessment_report: dict[str, Any] | None,
+    source_entry: dict[str, Any], root: Path,
 ) -> tuple[str, dict[str, bool], list[str], str | None, dict[str, Any] | None]:
     checks = {
         "source_present": False,
@@ -507,7 +500,7 @@ def _evaluation_outcome(
         return "SOURCE_VERIFICATION_FAILED", checks, reasons, None, None
     refs = set(event.get("payload", {}).get("evidence_refs", []))
     checks["outcome_reference_match"] = evaluation["evaluation_id"] in refs or evaluation["report_sha256"] in refs
-    trust_policy = {}
+    trust_policy: dict[str, Any] = {}
     if isinstance(assessment_report, dict):
         evidence = assessment_report.get("evidence")
         if isinstance(evidence, dict) and isinstance(evidence.get("policy"), dict):
@@ -518,11 +511,12 @@ def _evaluation_outcome(
         and trust_policy.get("evaluation_report_sha256") == evaluation["report_sha256"]
     )
     matching_cases = [case for case in evaluation.get("cases", []) if case.get("source_revision") == assessment["source_revision"]]
+    matching_holdout = [case for case in matching_cases if case.get("split") == "holdout"]
     checks["revision_match"] = bool(matching_cases)
-    checks["unambiguous_case"] = len(matching_cases) == 1
+    checks["unambiguous_case"] = len(matching_holdout) == 1
+    checks["holdout_match"] = len(matching_holdout) == 1
     checks["repeatability"] = bool(evaluation["repeatability"].get("baseline") and evaluation["repeatability"].get("challenger"))
-    case = matching_cases[0] if len(matching_cases) == 1 else None
-    checks["holdout_match"] = bool(case and case.get("split") == "holdout")
+    case = matching_holdout[0] if len(matching_holdout) == 1 else None
     negative_ids = set(evaluation["comparison"].get("protected_negative_regressions", []))
     checks["protected_negative_match"] = bool(case and case.get("case_id") in negative_ids)
     checks["gate_pass"] = evaluation["gate"].get("decision") == "PASS"
@@ -531,8 +525,7 @@ def _evaluation_outcome(
     if verdict == "SAFE":
         checks["verdict_supported"] = all([
             checks["outcome_reference_match"], checks["trust_evaluation_match"], checks["unambiguous_case"],
-            checks["repeatability"], checks["holdout_match"], checks["gate_pass"],
-            checks["zero_protected_negative_regressions"],
+            checks["repeatability"], checks["holdout_match"], checks["gate_pass"], checks["zero_protected_negative_regressions"],
         ])
     elif verdict == "UNSAFE":
         checks["verdict_supported"] = all([
@@ -540,9 +533,12 @@ def _evaluation_outcome(
             checks["repeatability"], checks["holdout_match"], checks["protected_negative_match"],
         ])
     else:
+        unique = matching_holdout[0] if len(matching_holdout) == 1 else (matching_cases[0] if len(matching_cases) == 1 else None)
+        case = unique
+        checks["unambiguous_case"] = unique is not None
         checks["verdict_supported"] = all([
-            checks["outcome_reference_match"], checks["trust_evaluation_match"], checks["unambiguous_case"],
-            checks["repeatability"],
+            checks["outcome_reference_match"], checks["trust_evaluation_match"], checks["revision_match"],
+            checks["unambiguous_case"], checks["repeatability"],
         ])
     case_id = case.get("case_id") if case else None
     authority_key = f"evaluation:{evaluation['report_sha256']}:{case_id}" if case_id else None
@@ -563,23 +559,19 @@ def _evaluation_outcome(
         return "REVISION_MISMATCH", checks, reasons, authority_key, authority
     if not checks["unambiguous_case"]:
         return "AMBIGUOUS_AUTHORITY", checks, reasons, authority_key, authority
+    if verdict in CONCLUSIVE_VERDICTS and not checks["holdout_match"]:
+        return "INSUFFICIENT_EVIDENCE", checks, reasons, authority_key, authority
     if not checks["verdict_supported"]:
         return "OUTCOME_VERDICT_MISMATCH" if verdict in CONCLUSIVE_VERDICTS else "INSUFFICIENT_EVIDENCE", checks, reasons, authority_key, authority
     return "RECONCILED", checks, reasons, authority_key, authority
 
 
 def _outcome_reconciliation(
-    event: dict[str, Any],
-    assessment: dict[str, Any],
-    assessment_result: dict[str, Any],
-    assessment_report: dict[str, Any] | None,
-    source_entry: dict[str, Any] | None,
-    root: Path,
-    project_id: str,
+    event: dict[str, Any], assessment: dict[str, Any], assessment_result: dict[str, Any],
+    assessment_report: dict[str, Any] | None, source_entry: dict[str, Any] | None, root: Path, project_id: str,
 ) -> dict[str, Any]:
     outcome_type = event["payload"]["outcome_type"]
     verdict = event["payload"]["verdict"]
-    conclusive = verdict in CONCLUSIVE_VERDICTS
     reasons: list[str] = []
     authority_key = None
     authority = None
@@ -601,14 +593,10 @@ def _outcome_reconciliation(
         base_status = "OUTCOME_REFERENCE_MISMATCH"
         checks = {"assessment_reconciled": True, "authority_type_match": False}
     elif outcome_type == "PRODUCTION_DEFECT":
-        base_status, checks, reasons, authority_key, authority = _defect_outcome(
-            event, assessment, source_entry, root, project_id
-        )
+        base_status, checks, reasons, authority_key, authority = _defect_outcome(event, assessment, source_entry, root, project_id)
         checks = {"assessment_reconciled": True, **checks}
     elif outcome_type == "CONTROLLED_EVALUATION":
-        base_status, checks, reasons, authority_key, authority = _evaluation_outcome(
-            event, assessment, assessment_report, source_entry, root
-        )
+        base_status, checks, reasons, authority_key, authority = _evaluation_outcome(event, assessment, assessment_report, source_entry, root)
         checks = {"assessment_reconciled": True, **checks}
     else:
         base_status = "UNSUPPORTED_SOURCE"
@@ -618,7 +606,7 @@ def _outcome_reconciliation(
         "assessment_id": event["assessment_id"],
         "outcome_type": outcome_type,
         "verdict": verdict,
-        "conclusive": conclusive,
+        "conclusive": verdict in CONCLUSIVE_VERDICTS,
         "base_status": base_status,
         "status": base_status,
         "reconciled": base_status == "RECONCILED",
@@ -629,24 +617,78 @@ def _outcome_reconciliation(
     }
 
 
+def _expected_outcome_base_status(item: dict[str, Any]) -> str:
+    checks = item.get("checks") if isinstance(item.get("checks"), dict) else {}
+    outcome_type = item.get("outcome_type")
+    verdict = item.get("verdict")
+    if not checks.get("assessment_reconciled", False):
+        return "ASSESSMENT_UNRECONCILED"
+    if outcome_type == "INDEPENDENT_AUDIT":
+        return "RECONCILED" if checks.get("independent_provenance_verified", False) else "PROVENANCE_UNVERIFIED"
+    if outcome_type in UNSUPPORTED_AUTHORITIES:
+        return "RECONCILED" if checks.get("authority_supported", False) else "UNSUPPORTED_SOURCE"
+    if outcome_type == "PRODUCTION_DEFECT":
+        if not checks.get("source_present", False):
+            return "SOURCE_MISSING"
+        if not checks.get("registry_valid", False) or not checks.get("ledger_valid", False):
+            return "SOURCE_VERIFICATION_FAILED"
+        if not checks.get("project_match", False):
+            return "PROJECT_MISMATCH"
+        if not checks.get("registry_ledger_match", False):
+            return "SOURCE_HASH_MISMATCH"
+        if not checks.get("defect_present", False):
+            return "OUTCOME_REFERENCE_MISMATCH"
+        if not checks.get("defect_projection_match", False):
+            return "SOURCE_HASH_MISMATCH"
+        if not checks.get("revision_relation_match", False):
+            return "REVISION_MISMATCH"
+        if verdict == "SAFE":
+            return "OUTCOME_VERDICT_MISMATCH"
+        return "RECONCILED" if checks.get("verdict_supported", False) else "INSUFFICIENT_EVIDENCE"
+    if outcome_type == "CONTROLLED_EVALUATION":
+        if not checks.get("source_present", False):
+            return "SOURCE_MISSING"
+        if not checks.get("evaluation_valid", False):
+            return "SOURCE_VERIFICATION_FAILED"
+        if not checks.get("outcome_reference_match", False):
+            return "OUTCOME_REFERENCE_MISMATCH"
+        if not checks.get("trust_evaluation_match", False):
+            return "PROJECT_MISMATCH"
+        if not checks.get("revision_match", False):
+            return "REVISION_MISMATCH"
+        if not checks.get("unambiguous_case", False):
+            return "AMBIGUOUS_AUTHORITY"
+        if verdict in CONCLUSIVE_VERDICTS and not checks.get("holdout_match", False):
+            return "INSUFFICIENT_EVIDENCE"
+        if not checks.get("verdict_supported", False):
+            return "OUTCOME_VERDICT_MISMATCH" if verdict in CONCLUSIVE_VERDICTS else "INSUFFICIENT_EVIDENCE"
+        return "RECONCILED"
+    if checks.get("authority_type_match") is False:
+        return "OUTCOME_REFERENCE_MISMATCH"
+    if checks.get("source_present") is False:
+        return "SOURCE_MISSING"
+    return "UNSUPPORTED_SOURCE"
+
+
 def _apply_duplicate_authority(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     output = deepcopy(results)
     by_key: dict[str, list[dict[str, Any]]] = {}
     for item in output:
-        if item["conclusive"] and item["base_status"] == "RECONCILED" and isinstance(item.get("authority_key"), str):
-            by_key.setdefault(item["authority_key"], []).append(item)
-    duplicate_keys = {key for key, items in by_key.items() if len(items) > 1}
+        key = item.get("authority_key")
+        if item.get("conclusive") and item.get("base_status") == "RECONCILED" and isinstance(key, str):
+            by_key.setdefault(key, []).append(item)
+    duplicates = {key for key, values in by_key.items() if len(values) > 1}
     for item in output:
-        expected = "DUPLICATE_AUTHORITY" if item.get("authority_key") in duplicate_keys and item["conclusive"] and item["base_status"] == "RECONCILED" else item["base_status"]
+        expected = "DUPLICATE_AUTHORITY" if item.get("authority_key") in duplicates and item.get("conclusive") and item.get("base_status") == "RECONCILED" else item.get("base_status")
         item["status"] = expected
         item["reconciled"] = expected == "RECONCILED"
     return output
 
 
 def _summary(assessments: list[dict[str, Any]], outcomes: list[dict[str, Any]]) -> dict[str, Any]:
-    conclusive = [item for item in outcomes if item["conclusive"]]
-    assessment_reconciled = sum(1 for item in assessments if item["reconciled"])
-    conclusive_reconciled = sum(1 for item in conclusive if item["reconciled"])
+    conclusive = [item for item in outcomes if item.get("conclusive")]
+    assessment_reconciled = sum(1 for item in assessments if item.get("reconciled"))
+    conclusive_reconciled = sum(1 for item in conclusive if item.get("reconciled"))
     return {
         "assessment_count": len(assessments),
         "assessment_reconciled_count": assessment_reconciled,
@@ -656,9 +698,9 @@ def _summary(assessments: list[dict[str, Any]], outcomes: list[dict[str, Any]]) 
         "conclusive_outcome_reconciled_count": conclusive_reconciled,
         "conclusive_outcome_unreconciled_count": len(conclusive) - conclusive_reconciled,
         "nonconclusive_outcome_count": len(outcomes) - len(conclusive),
-        "unsupported_source_count": sum(1 for item in outcomes if item["status"] == "UNSUPPORTED_SOURCE"),
-        "provenance_unverified_count": sum(1 for item in outcomes if item["status"] == "PROVENANCE_UNVERIFIED"),
-        "duplicate_authority_count": sum(1 for item in outcomes if item["status"] == "DUPLICATE_AUTHORITY"),
+        "unsupported_source_count": sum(1 for item in outcomes if item.get("status") == "UNSUPPORTED_SOURCE"),
+        "provenance_unverified_count": sum(1 for item in outcomes if item.get("status") == "PROVENANCE_UNVERIFIED"),
+        "duplicate_authority_count": sum(1 for item in outcomes if item.get("status") == "DUPLICATE_AUTHORITY"),
         "source_reconciliation_complete": assessment_reconciled == len(assessments) and conclusive_reconciled == len(conclusive),
     }
 
@@ -696,11 +738,27 @@ def _report_id(report: dict[str, Any], snapshot_sha256: str) -> str:
     return f"trust-reconciliation-{canonical_json_sha256(key)[:32]}"
 
 
+def _validate_manifest_registry_bindings(registry: dict[str, Any], manifest: dict[str, Any]) -> None:
+    assessment_ids = {item["assessment_id"] for item in registry["assessments"]}
+    manifest_assessments = {item["assessment_id"] for item in manifest["assessment_sources"]}
+    orphan_assessments = sorted(manifest_assessments - assessment_ids)
+    if orphan_assessments:
+        raise TrustReconciliationError("source manifest references unknown assessment(s): " + ", ".join(orphan_assessments))
+    outcomes = {event["event_id"]: event for event in registry["events"] if event["event_type"] == "OUTCOME"}
+    manifest_outcomes = {item["event_id"]: item for item in manifest["outcome_sources"]}
+    orphan_events = sorted(set(manifest_outcomes) - set(outcomes))
+    if orphan_events:
+        raise TrustReconciliationError("source manifest references unknown Outcome event(s): " + ", ".join(orphan_events))
+    for event_id, source in manifest_outcomes.items():
+        expected = outcomes[event_id]["payload"]["outcome_type"]
+        if source["authority_type"] != expected:
+            raise TrustReconciliationError(
+                f"source manifest authority_type mismatch for {event_id}: expected={expected} actual={source['authority_type']}"
+            )
+
+
 def reconcile_sources(
-    registry_path: str | Path,
-    source_manifest_path: str | Path,
-    *,
-    generated_at: str | None = None,
+    registry_path: str | Path, source_manifest_path: str | Path, *, generated_at: str | None = None,
 ) -> dict[str, Any]:
     registry_source = _safe_input(registry_path, "Trust comparison registry")
     _, registry = load_registry(registry_source)
@@ -709,29 +767,30 @@ def reconcile_sources(
         raise TrustReconciliationError(
             f"source manifest project_id mismatch: expected={registry['project_id']} actual={manifest['project_id']}"
         )
+    _validate_manifest_registry_bindings(registry, manifest)
     root = manifest_source.parent
     assessment_entries = {item["assessment_id"]: item for item in manifest["assessment_sources"]}
     assessment_results: list[dict[str, Any]] = []
     assessment_reports: dict[str, dict[str, Any] | None] = {}
     for assessment in registry["assessments"]:
-        result, report = _assessment_reconciliation(
+        result, trust_report = _assessment_reconciliation(
             assessment, assessment_entries.get(assessment["assessment_id"]), root, registry["project_id"]
         )
         assessment_results.append(result)
-        assessment_reports[assessment["assessment_id"]] = report
+        assessment_reports[assessment["assessment_id"]] = trust_report
     assessment_results.sort(key=lambda item: item["assessment_id"])
-    assessment_by_id = {item["assessment_id"]: item for item in assessment_results}
-    assessment_source_by_id = {item["assessment_id"]: item for item in registry["assessments"]}
+    assessment_result_by_id = {item["assessment_id"]: item for item in assessment_results}
+    assessment_by_id = {item["assessment_id"]: item for item in registry["assessments"]}
     outcome_entries = {item["event_id"]: item for item in manifest["outcome_sources"]}
     outcome_results: list[dict[str, Any]] = []
     for event in registry["events"]:
         if event["event_type"] != "OUTCOME":
             continue
-        assessment = assessment_source_by_id[event["assessment_id"]]
+        assessment = assessment_by_id[event["assessment_id"]]
         outcome_results.append(_outcome_reconciliation(
             event,
             assessment,
-            assessment_by_id[event["assessment_id"]],
+            assessment_result_by_id[event["assessment_id"]],
             assessment_reports[event["assessment_id"]],
             outcome_entries.get(event["event_id"]),
             root,
@@ -807,6 +866,7 @@ def verify_reconciliation_report_data(report: Any) -> list[str]:
         if outcomes != sorted(outcomes, key=lambda item: item.get("event_id", "")):
             errors.append("outcome_reconciliation canonical order mismatch")
         event_ids: set[str] = set()
+        projected: list[dict[str, Any]] = []
         for index, item in enumerate(outcomes):
             if not isinstance(item, dict):
                 continue
@@ -817,12 +877,21 @@ def verify_reconciliation_report_data(report: Any) -> list[str]:
             expected_conclusive = item.get("verdict") in CONCLUSIVE_VERDICTS
             if item.get("conclusive") is not expected_conclusive:
                 errors.append(f"outcome_reconciliation[{index}] conclusive projection mismatch")
-        expected_outcomes = _apply_duplicate_authority(outcomes)
-        for index, (recorded, expected) in enumerate(zip(outcomes, expected_outcomes)):
-            if recorded.get("status") != expected.get("status"):
-                errors.append(f"outcome_reconciliation[{index}] status projection mismatch")
-            if recorded.get("reconciled") is not expected.get("reconciled"):
-                errors.append(f"outcome_reconciliation[{index}] reconciled projection mismatch")
+            expected_base = _expected_outcome_base_status(item)
+            if item.get("base_status") != expected_base:
+                errors.append(f"outcome_reconciliation[{index}] base_status projection mismatch")
+            normalized = deepcopy(item)
+            normalized["base_status"] = expected_base
+            normalized["status"] = expected_base
+            normalized["reconciled"] = expected_base == "RECONCILED"
+            projected.append(normalized)
+        expected_outcomes = _apply_duplicate_authority(projected)
+        if len(expected_outcomes) == len(outcomes):
+            for index, (recorded, expected) in enumerate(zip(outcomes, expected_outcomes)):
+                if recorded.get("status") != expected.get("status"):
+                    errors.append(f"outcome_reconciliation[{index}] status projection mismatch")
+                if recorded.get("reconciled") is not expected.get("reconciled"):
+                    errors.append(f"outcome_reconciliation[{index}] reconciled projection mismatch")
         expected_summary = _summary(assessments, expected_outcomes)
         if report.get("summary") != expected_summary:
             errors.append("summary projection mismatch")
@@ -856,27 +925,19 @@ def load_reconciliation_report(path: str | Path) -> tuple[Path, dict[str, Any]]:
 
 
 def verify_reconciliation_report_sources(
-    report: dict[str, Any],
-    *,
-    registry_path: str | Path,
-    source_manifest_path: str | Path,
+    report: dict[str, Any], *, registry_path: str | Path, source_manifest_path: str | Path,
 ) -> list[str]:
     errors = verify_reconciliation_report_data(report)
     if errors:
         return errors
     try:
-        replay = reconcile_sources(
-            registry_path,
-            source_manifest_path,
-            generated_at=report["generated_at"],
-        )
+        replay = reconcile_sources(registry_path, source_manifest_path, generated_at=report["generated_at"])
     except (TrustReconciliationError, TrustComparisonError, TrustComparisonVerificationError, OSError, ValueError) as exc:
         return [f"source replay failed: {exc}"]
     output: list[str] = []
     for field in (
-        "comparison_registry", "source_manifest", "assessment_reconciliation",
-        "outcome_reconciliation", "summary", "status", "evidence_snapshot_sha256",
-        "report_id", "report_sha256",
+        "comparison_registry", "source_manifest", "assessment_reconciliation", "outcome_reconciliation",
+        "summary", "status", "evidence_snapshot_sha256", "report_id", "report_sha256",
     ):
         if replay.get(field) != report.get(field):
             output.append(f"source replay {field} mismatch")
