@@ -10,26 +10,32 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from .identity import canonical_json_sha256
 from .paths import asset
-from .trust_comparison import load_registry, write_json_atomic
+from .trust_comparison import (
+    TrustComparisonError,
+    TrustComparisonVerificationError,
+    load_registry,
+    write_json_atomic,
+)
 
 SCHEMA_VERSION = "1.0"
 TARGET_BAND = "R0"
 MODE = "REPORT_ONLY"
 
 MINIMUM_CHECKS = (
-    ("MINIMUM_ASSESSMENT_COUNT", "assessment_count", "minimum_assessment_count"),
-    ("MINIMUM_REVIEWED_COUNT", "reviewed_count", "minimum_reviewed_count"),
-    ("MINIMUM_CONCLUSIVE_OUTCOME_COUNT", "conclusive_outcome_count", "minimum_conclusive_outcome_count"),
-    ("MINIMUM_CONFIRMED_SAFE_COUNT", "confirmed_safe_count", "minimum_confirmed_safe_count"),
-    ("MINIMUM_CONFIRMED_UNSAFE_COUNT", "confirmed_unsafe_count", "minimum_confirmed_unsafe_count"),
-    ("MINIMUM_INDEPENDENT_AUDIT_COUNT", "independent_audit_count", "minimum_independent_audit_count"),
-    ("MINIMUM_OUTCOME_COVERAGE", "outcome_coverage", "minimum_outcome_coverage"),
-    ("MINIMUM_EVIDENCE_SPAN_DAYS", "evidence_span_days", "minimum_evidence_span_days"),
+    ("MINIMUM_R0_ASSESSMENT_COUNT", "r0_assessment_count", "minimum_r0_assessment_count"),
+    ("MINIMUM_R0_REVIEWED_COUNT", "r0_reviewed_count", "minimum_r0_reviewed_count"),
+    ("MINIMUM_R0_CONCLUSIVE_OUTCOME_COUNT", "r0_conclusive_outcome_count", "minimum_r0_conclusive_outcome_count"),
+    ("MINIMUM_R0_CONFIRMED_SAFE_COUNT", "r0_confirmed_safe_count", "minimum_r0_confirmed_safe_count"),
+    ("MINIMUM_CONFIRMED_UNSAFE_CHALLENGE_COUNT", "confirmed_unsafe_challenge_count", "minimum_confirmed_unsafe_challenge_count"),
+    ("MINIMUM_R0_INDEPENDENT_AUDIT_COUNT", "r0_independent_audit_count", "minimum_r0_independent_audit_count"),
+    ("MINIMUM_R0_OUTCOME_COVERAGE", "r0_outcome_coverage", "minimum_r0_outcome_coverage"),
+    ("MINIMUM_R0_EVIDENCE_SPAN_DAYS", "r0_evidence_span_days", "minimum_r0_evidence_span_days"),
 )
 MAXIMUM_CHECKS = (
-    ("MAXIMUM_CONFIRMED_FALSE_NEGATIVES", "false_negative", "maximum_confirmed_false_negatives"),
-    ("MAXIMUM_FALSE_NEGATIVE_RATE", "false_negative_rate", "maximum_false_negative_rate"),
+    ("MAXIMUM_R0_FALSE_NEGATIVES", "r0_false_negative", "maximum_r0_false_negatives"),
+    ("MAXIMUM_R0_FALSE_NEGATIVE_RATE", "r0_false_negative_rate", "maximum_r0_false_negative_rate"),
 )
+EXPECTED_CHECK_IDS = tuple(item[0] for item in (*MINIMUM_CHECKS, *MAXIMUM_CHECKS))
 
 
 class TrustObservationError(RuntimeError):
@@ -123,9 +129,9 @@ def verify_policy_data(policy: Any) -> list[str]:
         errors.append("policy target_band must be R0")
     thresholds = policy.get("thresholds")
     if isinstance(thresholds, dict):
-        if thresholds.get("maximum_confirmed_false_negatives") != 0:
+        if thresholds.get("maximum_r0_false_negatives") != 0:
             errors.append("R0 observation policy must not permit confirmed false negatives")
-        if thresholds.get("maximum_false_negative_rate") != 0:
+        if thresholds.get("maximum_r0_false_negative_rate") != 0:
             errors.append("R0 observation policy must not permit a non-zero false-negative rate")
     return sorted(set(errors))
 
@@ -146,62 +152,69 @@ def _ratio(numerator: int, denominator: int) -> float | None:
     return numerator / denominator if denominator else None
 
 
-def _r0_observation(registry: dict[str, Any]) -> dict[str, Any]:
-    assessments = [item for item in registry["assessments"] if item["predicted_risk_band"] == TARGET_BAND]
-    ids = {item["assessment_id"] for item in assessments}
-    comparisons = [item for item in registry["comparisons"] if item["assessment_id"] in ids]
-    confirmed_states = {
-        "CONFIRMED_TRUE_NEGATIVE",
-        "CONFIRMED_FALSE_NEGATIVE",
-        "CONFIRMED_TRUE_POSITIVE",
-        "CONFIRMED_FALSE_POSITIVE",
-    }
-    confirmed = [item for item in comparisons if item["confirmed_status"] in confirmed_states]
-    status_count = lambda status: sum(1 for item in confirmed if item["confirmed_status"] == status)
-    tn = status_count("CONFIRMED_TRUE_NEGATIVE")
-    fn = status_count("CONFIRMED_FALSE_NEGATIVE")
-    tp = status_count("CONFIRMED_TRUE_POSITIVE")
-    fp = status_count("CONFIRMED_FALSE_POSITIVE")
+def _observation(registry: dict[str, Any]) -> dict[str, Any]:
+    r0_assessments = [item for item in registry["assessments"] if item["predicted_risk_band"] == TARGET_BAND]
+    r0_ids = {item["assessment_id"] for item in r0_assessments}
+    r0_comparisons = [item for item in registry["comparisons"] if item["assessment_id"] in r0_ids]
+    all_conclusive = [item for item in registry["comparisons"] if item.get("outcome_verdict") in {"SAFE", "UNSAFE"}]
+
+    tp = fp = tn = fn = 0
+    for item in all_conclusive:
+        is_r0 = item["predicted_risk_band"] == TARGET_BAND
+        unsafe = item["outcome_verdict"] == "UNSAFE"
+        if unsafe and is_r0:
+            fn += 1
+        elif unsafe and not is_r0:
+            tp += 1
+        elif not unsafe and is_r0:
+            tn += 1
+        else:
+            fp += 1
+
+    r0_conclusive = [item for item in r0_comparisons if item.get("outcome_verdict") in {"SAFE", "UNSAFE"}]
     comparable_states = {
         "PROVISIONAL_MATCH",
         "PROVISIONAL_OVER_ESTIMATE",
         "PROVISIONAL_UNDER_ESTIMATE",
         "PROVISIONAL_DECISION_MISMATCH",
     }
-    comparable = [item for item in comparisons if item["provisional_status"] in comparable_states]
+    comparable = [item for item in r0_comparisons if item["provisional_status"] in comparable_states]
     matches = sum(1 for item in comparable if item["provisional_status"] == "PROVISIONAL_MATCH")
+
     timestamps: list[datetime] = []
-    for item in assessments:
+    for item in r0_assessments:
         timestamps.append(_timestamp(item["captured_at"], "assessment.captured_at"))
     for event in registry["events"]:
-        if event["assessment_id"] in ids:
+        if event["assessment_id"] in r0_ids:
             timestamps.append(_timestamp(event["occurred_at"], "event.occurred_at"))
     evidence_span_days = 0.0
     if timestamps:
         evidence_span_days = round((max(timestamps) - min(timestamps)).total_seconds() / 86400.0, 6)
-    independent_audit_count = sum(
+
+    independent_audits = sum(
         1
         for event in registry["events"]
-        if event["assessment_id"] in ids
+        if event["assessment_id"] in r0_ids
         and event["event_type"] == "OUTCOME"
         and event["payload"].get("outcome_type") == "INDEPENDENT_AUDIT"
         and event["payload"].get("verdict") in {"SAFE", "UNSAFE"}
     )
+
     return {
-        "assessment_count": len(assessments),
-        "reviewed_count": sum(1 for item in comparisons if item["review_level"] in {"REVIEWED", "AUDITED"}),
-        "conclusive_outcome_count": len(confirmed),
-        "confirmed_safe_count": tn + fp,
-        "confirmed_unsafe_count": tp + fn,
-        "independent_audit_count": independent_audit_count,
-        "outcome_coverage": _ratio(len(confirmed), len(assessments)),
-        "evidence_span_days": evidence_span_days,
-        "true_positive": tp,
-        "false_positive": fp,
-        "true_negative": tn,
-        "false_negative": fn,
-        "false_negative_rate": _ratio(fn, fn + tp),
-        "reviewer_alignment_rate": _ratio(matches, len(comparable)),
+        "r0_assessment_count": len(r0_assessments),
+        "r0_reviewed_count": sum(1 for item in r0_comparisons if item["review_level"] in {"REVIEWED", "AUDITED"}),
+        "r0_conclusive_outcome_count": len(r0_conclusive),
+        "r0_confirmed_safe_count": tn,
+        "confirmed_unsafe_challenge_count": tp + fn,
+        "r0_independent_audit_count": independent_audits,
+        "r0_outcome_coverage": _ratio(len(r0_conclusive), len(r0_assessments)),
+        "r0_evidence_span_days": evidence_span_days,
+        "r0_true_positive": tp,
+        "r0_false_positive": fp,
+        "r0_true_negative": tn,
+        "r0_false_negative": fn,
+        "r0_false_negative_rate": _ratio(fn, tp + fn),
+        "r0_reviewer_alignment_rate": _ratio(matches, len(comparable)),
     }
 
 
@@ -210,23 +223,11 @@ def _checks(observation: dict[str, Any], thresholds: dict[str, Any]) -> list[dic
     for check_id, metric, threshold in MINIMUM_CHECKS:
         actual = observation[metric]
         required = thresholds[threshold]
-        output.append({
-            "id": check_id,
-            "actual": actual,
-            "operator": ">=",
-            "required": required,
-            "passed": actual is not None and actual >= required,
-        })
+        output.append({"id": check_id, "actual": actual, "operator": ">=", "required": required, "passed": actual is not None and actual >= required})
     for check_id, metric, threshold in MAXIMUM_CHECKS:
         actual = observation[metric]
         required = thresholds[threshold]
-        output.append({
-            "id": check_id,
-            "actual": actual,
-            "operator": "<=",
-            "required": required,
-            "passed": actual is not None and actual <= required,
-        })
+        output.append({"id": check_id, "actual": actual, "operator": "<=", "required": required, "passed": actual is not None and actual <= required})
     return output
 
 
@@ -236,7 +237,7 @@ def _decision(checks: list[dict[str, Any]]) -> tuple[str, list[str], str]:
     harmful = {
         item["id"]
         for item in failed
-        if item["id"] in {"MAXIMUM_CONFIRMED_FALSE_NEGATIVES", "MAXIMUM_FALSE_NEGATIVE_RATE"}
+        if item["id"] in {"MAXIMUM_R0_FALSE_NEGATIVES", "MAXIMUM_R0_FALSE_NEGATIVE_RATE"}
         and item["actual"] is not None
         and item["actual"] > item["required"]
     }
@@ -244,11 +245,7 @@ def _decision(checks: list[dict[str, Any]]) -> tuple[str, list[str], str]:
         return "THRESHOLD_BLOCKED", failed_ids, "INVESTIGATE_CONFIRMED_FALSE_NEGATIVES"
     if failed:
         return "INSUFFICIENT_EVIDENCE", failed_ids, "COLLECT_MORE_CONFIRMED_OBSERVATION"
-    return (
-        "THRESHOLDS_SATISFIED_AWAITING_SOURCE_RECONCILIATION",
-        [],
-        "PERFORM_SOURCE_RECONCILIATION_THEN_SEPARATE_R0_PILOT_SAFETY_REVIEW",
-    )
+    return "THRESHOLDS_SATISFIED_AWAITING_SOURCE_RECONCILIATION", [], "PERFORM_SOURCE_RECONCILIATION_THEN_SEPARATE_R0_PILOT_SAFETY_REVIEW"
 
 
 def _report_id(project_id: str, registry: dict[str, Any], policy: dict[str, Any]) -> str:
@@ -263,16 +260,11 @@ def _report_id(project_id: str, registry: dict[str, Any], policy: dict[str, Any]
     return f"trust-observation-{canonical_json_sha256(identity)[:32]}"
 
 
-def evaluate_observation_data(
-    registry: dict[str, Any],
-    policy: dict[str, Any],
-    *,
-    generated_at: str | None = None,
-) -> dict[str, Any]:
+def evaluate_observation_data(registry: dict[str, Any], policy: dict[str, Any], *, generated_at: str | None = None) -> dict[str, Any]:
     policy_errors = verify_policy_data(policy)
     if policy_errors:
         raise TrustObservationVerificationError(policy_errors)
-    observation = _r0_observation(registry)
+    observation = _observation(registry)
     checks = _checks(observation, policy["thresholds"])
     status, blockers, next_step = _decision(checks)
     report: dict[str, Any] = {
@@ -284,23 +276,18 @@ def evaluate_observation_data(
         "automation_authorized": False,
         "pilot_authorized": False,
         "target_band": TARGET_BAND,
-        "registry": {
-            "registry_id": registry["registry_id"],
-            "registry_sha256": registry["registry_sha256"],
-        },
+        "registry": {"registry_id": registry["registry_id"], "registry_sha256": registry["registry_sha256"]},
         "policy": {
             "policy_id": policy_id(policy),
             "policy_version": policy["policy_version"],
             "policy_sha256": policy_sha256(policy),
+            "thresholds": deepcopy(policy["thresholds"]),
         },
         "observation": observation,
         "checks": checks,
         "status": status,
         "blockers": blockers,
-        "source_reconciliation": {
-            "required_before_pilot": True,
-            "verified_in_this_stage": False,
-        },
+        "source_reconciliation": {"required_before_pilot": True, "verified_in_this_stage": False},
         "next_step": next_step,
         "report_sha256": "",
     }
@@ -311,15 +298,21 @@ def evaluate_observation_data(
     return report
 
 
-def assess_observation(
-    registry_path: str | Path,
-    policy_path: str | Path,
-    *,
-    generated_at: str | None = None,
-) -> dict[str, Any]:
+def assess_observation(registry_path: str | Path, policy_path: str | Path, *, generated_at: str | None = None) -> dict[str, Any]:
     _, registry = load_registry(registry_path)
     _, policy = load_policy(policy_path)
     return evaluate_observation_data(registry, policy, generated_at=generated_at)
+
+
+def _policy_from_report(report: dict[str, Any]) -> dict[str, Any]:
+    policy_ref = report.get("policy") if isinstance(report.get("policy"), dict) else {}
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "policy_version": policy_ref.get("policy_version"),
+        "mode": MODE,
+        "target_band": TARGET_BAND,
+        "thresholds": deepcopy(policy_ref.get("thresholds")),
+    }
 
 
 def verify_report_data(report: Any) -> list[str]:
@@ -336,25 +329,27 @@ def verify_report_data(report: Any) -> list[str]:
         errors.append("target_band must remain R0")
     if report.get("source_reconciliation") != {"required_before_pilot": True, "verified_in_this_stage": False}:
         errors.append("source reconciliation boundary mismatch")
-    checks = report.get("checks") if isinstance(report.get("checks"), list) else []
-    expected_checks: list[dict[str, Any]] = []
-    for item in checks:
-        if not isinstance(item, dict):
-            continue
-        actual = item.get("actual")
-        required = item.get("required")
-        operator = item.get("operator")
-        passed = False
-        if actual is not None and isinstance(required, (int, float)):
-            if operator == ">=":
-                passed = actual >= required
-            elif operator == "<=":
-                passed = actual <= required
-        normalized = deepcopy(item)
-        normalized["passed"] = passed
-        expected_checks.append(normalized)
-    if checks != expected_checks:
-        errors.append("threshold check projection mismatch")
+
+    policy = _policy_from_report(report)
+    policy_errors = verify_policy_data(policy)
+    errors.extend(f"embedded policy: {item}" for item in policy_errors)
+    policy_ref = report.get("policy") if isinstance(report.get("policy"), dict) else {}
+    if not policy_errors:
+        if policy_ref.get("policy_id") != policy_id(policy):
+            errors.append("embedded policy_id mismatch")
+        if policy_ref.get("policy_sha256") != policy_sha256(policy):
+            errors.append("embedded policy_sha256 mismatch")
+
+    observation = report.get("observation") if isinstance(report.get("observation"), dict) else {}
+    thresholds = policy.get("thresholds") if isinstance(policy.get("thresholds"), dict) else {}
+    if thresholds and all(metric in observation for _, metric, _ in (*MINIMUM_CHECKS, *MAXIMUM_CHECKS)):
+        expected_checks = _checks(observation, thresholds)
+        if report.get("checks") != expected_checks:
+            errors.append("threshold check projection mismatch")
+    else:
+        expected_checks = report.get("checks") if isinstance(report.get("checks"), list) else []
+    if [item.get("id") for item in expected_checks if isinstance(item, dict)] != list(EXPECTED_CHECK_IDS):
+        errors.append("threshold check set mismatch")
     expected_status, expected_blockers, expected_next_step = _decision(expected_checks)
     if report.get("status") != expected_status:
         errors.append("status projection mismatch")
@@ -362,14 +357,38 @@ def verify_report_data(report: Any) -> list[str]:
         errors.append("blockers projection mismatch")
     if report.get("next_step") != expected_next_step:
         errors.append("next_step projection mismatch")
-    registry = report.get("registry") if isinstance(report.get("registry"), dict) else {}
-    policy = report.get("policy") if isinstance(report.get("policy"), dict) else {}
+
+    if observation:
+        r0_assessments = observation.get("r0_assessment_count")
+        r0_conclusive = observation.get("r0_conclusive_outcome_count")
+        r0_safe = observation.get("r0_confirmed_safe_count")
+        tn = observation.get("r0_true_negative")
+        fn = observation.get("r0_false_negative")
+        tp = observation.get("r0_true_positive")
+        unsafe = observation.get("confirmed_unsafe_challenge_count")
+        if all(isinstance(value, int) for value in (r0_conclusive, r0_safe, tn, fn, tp, unsafe)):
+            if r0_safe != tn:
+                errors.append("R0 confirmed-safe projection mismatch")
+            if r0_conclusive != tn + fn:
+                errors.append("R0 conclusive-outcome projection mismatch")
+            if unsafe != tp + fn:
+                errors.append("unsafe challenge projection mismatch")
+        if isinstance(r0_assessments, int) and isinstance(r0_conclusive, int):
+            expected_coverage = _ratio(r0_conclusive, r0_assessments)
+            if observation.get("r0_outcome_coverage") != expected_coverage:
+                errors.append("R0 outcome coverage projection mismatch")
+        if isinstance(fn, int) and isinstance(tp, int):
+            expected_fnr = _ratio(fn, fn + tp)
+            if observation.get("r0_false_negative_rate") != expected_fnr:
+                errors.append("R0 false-negative rate projection mismatch")
+
+    registry_ref = report.get("registry") if isinstance(report.get("registry"), dict) else {}
     identity = {
         "project_id": report.get("project_id"),
-        "registry_id": registry.get("registry_id"),
-        "registry_sha256": registry.get("registry_sha256"),
-        "policy_id": policy.get("policy_id"),
-        "policy_sha256": policy.get("policy_sha256"),
+        "registry_id": registry_ref.get("registry_id"),
+        "registry_sha256": registry_ref.get("registry_sha256"),
+        "policy_id": policy_ref.get("policy_id"),
+        "policy_sha256": policy_ref.get("policy_sha256"),
         "target_band": TARGET_BAND,
     }
     expected_id = f"trust-observation-{canonical_json_sha256(identity)[:32]}"
@@ -393,22 +412,14 @@ def load_report(path: str | Path) -> tuple[Path, dict[str, Any]]:
     return source, value
 
 
-def verify_report_sources(
-    report: dict[str, Any],
-    *,
-    registry_path: str | Path,
-    policy_path: str | Path,
-) -> list[str]:
+def verify_report_sources(report: dict[str, Any], *, registry_path: str | Path, policy_path: str | Path) -> list[str]:
     try:
         _, registry = load_registry(registry_path)
         _, policy = load_policy(policy_path)
         expected = evaluate_observation_data(registry, policy, generated_at=report["generated_at"])
-    except (TrustObservationError, TrustObservationVerificationError, OSError, ValueError) as exc:
+    except (TrustObservationError, TrustObservationVerificationError, TrustComparisonError, TrustComparisonVerificationError, OSError, ValueError) as exc:
         return [str(exc)]
-    errors: list[str] = []
-    if report != expected:
-        errors.append("observation report does not replay from registry and policy sources")
-    return errors
+    return [] if report == expected else ["observation report does not replay from registry and policy sources"]
 
 
 def write_report(path: str | Path, report: dict[str, Any]) -> Path:
