@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
+import tempfile
 from typing import Any
 
 from .identity import canonical_json_sha256
@@ -156,9 +158,6 @@ def verify_reconciliation_report_data(report: Any) -> list[str]:
     return sorted(set(errors))
 
 
-# Authority reconciliation resolves this global name at runtime. Rebinding here lets
-# generated Stage 10F reports use the widened audit status contract without altering
-# legacy Stage 10C behavior for callers that still import the legacy module directly.
 authority.verify_reconciliation_report_data = verify_reconciliation_report_data
 
 
@@ -198,4 +197,18 @@ def write_reconciliation_report(path: str | Path, report: dict[str, Any]) -> Pat
     errors = verify_reconciliation_report_data(report)
     if errors:
         raise TrustReconciliationVerificationError(errors)
-    return legacy.write_reconciliation_report(path, report)
+    target = legacy._safe_output(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = (json.dumps(report, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    descriptor, name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, target)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
+    return target
