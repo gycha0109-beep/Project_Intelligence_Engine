@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Sequence
 
-from .trust_reconciliation_verified import (
+from .trust_reconciliation_hardened import (
     TrustReconciliationError,
     TrustReconciliationVerificationError,
     load_reconciliation_report,
