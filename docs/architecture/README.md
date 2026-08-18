@@ -83,7 +83,7 @@
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 - Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
 - Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS`, PR #19 Ready / unmerged
-- Stage 10D — Operating Observation & Threshold Policy: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #20 draft
+- Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 검토 대기
 
 ## 다음 단계
 
