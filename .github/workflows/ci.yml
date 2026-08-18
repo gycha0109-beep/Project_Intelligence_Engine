@@ -21,6 +21,18 @@ jobs:
       - name: Diagnose Stage 10C hardening tests
         continue-on-error: true
         run: python -m unittest discover -s tests -p 'test_trust_reconciliation_hardening.py' -v
+      - name: Diagnose existing Trust gate
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_gate.py' -v
+      - name: Diagnose existing Trust comparison
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_comparison.py' -v
+      - name: Diagnose existing Trust observation
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust_observation.py' -v
+      - name: Diagnose combined Trust cluster
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_trust*.py' -v
       - run: python -m unittest discover -s tests -v
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
