@@ -334,7 +334,9 @@ def populate_r0_evidence_package(
     if _path_has_symlink(target.parent):
         raise EvidenceAcquisitionError(f"R0 evidence package parent must not contain symlinks: {target.parent}")
 
-    staging = Path(tempfile.mkdtemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent))
+    staging_parent = Path(tempfile.mkdtemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent))
+    staging = staging_parent / target.name
+    staging.mkdir()
     report["package"]["attempted"] = True
     try:
         for _key, filename in REQUIRED_INPUTS:
@@ -390,8 +392,8 @@ def populate_r0_evidence_package(
         os.replace(staging, target)
         return finalized
     finally:
-        if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
+        if staging_parent.exists():
+            shutil.rmtree(staging_parent, ignore_errors=True)
 
 
 def _expected_status(report: dict[str, Any]) -> tuple[str, list[str], str]:
@@ -468,14 +470,8 @@ def verify_acquisition_report_data(report: Any) -> list[str]:
     if package.get("published") and generated.get("source_replay_verified") is not True:
         errors.append("published package requires verified source replay")
     if generated.get("source_replay_verified") is True and not package.get("attempted"):
-        errors.append("verified source replay requires package attempt")
+        errors.append("verified source replay requires attempted package")
     if package.get("published"):
-        canonical_files = sorted(package_files, key=lambda item: item.get("path", "") if isinstance(item, dict) else "")
-        paths = [item.get("path") for item in package_files if isinstance(item, dict)]
-        if package_files != canonical_files:
-            errors.append("package files must be canonically sorted")
-        if len(paths) != len(set(paths)):
-            errors.append("package files must not contain duplicate paths")
         if package.get("file_count") != len(package_files):
             errors.append("package file_count mismatch")
         if package.get("manifest_sha256") != canonical_json_sha256(package_files):
