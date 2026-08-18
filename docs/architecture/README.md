@@ -52,6 +52,9 @@
 41. [STAGE-10B-DECISION-OUTCOME-AUDIT.md](STAGE-10B-DECISION-OUTCOME-AUDIT.md) — 사람 decision 수준과 Outcome Audit Registry 설계
 42. [STAGE-10B-IMPLEMENTATION-REVIEW.md](STAGE-10B-IMPLEMENTATION-REVIEW.md) — Stage 10B 구현 리뷰와 보완
 43. [STAGE-10B-VALIDATION.md](STAGE-10B-VALIDATION.md) — Stage 10B 검증 결과
+44. [STAGE-10D-OPERATING-OBSERVATION-THRESHOLD-POLICY.md](STAGE-10D-OPERATING-OBSERVATION-THRESHOLD-POLICY.md) — R0 operating observation과 threshold policy 설계
+45. [STAGE-10D-IMPLEMENTATION-REVIEW.md](STAGE-10D-IMPLEMENTATION-REVIEW.md) — Stage 10D 구현 리뷰와 안전 경계
+46. [STAGE-10D-VALIDATION.md](STAGE-10D-VALIDATION.md) — Stage 10D 검증 결과
 
 ## 권위 규칙
 
@@ -79,8 +82,9 @@
 - Stage 8 — Reground Foundation: `PASS`, PR #16 검토 대기
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 - Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
-- Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #19 검토 대기
+- Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS`, PR #19 Ready / unmerged
+- Stage 10D — Operating Observation & Threshold Policy: `PASS_PENDING_FINAL_EXACT_HEAD_CI`, PR #20 draft
 
 ## 다음 단계
 
-Stage 10C는 Registry assessment를 원본 Trust report·Defect Registry·Evaluation Outcome과 대조하는 source replay 및 Outcome reconciliation을 설계한다. R0 auto-pass와 R1 conditional auto-approval은 confirmed Outcome 표본과 별도 안전 검토 전에는 시작하지 않는다.
+Stage 10C는 Registry assessment와 Outcome을 원본 Trust report·Defect Registry·Evaluation evidence에 재결합하는 source replay 및 Outcome reconciliation을 설계한다. Stage 10D threshold를 만족하더라도 Stage 10C reconciliation과 별도 R0 pilot safety review 전에는 R0 auto-pass를 시작하지 않는다. R1 conditional auto-approval은 그 이후에도 별도 단계다.
