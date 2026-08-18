@@ -179,6 +179,21 @@ def _closure_inventory(root: Path, manifest: dict[str, Any]) -> list[dict[str, A
     return output
 
 
+def _package_files(root: Path) -> list[dict[str, str]]:
+    files: list[dict[str, str]] = []
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise EvidenceAcquisitionError(f"package must not contain symlinks: {path}")
+        if path.is_file():
+            relative = path.relative_to(root).as_posix()
+            files.append({"path": relative, "sha256": file_sha256(path)})
+    return sorted(files, key=lambda item: item["path"])
+
+
+def _package_manifest_sha256(files: list[dict[str, str]]) -> str:
+    return canonical_json_sha256(files)
+
+
 def _empty_generated() -> dict[str, Any]:
     return {
         "reconciliation_report_id": None,
@@ -230,6 +245,10 @@ def _finalize(report: dict[str, Any]) -> dict[str, Any]:
     return report
 
 
+def _empty_package() -> dict[str, Any]:
+    return {"attempted": False, "published": False, "file_count": 0, "files": [], "manifest_sha256": None}
+
+
 def _base_report(*, generated_at: str | None, required_inputs: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
@@ -244,7 +263,7 @@ def _base_report(*, generated_at: str | None, required_inputs: list[dict[str, An
         "required_inputs": required_inputs,
         "source_closure": [],
         "workspace_complete": False,
-        "package": {"attempted": False, "published": False, "file_count": 0},
+        "package": _empty_package(),
         "generated": _empty_generated(),
         "blockers": [],
         "status": "BLOCKED_MISSING_INPUT",
@@ -296,10 +315,6 @@ def _copy_file(source: Path, target: Path) -> None:
         shutil.copyfileobj(reader, writer)
         writer.flush()
         os.fsync(writer.fileno())
-
-
-def _count_files(root: Path) -> int:
-    return sum(1 for path in root.rglob("*") if path.is_file())
 
 
 def populate_r0_evidence_package(
@@ -357,9 +372,16 @@ def populate_r0_evidence_package(
             report["next_step"] = "REPAIR_AND_REPLAY_SOURCE_EVIDENCE"
             return _finalize(report)
 
-        file_count = _count_files(staging)
+        package_files = _package_files(staging)
+        package_manifest_sha = _package_manifest_sha256(package_files)
         os.replace(staging, target)
-        report["package"] = {"attempted": True, "published": True, "file_count": file_count}
+        report["package"] = {
+            "attempted": True,
+            "published": True,
+            "file_count": len(package_files),
+            "files": package_files,
+            "manifest_sha256": package_manifest_sha,
+        }
         report["blockers"] = list(pilot_run["blockers"])
         if pilot_run["status"] == ELIGIBLE_STATUS:
             report["status"] = "PACKAGE_POPULATED_ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW"
@@ -440,12 +462,24 @@ def verify_acquisition_report_data(report: Any) -> list[str]:
         errors.append("workspace_complete projection mismatch")
     package = report.get("package") if isinstance(report.get("package"), dict) else {}
     generated = report.get("generated") if isinstance(report.get("generated"), dict) else {}
+    package_files = package.get("files") if isinstance(package.get("files"), list) else []
     if package.get("published") and not package.get("attempted"):
         errors.append("published package requires attempted=true")
     if package.get("published") and generated.get("source_replay_verified") is not True:
         errors.append("published package requires verified source replay")
     if generated.get("source_replay_verified") is True and not package.get("attempted"):
         errors.append("verified source replay requires package attempt")
+    if package.get("published"):
+        canonical_files = sorted(package_files, key=lambda item: item.get("path", "") if isinstance(item, dict) else "")
+        if package_files != canonical_files:
+            errors.append("package files must be canonically sorted")
+        if package.get("file_count") != len(package_files):
+            errors.append("package file_count mismatch")
+        if package.get("manifest_sha256") != canonical_json_sha256(package_files):
+            errors.append("package manifest_sha256 mismatch")
+    else:
+        if package.get("file_count") != 0 or package_files != [] or package.get("manifest_sha256") is not None:
+            errors.append("unpublished package must not carry file manifest")
     expected_status, expected_blockers, expected_next = _expected_status(report)
     if report.get("status") != expected_status:
         errors.append("status projection mismatch")
@@ -502,10 +536,21 @@ def verify_acquisition_report_sources(
             errors.append("published acquisition report requires package_root source replay")
         else:
             try:
-                replay = run_r0_pilot_evidence(package_root, generated_at=report["generated_at"])
-            except (OSError, ValueError, RuntimeError) as exc:
+                package = _safe_root(package_root, "R0 evidence package", must_exist=True)
+                files = _package_files(package)
+                replay = run_r0_pilot_evidence(package, generated_at=report["generated_at"])
+            except (EvidenceAcquisitionError, OSError, ValueError, RuntimeError) as exc:
                 errors.append(f"package replay failed: {type(exc).__name__}")
             else:
+                expected_package = {
+                    "attempted": True,
+                    "published": True,
+                    "file_count": len(files),
+                    "files": files,
+                    "manifest_sha256": _package_manifest_sha256(files),
+                }
+                if report.get("package") != expected_package:
+                    errors.append("package byte manifest mismatch")
                 generated = report["generated"]
                 expected = {
                     "pilot_evidence_run_id": replay["run_id"],
