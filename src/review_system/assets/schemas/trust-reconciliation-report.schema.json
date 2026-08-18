@@ -163,7 +163,44 @@
             "items": {"type": ["string", "integer", "number", "boolean", "null"]}
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"outcome_type": {"const": "INDEPENDENT_AUDIT"}}, "required": ["outcome_type"]},
+          "then": {
+            "properties": {
+              "base_status": {"const": "PROVENANCE_UNVERIFIED"},
+              "status": {"const": "PROVENANCE_UNVERIFIED"},
+              "reconciled": {"const": false},
+              "checks": {
+                "type": "object",
+                "required": ["independent_provenance_verified"],
+                "properties": {"independent_provenance_verified": {"const": false}}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome_type": {"enum": ["REGRESSION", "SECURITY_INCIDENT", "FALSE_POSITIVE_REVIEW"]}
+            },
+            "required": ["outcome_type"]
+          },
+          "then": {
+            "properties": {
+              "base_status": {"const": "UNSUPPORTED_SOURCE"},
+              "status": {"const": "UNSUPPORTED_SOURCE"},
+              "reconciled": {"const": false},
+              "checks": {
+                "type": "object",
+                "required": ["authority_supported"],
+                "properties": {"authority_supported": {"const": false}}
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
