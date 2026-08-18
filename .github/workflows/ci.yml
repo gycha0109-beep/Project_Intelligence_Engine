@@ -28,15 +28,19 @@ jobs:
           rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
           Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
-      - name: Stop if application-asset-buildmap failed
-        run: if grep -E -q 'test_(application|asset|baseline|buildmap)' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if cli-defect-evaluation-github failed
-        run: if grep -E -q 'test_(cli|defect|evaluation|gate|github)' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if identity-ledger-policy-profile failed
-        run: if grep -E -q 'test_(identity|intelligence|ledger|merge|packs|path|policy|profile)' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if project-reground-review-run-validation failed
-        run: if grep -E -q 'test_(project|reground|review|run|validation)' suite-result-ids.txt; then exit 1; fi
-      - name: Stop if Trust failed
+      - name: Stop if trust-gate failed
+        run: if grep -q 'test_trust_gate' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if trust-comparison failed
+        run: if grep -q 'test_trust_comparison' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if trust-observation failed
+        run: if grep -q 'test_trust_observation' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if reconciliation-core failed
+        run: if grep -E -q 'test_trust_reconciliation\.' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if reconciliation-hardening failed
+        run: if grep -q 'test_trust_reconciliation_hardening' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if reconciliation-review failed
+        run: if grep -q 'test_trust_reconciliation_review' suite-result-ids.txt; then exit 1; fi
+      - name: Stop if other Trust result remains
         run: if grep -q 'test_trust' suite-result-ids.txt; then exit 1; fi
       - name: Stop if uncategorized result remains
         run: test ! -s suite-result-ids.txt
