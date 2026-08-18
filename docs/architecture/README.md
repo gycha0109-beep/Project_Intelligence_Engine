@@ -67,6 +67,9 @@
 56. [STAGE-10G-R0-PILOT-ELIGIBILITY-EVIDENCE-RUN.md](STAGE-10G-R0-PILOT-ELIGIBILITY-EVIDENCE-RUN.md) — 실제 evidence package inventory와 Stage 10E exact replay 실행 계약
 57. [STAGE-10G-IMPLEMENTATION-REVIEW.md](STAGE-10G-IMPLEMENTATION-REVIEW.md) — Stage 10G evidence/runtime boundary와 fail-closed 구현 리뷰
 58. [STAGE-10G-VALIDATION.md](STAGE-10G-VALIDATION.md) — Stage 10G focused/full regression 및 committed-evidence 해석
+59. [STAGE-10H-R0-EVIDENCE-ACQUISITION.md](STAGE-10H-R0-EVIDENCE-ACQUISITION.md) — 실제 runtime evidence acquisition workspace와 package population 계약
+60. [STAGE-10H-IMPLEMENTATION-REVIEW.md](STAGE-10H-IMPLEMENTATION-REVIEW.md) — Stage 10H source-closure, replay, publication hardening 리뷰
+61. [STAGE-10H-VALIDATION.md](STAGE-10H-VALIDATION.md) — Stage 10H implementation 검증과 external-evidence blocker 해석
 
 ## 권위 규칙
 
@@ -99,7 +102,8 @@
 - Stage 10C — Source Replay & Outcome Reconciliation: `PASS`, PR #21 merged into Stage 10D stacked branch
 - Stage 10E — R0 Pilot Safety Review: `PASS`, PR #22 merged into Stage 10D stacked branch; merge commit `3614442ba0797e8b26f65daa7c9879ff8caa3934`
 - Stage 10F — Independent Audit Authority Contract: `PASS`, PR #23 merged into Stage 10D stacked branch; merge commit `35697b32c1bc751b4831ea92756db44495e6c792`
-- Stage 10G — R0 Pilot Eligibility Evidence Run: implementation/review/hardening on PR #24; terminal documentation-inclusive CI pending
+- Stage 10G — R0 Pilot Eligibility Evidence Run: `PASS`, PR #24 merged into Stage 10D stacked branch; merge commit `0b705a5d9ca2dddd3e4e77bc7ddcd3f99417b5df`
+- Stage 10H — R0 Evidence Acquisition & Runtime Package Population: implementation on PR #25; runtime acquisition currently `BLOCKED_EXTERNAL_EVIDENCE_REQUIRED`
 
 ## Stage 10G evidence boundary
 
@@ -117,20 +121,35 @@ observation-report.json
 
 The Stage 10G start snapshot contains no committed R0 evidence package. However `.pie/` and `.review-runs/` are gitignored, so this only establishes committed-repository absence, not global runtime-evidence absence.
 
-Therefore current committed-tree interpretation is:
+## Stage 10H acquisition boundary
+
+Stage 10H does not convert workflow acceptance into safety evidence and does not use samples as runtime truth. A genuine acquisition workspace must provide:
 
 ```text
-NOT_ELIGIBLE
-PROVIDE_COMPLETE_R0_EVIDENCE_PACKAGE
+acquisition-attestation.json
+comparison-registry.json
+reconciliation-sources.json
+observation-policy.json
+<full reconciliation source closure>
 ```
 
-A later supplied package may be replayed. Only if exact replay reaches:
+Stage 10H regenerates reconciliation and observation reports, runs Stage 10G in staging, binds every package byte in a path/SHA manifest, and publishes only after exact source replay succeeds.
+
+Current connected authority surfaces do not contain that genuine workspace, so runtime acquisition remains:
+
+```text
+BLOCKED_EXTERNAL_EVIDENCE_REQUIRED
+```
+
+This is distinct from Stage 10H implementation status.
+
+Only a real package whose Stage 10G exact replay reaches:
 
 ```text
 ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW
 ```
 
-should a separate activation contract be considered.
+may proceed to a separately designed activation contract.
 
 그 전까지 다음 고정값은 변경하지 않는다.
 
