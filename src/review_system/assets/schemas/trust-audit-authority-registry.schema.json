@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-audit-authority-registry.schema.json",
+  "title": "PIE Independent Audit Authority Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "project_id", "created_at", "trust_roots", "grants", "revocations", "registry_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "registry_id": {"type": "string", "pattern": "^trust-audit-authority-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "trust_roots": {"type": "array", "items": {"$ref": "#/$defs/trust_root"}},
+    "grants": {"type": "array", "items": {"$ref": "#/$defs/grant"}},
+    "revocations": {"type": "array", "items": {"$ref": "#/$defs/revocation"}},
+    "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "trust_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trust_root_id", "identity_kind", "subject", "fingerprint", "valid_from", "valid_until", "registered_at", "trust_root_sha256"],
+      "properties": {
+        "trust_root_id": {"type": "string", "pattern": "^audit-trust-root-[0-9a-f]{32}$"},
+        "identity_kind": {"enum": ["ORGANIZATION", "TEAM", "EXTERNAL_AUDITOR"]},
+        "subject": {"type": "string", "minLength": 1},
+        "fingerprint": {"type": "string", "minLength": 8, "maxLength": 256},
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": ["string", "null"], "format": "date-time"},
+        "registered_at": {"type": "string", "format": "date-time"},
+        "trust_root_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grant_id", "issuer_id", "issuer_subject", "trust_root_id", "trust_root_sha256", "valid_from", "valid_until", "granted_at", "grant_sha256"],
+      "properties": {
+        "grant_id": {"type": "string", "pattern": "^audit-grant-[0-9a-f]{32}$"},
+        "issuer_id": {"type": "string", "pattern": "^audit-issuer-[0-9a-f]{32}$"},
+        "issuer_subject": {"type": "string", "minLength": 1},
+        "trust_root_id": {"type": "string", "pattern": "^audit-trust-root-[0-9a-f]{32}$"},
+        "trust_root_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": ["string", "null"], "format": "date-time"},
+        "granted_at": {"type": "string", "format": "date-time"},
+        "grant_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revocation_id", "grant_id", "effective_at", "recorded_at", "retroactive", "reason_codes", "revocation_sha256"],
+      "properties": {
+        "revocation_id": {"type": "string", "pattern": "^audit-revocation-[0-9a-f]{32}$"},
+        "grant_id": {"type": "string", "pattern": "^audit-grant-[0-9a-f]{32}$"},
+        "effective_at": {"type": "string", "format": "date-time"},
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "retroactive": {"type": "boolean"},
+        "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "revocation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

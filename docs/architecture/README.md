@@ -61,6 +61,9 @@
 50. [STAGE-10E-R0-PILOT-SAFETY-REVIEW.md](STAGE-10E-R0-PILOT-SAFETY-REVIEW.md) — Stage 10B/10C/10D evidence를 결합하는 report-only R0 pilot safety gate 설계
 51. [STAGE-10E-IMPLEMENTATION-REVIEW.md](STAGE-10E-IMPLEMENTATION-REVIEW.md) — Stage 10E 구현 리뷰, authority composition, fail-closed hardening
 52. [STAGE-10E-VALIDATION.md](STAGE-10E-VALIDATION.md) — Stage 10E focused/full regression 검증 범위와 safety interpretation
+53. [STAGE-10F-INDEPENDENT-AUDIT-AUTHORITY.md](STAGE-10F-INDEPENDENT-AUDIT-AUTHORITY.md) — repository-backed Independent Audit Trust Root·Issuer Grant·Artifact authority 설계
+54. [STAGE-10F-IMPLEMENTATION-REVIEW.md](STAGE-10F-IMPLEMENTATION-REVIEW.md) — Stage 10F 구현 리뷰, temporal/replay/rehash hardening
+55. [STAGE-10F-VALIDATION.md](STAGE-10F-VALIDATION.md) — Stage 10F focused/integration/full regression 검증 범위
 
 ## 권위 규칙
 
@@ -89,23 +92,36 @@
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 - Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
 - Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS`, PR #19 Ready / unmerged
-- Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 Ready / unmerged; current stacked head includes Stage 10C merge commit `0174fc84c7a5aecab30a1f3021c618d173d2f594`
-- Stage 10C — Source Replay & Outcome Reconciliation: `PASS`, PR #21 merged into the Stage 10D stacked branch; merge commit `0174fc84c7a5aecab30a1f3021c618d173d2f594`
-- Stage 10E — R0 Pilot Safety Review: implementation/review/hardening complete on PR #22; final documentation-inclusive exact-head CI and Ready transition pending
+- Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 Ready / unmerged
+- Stage 10C — Source Replay & Outcome Reconciliation: `PASS`, PR #21 merged into Stage 10D stacked branch
+- Stage 10E — R0 Pilot Safety Review: `PASS`, PR #22 merged into Stage 10D stacked branch; merge commit `3614442ba0797e8b26f65daa7c9879ff8caa3934`
+- Stage 10F — Independent Audit Authority Contract: implementation/review/hardening complete on PR #23; documentation-inclusive final exact-head CI와 Ready transition을 terminal authority로 사용
 
-## 다음 단계
+## Stage 10F가 여는 경로
 
-Stage 10E는 Stage 10A evidence를 Stage 10C exact replay chain을 통해 포함하고, Stage 10B Registry, Stage 10C reconciliation, Stage 10D observation evidence를 하나의 R0 pilot eligibility gate로 결합한다.
-
-구현 리뷰 결과 현재 upstream contract에는 명시적인 prerequisite가 남아 있다.
+Stage 10F는 기존의 고정 blocker였던 다음 상태에 repository-backed 검증 경로를 추가한다.
 
 ```text
-Independent Audit Authority Contract
+INDEPENDENT_AUDIT
+PROVENANCE_UNVERIFIED
 ```
 
-Stage 10D는 유효한 R0 observation policy에서 최소 1건 이상의 independent audit를 요구하지만, Stage 10C는 repository-backed audit provenance contract가 없기 때문에 현재 모든 `INDEPENDENT_AUDIT` Outcome을 `PROVENANCE_UNVERIFIED`로 fail-closed한다.
+Audit Trust Root, Issuer Grant, exact audit artifact, Stage 10B Outcome이 모두 일치하고 temporal/source replay를 통과한 경우에만 Stage 10C는 audit Outcome을 다음으로 승격할 수 있다.
 
-따라서 Stage 10E가 PASS하더라도 현재 evidence contract만으로는 실제 R0 pilot eligibility가 열려서는 안 된다. 다음 별도 단계에서 canonical audit identity, issuer authority, exact assessment/source-revision binding, issuance/withdrawal semantics, duplicate-authority protection을 정의해야 한다.
+```text
+RECONCILED
+```
+
+Stage 10E는 그 결과만 distinct R0 assessment 기준 verified audit coverage로 계산한다.
+
+## 다음 경계
+
+Stage 10F 구현 PASS 자체는 실제 evidence package가 Stage 10E eligibility를 만족한다는 의미가 아니다. 다음 실행 순서는 다음과 같다.
+
+1. 실제 Stage 10B/10C/10D evidence package에 Stage 10F audit authority를 적용한다.
+2. Stage 10E exact source replay를 다시 실행한다.
+3. 결과가 `ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW`인지 확인한다.
+4. eligibility가 확보된 뒤에만 별도 `R0 Pilot Activation Contract`를 설계한다.
 
 그 전까지 다음 고정값은 변경하지 않는다.
 

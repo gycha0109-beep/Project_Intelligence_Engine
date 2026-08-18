@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Sequence
 
-from .trust_pilot_review import (
+from .trust_pilot_review_authority import (
     PilotSafetyReviewError,
     PilotSafetyReviewVerificationError,
     load_pilot_review_report,
@@ -92,7 +92,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
 def add_pilot_review_subparsers(sub: argparse._SubParsersAction) -> None:
     command = sub.add_parser(
         "review-r0-pilot",
-        help="Combine Stage 10B/10C/10D evidence into a report-only R0 pilot safety review.",
+        help="Combine reconciled Trust/Outcome evidence, including Stage 10F Independent Audit authority, into an R0 pilot safety review.",
     )
     _add_sources(command, required=True)
     command.add_argument("--output", required=True)
@@ -101,7 +101,7 @@ def add_pilot_review_subparsers(sub: argparse._SubParsersAction) -> None:
 
     command = sub.add_parser(
         "verify-r0-pilot-review",
-        help="Verify an R0 pilot safety review report and optional exact source replay.",
+        help="Verify an R0 pilot safety review report and optional exact authority-aware source replay.",
     )
     command.add_argument("--report", required=True)
     _add_sources(command, required=False)
@@ -111,7 +111,7 @@ def add_pilot_review_subparsers(sub: argparse._SubParsersAction) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust-pilot-review",
-        description="Evaluate R0 pilot eligibility without granting pilot or automation authority.",
+        description="Evaluate R0 pilot eligibility with authority-aware source replay without granting pilot or automation authority.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
     add_pilot_review_subparsers(sub)

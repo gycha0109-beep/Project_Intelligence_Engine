@@ -13,6 +13,8 @@ from .trust import (
     verify_trust_report_sources,
     write_trust_report,
 )
+from .trust_audit import TrustAuditError, TrustAuditVerificationError
+from .trust_audit_cli import add_audit_subparsers
 from .trust_comparison import TrustComparisonError, TrustComparisonVerificationError
 from .trust_comparison_cli import add_comparison_subparsers
 from .trust_observation import TrustObservationError, TrustObservationVerificationError
@@ -49,36 +51,31 @@ def cmd_assess(args: argparse.Namespace) -> int:
         generated_at=args.generated_at,
     )
     output = write_trust_report(args.output, report)
-    _print_json(
-        {
-            "valid": True,
-            "output": str(output),
-            "report_id": report["report_id"],
-            "mode": report["mode"],
-            "risk_band": report["risk"]["effective_band"],
-            "readiness": report["readiness"]["status"],
-            "next_step": report["readiness"]["next_step"],
-            "automation_authorized": report["automation_authorized"],
-            "triggered_hard_gates": report["task_advisory"]["triggered_hard_gates"],
-        }
-    )
+    _print_json({
+        "valid": True,
+        "output": str(output),
+        "report_id": report["report_id"],
+        "mode": report["mode"],
+        "risk_band": report["risk"]["effective_band"],
+        "readiness": report["readiness"]["status"],
+        "next_step": report["readiness"]["next_step"],
+        "automation_authorized": report["automation_authorized"],
+        "triggered_hard_gates": report["task_advisory"]["triggered_hard_gates"],
+    })
     return 0
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
     source, report = load_trust_report(args.report)
-    replay_requested = any(
-        value is not None
-        for value in (
-            args.request,
-            args.profile,
-            args.ledger,
-            args.policy_registry,
-            args.evaluation_report,
-            args.reground_report,
-            args.reground_observations,
-        )
-    )
+    replay_requested = any(value is not None for value in (
+        args.request,
+        args.profile,
+        args.ledger,
+        args.policy_registry,
+        args.evaluation_report,
+        args.reground_report,
+        args.reground_observations,
+    ))
     if replay_requested:
         if args.request is None or args.profile is None:
             raise TrustError("source replay requires both --request and --profile")
@@ -94,25 +91,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
         )
         if errors:
             raise TrustVerificationError(errors)
-    _print_json(
-        {
-            "valid": True,
-            "report": str(source),
-            "report_id": report["report_id"],
-            "risk_band": report["risk"]["effective_band"],
-            "readiness": report["readiness"]["status"],
-            "automation_authorized": report["automation_authorized"],
-            "source_replayed": replay_requested,
-            "errors": [],
-        }
-    )
+    _print_json({
+        "valid": True,
+        "report": str(source),
+        "report_id": report["report_id"],
+        "risk_band": report["risk"]["effective_band"],
+        "readiness": report["readiness"]["status"],
+        "automation_authorized": report["automation_authorized"],
+        "source_replayed": replay_requested,
+        "errors": [],
+    })
     return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence, comparison outcomes, observation readiness, source reconciliation, and R0 pilot safety review evidence.",
+        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, and R0 pilot safety review evidence.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -128,6 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.set_defaults(func=cmd_validate)
 
     add_comparison_subparsers(sub)
+    add_audit_subparsers(sub)
     add_observation_subparsers(sub)
     add_reconciliation_subparsers(sub)
     add_pilot_review_subparsers(sub)
@@ -140,6 +136,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return args.func(args)
     except (
         TrustVerificationError,
+        TrustAuditVerificationError,
         TrustComparisonVerificationError,
         TrustObservationVerificationError,
         TrustReconciliationVerificationError,
@@ -149,6 +146,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 4
     except (
         TrustError,
+        TrustAuditError,
         TrustComparisonError,
         TrustObservationError,
         TrustReconciliationError,

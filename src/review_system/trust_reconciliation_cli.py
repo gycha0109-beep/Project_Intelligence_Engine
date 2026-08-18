@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Sequence
 
-from .trust_reconciliation import (
+from .trust_reconciliation_hardened import (
     TrustReconciliationError,
     TrustReconciliationVerificationError,
     load_reconciliation_report,
@@ -36,11 +36,7 @@ def cmd_verify_sources(args: argparse.Namespace) -> int:
 
 
 def cmd_reconcile(args: argparse.Namespace) -> int:
-    report = reconcile_sources(
-        args.registry,
-        args.sources,
-        generated_at=args.generated_at,
-    )
+    report = reconcile_sources(args.registry, args.sources, generated_at=args.generated_at)
     output = write_reconciliation_report(args.output, report)
     _print_json({
         "valid": True,
@@ -62,11 +58,7 @@ def cmd_verify_report(args: argparse.Namespace) -> int:
     if replay_requested:
         if args.registry is None or args.sources is None:
             raise TrustReconciliationError("source replay requires both --registry and --sources")
-        errors = verify_reconciliation_report_sources(
-            report,
-            registry_path=args.registry,
-            source_manifest_path=args.sources,
-        )
+        errors = verify_reconciliation_report_sources(report, registry_path=args.registry, source_manifest_path=args.sources)
         if errors:
             raise TrustReconciliationVerificationError(errors)
     _print_json({
@@ -83,27 +75,18 @@ def cmd_verify_report(args: argparse.Namespace) -> int:
 
 
 def add_reconciliation_subparsers(sub: argparse._SubParsersAction) -> None:
-    command = sub.add_parser(
-        "verify-reconciliation-sources",
-        help="Verify a Stage 10C source manifest without reconciling Outcomes.",
-    )
+    command = sub.add_parser("verify-reconciliation-sources", help="Verify a Trust reconciliation source manifest, including Stage 10F audit authority sources.")
     command.add_argument("--sources", required=True)
     command.set_defaults(func=cmd_verify_sources)
 
-    command = sub.add_parser(
-        "reconcile-sources",
-        help="Replay Trust assessments and reconcile Outcome authorities in report-only mode.",
-    )
+    command = sub.add_parser("reconcile-sources", help="Replay Trust assessments and reconcile Outcome authorities in report-only mode.")
     command.add_argument("--registry", required=True)
     command.add_argument("--sources", required=True)
     command.add_argument("--output", required=True)
     command.add_argument("--generated-at")
     command.set_defaults(func=cmd_reconcile)
 
-    command = sub.add_parser(
-        "verify-reconciliation-report",
-        help="Verify a Stage 10C reconciliation report and optional exact source replay.",
-    )
+    command = sub.add_parser("verify-reconciliation-report", help="Verify a reconciliation report and optional exact source replay.")
     command.add_argument("--report", required=True)
     command.add_argument("--registry")
     command.add_argument("--sources")
@@ -113,7 +96,7 @@ def add_reconciliation_subparsers(sub: argparse._SubParsersAction) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust-reconciliation",
-        description="Replay and reconcile Trust/Outcome source authorities without authorizing automation.",
+        description="Replay and reconcile Trust/Outcome source authorities, including Independent Audit provenance, without authorizing automation.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
     add_reconciliation_subparsers(sub)

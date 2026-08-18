@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-independent-audit-artifact.schema.json",
+  "title": "PIE Independent Audit Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "audit_id", "project_id", "assessment_id", "trust_report_id",
+    "trust_report_sha256", "source_revision", "issuer_id", "issuer_subject", "authority",
+    "verdict", "issued_at", "evidence_refs", "mode", "automation_authorized", "pilot_authorized",
+    "artifact_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "audit_id": {"type": "string", "pattern": "^independent-audit-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "assessment_id": {"type": "string", "pattern": "^assessment-[0-9a-f]{32}$"},
+    "trust_report_id": {"type": "string", "minLength": 1},
+    "trust_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_revision": {"type": "string", "minLength": 1},
+    "issuer_id": {"type": "string", "pattern": "^audit-issuer-[0-9a-f]{32}$"},
+    "issuer_subject": {"type": "string", "minLength": 1},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registry_id", "trust_root_id", "trust_root_sha256", "grant_id", "grant_sha256"],
+      "properties": {
+        "registry_id": {"type": "string", "pattern": "^trust-audit-authority-[0-9a-f]{32}$"},
+        "trust_root_id": {"type": "string", "pattern": "^audit-trust-root-[0-9a-f]{32}$"},
+        "trust_root_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "grant_id": {"type": "string", "pattern": "^audit-grant-[0-9a-f]{32}$"},
+        "grant_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "verdict": {"enum": ["SAFE", "UNSAFE", "INCONCLUSIVE"]},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"verdict": {"enum": ["SAFE", "UNSAFE"]}}, "required": ["verdict"]},
+      "then": {"properties": {"evidence_refs": {"minItems": 1}}}
+    }
+  ]
+}
