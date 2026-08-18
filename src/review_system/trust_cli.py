@@ -17,6 +17,8 @@ from .trust_comparison import TrustComparisonError, TrustComparisonVerificationE
 from .trust_comparison_cli import add_comparison_subparsers
 from .trust_observation import TrustObservationError, TrustObservationVerificationError
 from .trust_observation_cli import add_observation_subparsers
+from .trust_pilot_review import PilotSafetyReviewError, PilotSafetyReviewVerificationError
+from .trust_pilot_review_cli import add_pilot_review_subparsers
 from .trust_reconciliation import TrustReconciliationError, TrustReconciliationVerificationError
 from .trust_reconciliation_cli import add_reconciliation_subparsers
 
@@ -110,7 +112,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence, comparison outcomes, observation readiness, and source reconciliation evidence.",
+        description="Generate report-only Trust evidence, comparison outcomes, observation readiness, source reconciliation, and R0 pilot safety review evidence.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -128,6 +130,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_comparison_subparsers(sub)
     add_observation_subparsers(sub)
     add_reconciliation_subparsers(sub)
+    add_pilot_review_subparsers(sub)
     return parser
 
 
@@ -140,6 +143,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustComparisonVerificationError,
         TrustObservationVerificationError,
         TrustReconciliationVerificationError,
+        PilotSafetyReviewVerificationError,
     ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -148,6 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustComparisonError,
         TrustObservationError,
         TrustReconciliationError,
+        PilotSafetyReviewError,
         OSError,
         ValueError,
     ) as exc:
