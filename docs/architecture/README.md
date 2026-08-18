@@ -103,7 +103,7 @@
 - Stage 10E — R0 Pilot Safety Review: `PASS`, PR #22 merged into Stage 10D stacked branch; merge commit `3614442ba0797e8b26f65daa7c9879ff8caa3934`
 - Stage 10F — Independent Audit Authority Contract: `PASS`, PR #23 merged into Stage 10D stacked branch; merge commit `35697b32c1bc751b4831ea92756db44495e6c792`
 - Stage 10G — R0 Pilot Eligibility Evidence Run: `PASS`, PR #24 merged into Stage 10D stacked branch; merge commit `0b705a5d9ca2dddd3e4e77bc7ddcd3f99417b5df`
-- Stage 10H — R0 Evidence Acquisition & Runtime Package Population: implementation on PR #25; runtime acquisition currently `BLOCKED_EXTERNAL_EVIDENCE_REQUIRED`
+- Stage 10H — R0 Evidence Acquisition & Runtime Package Population: implementation on PR #25; real-main prospective baseline initialized, runtime eligibility `NOT_ELIGIBLE`
 
 ## Stage 10G evidence boundary
 
@@ -135,13 +135,15 @@ observation-policy.json
 
 Stage 10H regenerates reconciliation and observation reports, runs Stage 10G in staging, binds every package byte in a path/SHA manifest, and publishes only after exact source replay succeeds.
 
-Current connected authority surfaces do not contain that genuine workspace, so runtime acquisition remains:
+The user-supplied clean `main` checkout was later used to initialize a prospective zero-observation workspace. After a staging-root identity defect was fixed, the baseline package publishes and replays exactly:
 
 ```text
-BLOCKED_EXTERNAL_EVIDENCE_REQUIRED
+RUNTIME_BASELINE=INITIALIZED
+PACKAGE_POPULATED_NOT_ELIGIBLE
+source_replay_verified=true
 ```
 
-This is distinct from Stage 10H implementation status.
+The runtime package is gitignored/local evidence, not committed repository truth. Current blockers are prospective observation, unsafe-challenge, and Independent Audit evidence rather than workspace absence.
 
 Only a real package whose Stage 10G exact replay reaches:
 
