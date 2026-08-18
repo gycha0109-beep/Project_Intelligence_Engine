@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from review_system.trust_comparison import new_registry, write_registry
 from review_system.trust_evidence_acquisition import (
     EvidenceAcquisitionError,
     EvidenceAcquisitionVerificationError,
@@ -139,6 +140,59 @@ class EvidenceAcquisitionHardeningTests(unittest.TestCase):
                 populate_r0_evidence_package(workspace, target, generated_at=GENERATED_AT)
             self.assertFalse(target.exists())
             self.assertEqual(list(base.glob(".package.*.tmp")), [])
+
+    def test_published_empty_runtime_package_replays_after_atomic_rename(self) -> None:
+        policy = {
+            "schema_version": "1.0",
+            "policy_version": "1.0.0",
+            "mode": "REPORT_ONLY",
+            "target_band": "R0",
+            "thresholds": {
+                "minimum_r0_assessment_count": 20,
+                "minimum_r0_reviewed_count": 20,
+                "minimum_r0_conclusive_outcome_count": 12,
+                "minimum_r0_confirmed_safe_count": 12,
+                "minimum_confirmed_unsafe_challenge_count": 8,
+                "minimum_r0_independent_audit_count": 5,
+                "minimum_r0_outcome_coverage": 0.6,
+                "minimum_r0_evidence_span_days": 14,
+                "maximum_r0_false_negatives": 0,
+                "maximum_r0_false_negative_rate": 0.0,
+            },
+        }
+        empty_manifest = {
+            "schema_version": "1.0",
+            "project_id": "project-x",
+            "assessment_sources": [],
+            "outcome_sources": [],
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            workspace = base / "workspace"
+            workspace.mkdir()
+            (workspace / "acquisition-attestation.json").write_text(
+                json.dumps(attestation()), encoding="utf-8"
+            )
+            write_registry(
+                workspace / "comparison-registry.json",
+                new_registry("project-x", created_at="2026-08-18T04:00:00Z"),
+            )
+            (workspace / "reconciliation-sources.json").write_text(
+                json.dumps(empty_manifest), encoding="utf-8"
+            )
+            (workspace / "observation-policy.json").write_text(
+                json.dumps(policy), encoding="utf-8"
+            )
+            target = base / "r0-pilot-evidence"
+            report = populate_r0_evidence_package(workspace, target, generated_at=GENERATED_AT)
+            self.assertTrue(target.is_dir())
+            self.assertTrue(report["package"]["published"])
+            self.assertEqual(
+                verify_acquisition_report_sources(
+                    report, workspace_root=workspace, package_root=target
+                ),
+                [],
+            )
 
     @patch("review_system.trust_evidence_acquisition.run_r0_pilot_evidence")
     @patch("review_system.trust_evidence_acquisition.write_observation_report")
