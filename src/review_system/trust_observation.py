@@ -426,4 +426,7 @@ def write_report(path: str | Path, report: dict[str, Any]) -> Path:
     errors = verify_report_data(report)
     if errors:
         raise TrustObservationVerificationError(errors)
-    return write_json_atomic(path, report)
+    try:
+        return write_json_atomic(path, report)
+    except TrustComparisonError as exc:
+        raise TrustObservationError(str(exc)) from exc
