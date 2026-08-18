@@ -32,10 +32,37 @@ _AUDIT_PROVENANCE_INPUTS = (
     "revision_match",
     "outcome_reference_match",
     "issuer_match",
+    "issued_after_assessment",
     "issued_before_outcome",
     "verdict_match",
     "authority_binding_valid",
 )
+
+
+_ORIGINAL_AUDIT_OUTCOME = authority._audit_outcome
+
+
+def _audit_outcome_with_assessment_time(
+    event: dict[str, Any], assessment: dict[str, Any], source_entry: dict[str, Any] | None,
+    root: Path, project_id: str,
+):
+    status, checks, reasons, authority_key, projected_authority = _ORIGINAL_AUDIT_OUTCOME(
+        event, assessment, source_entry, root, project_id
+    )
+    issued_at = projected_authority.get("issued_at") if isinstance(projected_authority, dict) else None
+    checks["issued_after_assessment"] = bool(
+        isinstance(issued_at, str)
+        and legacy._before_or_equal(assessment.get("captured_at"), issued_at)
+    )
+    prior = checks.get("independent_provenance_verified") is True
+    checks["independent_provenance_verified"] = prior and checks["issued_after_assessment"]
+    expected_status = authority._audit_status(checks)
+    if not checks["issued_after_assessment"] and prior:
+        reasons = sorted(set([*reasons, "AUDIT_ISSUED_BEFORE_ASSESSMENT_CAPTURE"]))
+    return expected_status, checks, reasons, authority_key, projected_authority
+
+
+authority._audit_outcome = _audit_outcome_with_assessment_time
 
 
 def _audit_projection_errors(item: dict[str, Any], index: int) -> list[str]:
