@@ -88,15 +88,37 @@ Python matrix:
 
 ## 검증 결과
 
-Implementation-review hardening 전용 진단에서 Python 3.13 / 3.14 기준 다음 focused suites는 이미 성공했다.
+구현 및 hardening 단계에서 connector가 unittest traceback을 노출하지 않는 제약 때문에 임시 진단 workflow를 사용해 full-discovery failure identity를 단계적으로 분리했다. 임시 진단은 최종 branch에 남기지 않는다.
+
+진단 중 실제 테스트 결함 두 가지를 추가로 발견했다.
+
+1. symlink hardening test가 `Path.resolve()`를 거쳐 symlink target path로 바뀌어 lexical symlink를 실제로 검사하지 못하던 문제
+2. temporal-backfill review fixture가 Stage 10B assessment capture보다 이른 Outcome timestamp를 사용해 Trust Comparison event ordering 계약을 위반하던 문제
+
+두 테스트를 각각 lexical symlink path와 독립 Outcome Defect authority timeline으로 교정했다.
+
+교정 후 code/hardening regression authority:
 
 ```text
-test_trust_reconciliation.py
-test_trust_reconciliation_hardening.py
-test_trust_reconciliation_review.py
+workflow run #734
+run ID 32089294671
 ```
 
-Python 3.11 및 documentation-inclusive exact-head 전체 workflow 결과는 최종 authoritative run 확정 후 이 문서에 기록한다.
+결과:
+
+```text
+Python 3.11 SUCCESS
+Python 3.13 SUCCESS
+Python 3.14 SUCCESS
+full unittest result marker CLEAN
+asset sync SUCCESS
+urs version SUCCESS
+all example profile validations SUCCESS
+sample findings validation SUCCESS
+wheel build SUCCESS
+```
+
+이 run은 구현/hardening 회귀가 clean함을 확인하기 위한 진단 workflow다. 문서 finalization 이후에는 임시 diagnostic step을 제거하고 원래 authoritative CI workflow 그대로 documentation-inclusive exact-head 검증을 다시 수행한다. 최종 Stage 10C terminal authority는 그 마지막 run으로 판단한다.
 
 ## 구현 리뷰에서 발견한 문제
 
@@ -110,8 +132,9 @@ Python 3.11 및 documentation-inclusive exact-head 전체 workflow 결과는 최
 4. Outcome `base_status` semantic projection 누락
 5. orphan source manifest mapping silent ignore
 6. symlink hardening regression의 lexical-path 검증 필요
+7. temporal-backfill review fixture의 Stage 10B event ordering 위반
 
-모두 최종 full regression 전에 코드/회귀 테스트로 보완했다.
+모두 최종 documentation-inclusive exact-head regression 전에 코드/회귀 테스트로 보완했다.
 
 ## 보완 사항
 
@@ -120,6 +143,8 @@ Python 3.11 및 documentation-inclusive exact-head 전체 workflow 결과는 최
 - report semantic verifier에서 Outcome base status 재계산
 - source manifest와 registry/event identity를 실행 전에 cross-check
 - source replay verifier를 통해 source mutation을 최종적으로 검출
+- symlink regression은 lexical path 그대로 manifest에 넣어 실제 resolver rejection을 검증
+- temporal-backfill regression은 Trust assessment Ledger와 분리된 Outcome Defect authority를 사용해 source replay mutation 없이 시간축을 검증
 
 ## 잔여 리스크
 
@@ -131,7 +156,7 @@ Python 3.11 및 documentation-inclusive exact-head 전체 workflow 결과는 최
 
 ## 다음 단계
 
-최종 documentation-inclusive exact-head CI가 3.11/3.13/3.14에서 모두 green이면 PR을 Ready for Review로 전환한다.
+문서 finalization과 원래 CI workflow 복원 이후 documentation-inclusive exact-head CI가 3.11/3.13/3.14에서 모두 green이면 PR을 Ready for Review로 전환한다.
 
 그 이후에도:
 
