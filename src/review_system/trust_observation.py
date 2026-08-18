@@ -191,14 +191,14 @@ def _observation(registry: dict[str, Any]) -> dict[str, Any]:
     if timestamps:
         evidence_span_days = round((max(timestamps) - min(timestamps)).total_seconds() / 86400.0, 6)
 
-    independent_audits = sum(
-        1
+    independent_audit_assessments = {
+        event["assessment_id"]
         for event in registry["events"]
         if event["assessment_id"] in r0_ids
         and event["event_type"] == "OUTCOME"
         and event["payload"].get("outcome_type") == "INDEPENDENT_AUDIT"
         and event["payload"].get("verdict") in {"SAFE", "UNSAFE"}
-    )
+    }
 
     return {
         "r0_assessment_count": len(r0_assessments),
@@ -206,7 +206,7 @@ def _observation(registry: dict[str, Any]) -> dict[str, Any]:
         "r0_conclusive_outcome_count": len(r0_conclusive),
         "r0_confirmed_safe_count": tn,
         "confirmed_unsafe_challenge_count": tp + fn,
-        "r0_independent_audit_count": independent_audits,
+        "r0_independent_audit_count": len(independent_audit_assessments),
         "r0_outcome_coverage": _ratio(len(r0_conclusive), len(r0_assessments)),
         "r0_evidence_span_days": evidence_span_days,
         "r0_true_positive": tp,
@@ -316,9 +316,12 @@ def _policy_from_report(report: dict[str, Any]) -> dict[str, Any]:
 
 
 def verify_report_data(report: Any) -> list[str]:
-    errors = _schema_errors(report, "trust-observation-report.schema.json")
+    schema_errors = _schema_errors(report, "trust-observation-report.schema.json")
     if not isinstance(report, dict):
-        return sorted(set(errors or ["report must contain an object"]))
+        return sorted(set(schema_errors or ["report must contain an object"]))
+    if schema_errors:
+        return sorted(set(schema_errors))
+    errors: list[str] = []
     if report.get("mode") != MODE:
         errors.append("mode must remain REPORT_ONLY")
     if report.get("automation_authorized") is not False:
@@ -333,22 +336,19 @@ def verify_report_data(report: Any) -> list[str]:
     policy = _policy_from_report(report)
     policy_errors = verify_policy_data(policy)
     errors.extend(f"embedded policy: {item}" for item in policy_errors)
-    policy_ref = report.get("policy") if isinstance(report.get("policy"), dict) else {}
+    policy_ref = report["policy"]
     if not policy_errors:
         if policy_ref.get("policy_id") != policy_id(policy):
             errors.append("embedded policy_id mismatch")
         if policy_ref.get("policy_sha256") != policy_sha256(policy):
             errors.append("embedded policy_sha256 mismatch")
 
-    observation = report.get("observation") if isinstance(report.get("observation"), dict) else {}
-    thresholds = policy.get("thresholds") if isinstance(policy.get("thresholds"), dict) else {}
-    if thresholds and all(metric in observation for _, metric, _ in (*MINIMUM_CHECKS, *MAXIMUM_CHECKS)):
-        expected_checks = _checks(observation, thresholds)
-        if report.get("checks") != expected_checks:
-            errors.append("threshold check projection mismatch")
-    else:
-        expected_checks = report.get("checks") if isinstance(report.get("checks"), list) else []
-    if [item.get("id") for item in expected_checks if isinstance(item, dict)] != list(EXPECTED_CHECK_IDS):
+    observation = report["observation"]
+    thresholds = policy["thresholds"]
+    expected_checks = _checks(observation, thresholds)
+    if report.get("checks") != expected_checks:
+        errors.append("threshold check projection mismatch")
+    if [item.get("id") for item in expected_checks] != list(EXPECTED_CHECK_IDS):
         errors.append("threshold check set mismatch")
     expected_status, expected_blockers, expected_next_step = _decision(expected_checks)
     if report.get("status") != expected_status:
@@ -358,31 +358,25 @@ def verify_report_data(report: Any) -> list[str]:
     if report.get("next_step") != expected_next_step:
         errors.append("next_step projection mismatch")
 
-    if observation:
-        r0_assessments = observation.get("r0_assessment_count")
-        r0_conclusive = observation.get("r0_conclusive_outcome_count")
-        r0_safe = observation.get("r0_confirmed_safe_count")
-        tn = observation.get("r0_true_negative")
-        fn = observation.get("r0_false_negative")
-        tp = observation.get("r0_true_positive")
-        unsafe = observation.get("confirmed_unsafe_challenge_count")
-        if all(isinstance(value, int) for value in (r0_conclusive, r0_safe, tn, fn, tp, unsafe)):
-            if r0_safe != tn:
-                errors.append("R0 confirmed-safe projection mismatch")
-            if r0_conclusive != tn + fn:
-                errors.append("R0 conclusive-outcome projection mismatch")
-            if unsafe != tp + fn:
-                errors.append("unsafe challenge projection mismatch")
-        if isinstance(r0_assessments, int) and isinstance(r0_conclusive, int):
-            expected_coverage = _ratio(r0_conclusive, r0_assessments)
-            if observation.get("r0_outcome_coverage") != expected_coverage:
-                errors.append("R0 outcome coverage projection mismatch")
-        if isinstance(fn, int) and isinstance(tp, int):
-            expected_fnr = _ratio(fn, fn + tp)
-            if observation.get("r0_false_negative_rate") != expected_fnr:
-                errors.append("R0 false-negative rate projection mismatch")
+    r0_assessments = observation["r0_assessment_count"]
+    r0_conclusive = observation["r0_conclusive_outcome_count"]
+    r0_safe = observation["r0_confirmed_safe_count"]
+    tn = observation["r0_true_negative"]
+    fn = observation["r0_false_negative"]
+    tp = observation["r0_true_positive"]
+    unsafe = observation["confirmed_unsafe_challenge_count"]
+    if r0_safe != tn:
+        errors.append("R0 confirmed-safe projection mismatch")
+    if r0_conclusive != tn + fn:
+        errors.append("R0 conclusive-outcome projection mismatch")
+    if unsafe != tp + fn:
+        errors.append("unsafe challenge projection mismatch")
+    if observation["r0_outcome_coverage"] != _ratio(r0_conclusive, r0_assessments):
+        errors.append("R0 outcome coverage projection mismatch")
+    if observation["r0_false_negative_rate"] != _ratio(fn, fn + tp):
+        errors.append("R0 false-negative rate projection mismatch")
 
-    registry_ref = report.get("registry") if isinstance(report.get("registry"), dict) else {}
+    registry_ref = report["registry"]
     identity = {
         "project_id": report.get("project_id"),
         "registry_id": registry_ref.get("registry_id"),
