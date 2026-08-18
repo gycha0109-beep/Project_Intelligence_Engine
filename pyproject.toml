@@ -33,6 +33,7 @@ pie-trust-observation = "review_system.trust_observation_cli:main"
 pie-trust-reconciliation = "review_system.trust_reconciliation_cli:main"
 pie-trust-pilot-review = "review_system.trust_pilot_review_cli:main"
 pie-trust-pilot-evidence = "review_system.trust_pilot_evidence_run_cli:main"
+pie-trust-evidence-acquisition = "review_system.trust_evidence_acquisition_cli:main"
 
 [tool.setuptools]
 include-package-data = true
