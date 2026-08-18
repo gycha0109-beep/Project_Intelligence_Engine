@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-reconciliation-report.schema.json",
+  "title": "PIE Trust source reconciliation report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "report_id", "project_id", "generated_at", "mode",
+    "automation_authorized", "pilot_authorized", "comparison_registry",
+    "source_manifest", "assessment_reconciliation", "outcome_reconciliation",
+    "summary", "status", "evidence_snapshot_sha256", "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "report_id": {"type": "string", "pattern": "^trust-reconciliation-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "comparison_registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "registry_id", "registry_sha256", "file_sha256"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "registry_id": {"type": "string", "minLength": 1},
+        "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "file_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "source_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "manifest_sha256", "assessment_source_count", "outcome_source_count"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "assessment_source_count": {"type": "integer", "minimum": 0},
+        "outcome_source_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "assessment_reconciliation": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/assessment"}
+    },
+    "outcome_reconciliation": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/outcome"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_count", "assessment_reconciled_count", "assessment_unreconciled_count",
+        "outcome_count", "conclusive_outcome_count", "conclusive_outcome_reconciled_count",
+        "conclusive_outcome_unreconciled_count", "nonconclusive_outcome_count",
+        "unsupported_source_count", "provenance_unverified_count", "duplicate_authority_count",
+        "source_reconciliation_complete"
+      ],
+      "properties": {
+        "assessment_count": {"type": "integer", "minimum": 0},
+        "assessment_reconciled_count": {"type": "integer", "minimum": 0},
+        "assessment_unreconciled_count": {"type": "integer", "minimum": 0},
+        "outcome_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_reconciled_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_unreconciled_count": {"type": "integer", "minimum": 0},
+        "nonconclusive_outcome_count": {"type": "integer", "minimum": 0},
+        "unsupported_source_count": {"type": "integer", "minimum": 0},
+        "provenance_unverified_count": {"type": "integer", "minimum": 0},
+        "duplicate_authority_count": {"type": "integer", "minimum": 0},
+        "source_reconciliation_complete": {"type": "boolean"}
+      }
+    },
+    "status": {"enum": ["RECONCILED", "UNRECONCILED"]},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "checks": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "boolean"}
+    },
+    "source_descriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "file_sha256"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "file_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_id", "trust_report_id", "trust_report_sha256", "status",
+        "reconciled", "checks", "reason_codes", "source"
+      ],
+      "properties": {
+        "assessment_id": {"type": "string", "minLength": 1},
+        "trust_report_id": {"type": "string", "minLength": 1},
+        "trust_report_sha256": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": [
+            "RECONCILED", "SOURCE_MISSING", "SOURCE_HASH_MISMATCH", "PROJECT_MISMATCH",
+            "TASK_MISMATCH", "REVISION_MISMATCH", "REPORT_ID_MISMATCH", "PROJECTION_MISMATCH",
+            "SOURCE_REPLAY_FAILED", "SOURCE_VERIFICATION_FAILED", "DUPLICATE_SOURCE"
+          ]
+        },
+        "reconciled": {"type": "boolean"},
+        "checks": {"$ref": "#/$defs/checks"},
+        "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "source": {"anyOf": [{"$ref": "#/$defs/source_descriptor"}, {"type": "null"}]}
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id", "assessment_id", "outcome_type", "verdict", "conclusive", "base_status",
+        "status", "reconciled", "checks", "reason_codes", "authority_key", "authority"
+      ],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1},
+        "assessment_id": {"type": "string", "minLength": 1},
+        "outcome_type": {
+          "enum": [
+            "INDEPENDENT_AUDIT", "PRODUCTION_DEFECT", "REGRESSION", "SECURITY_INCIDENT",
+            "CONTROLLED_EVALUATION", "FALSE_POSITIVE_REVIEW"
+          ]
+        },
+        "verdict": {"enum": ["SAFE", "UNSAFE", "INCONCLUSIVE"]},
+        "conclusive": {"type": "boolean"},
+        "base_status": {
+          "enum": [
+            "RECONCILED", "SOURCE_MISSING", "SOURCE_HASH_MISMATCH", "PROJECT_MISMATCH",
+            "REVISION_MISMATCH", "OUTCOME_REFERENCE_MISMATCH", "OUTCOME_VERDICT_MISMATCH",
+            "INSUFFICIENT_EVIDENCE", "AMBIGUOUS_AUTHORITY", "SOURCE_VERIFICATION_FAILED",
+            "ASSESSMENT_UNRECONCILED", "PROVENANCE_UNVERIFIED", "UNSUPPORTED_SOURCE",
+            "DUPLICATE_SOURCE"
+          ]
+        },
+        "status": {
+          "enum": [
+            "RECONCILED", "SOURCE_MISSING", "SOURCE_HASH_MISMATCH", "PROJECT_MISMATCH",
+            "REVISION_MISMATCH", "OUTCOME_REFERENCE_MISMATCH", "OUTCOME_VERDICT_MISMATCH",
+            "INSUFFICIENT_EVIDENCE", "AMBIGUOUS_AUTHORITY", "SOURCE_VERIFICATION_FAILED",
+            "ASSESSMENT_UNRECONCILED", "PROVENANCE_UNVERIFIED", "UNSUPPORTED_SOURCE",
+            "DUPLICATE_SOURCE", "DUPLICATE_AUTHORITY"
+          ]
+        },
+        "reconciled": {"type": "boolean"},
+        "checks": {"$ref": "#/$defs/checks"},
+        "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "authority_key": {"type": ["string", "null"], "minLength": 1},
+        "authority": {
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": ["string", "integer", "number", "boolean", "null", "array"],
+            "items": {"type": ["string", "integer", "number", "boolean", "null"]}
+          }
+        }
+      }
+    }
+  }
+}
