@@ -19,6 +19,8 @@ from .trust_comparison import TrustComparisonError, TrustComparisonVerificationE
 from .trust_comparison_cli import add_comparison_subparsers
 from .trust_observation import TrustObservationError, TrustObservationVerificationError
 from .trust_observation_cli import add_observation_subparsers
+from .trust_pilot_evidence_run import PilotEvidenceRunError, PilotEvidenceRunVerificationError
+from .trust_pilot_evidence_run_cli import add_pilot_evidence_run_subparsers
 from .trust_pilot_review import PilotSafetyReviewError, PilotSafetyReviewVerificationError
 from .trust_pilot_review_cli import add_pilot_review_subparsers
 from .trust_reconciliation import TrustReconciliationError, TrustReconciliationVerificationError
@@ -107,7 +109,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, and R0 pilot safety review evidence.",
+        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, R0 pilot safety review, and pilot eligibility evidence-run reports.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -127,6 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_observation_subparsers(sub)
     add_reconciliation_subparsers(sub)
     add_pilot_review_subparsers(sub)
+    add_pilot_evidence_run_subparsers(sub)
     return parser
 
 
@@ -141,6 +144,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustObservationVerificationError,
         TrustReconciliationVerificationError,
         PilotSafetyReviewVerificationError,
+        PilotEvidenceRunVerificationError,
     ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -151,6 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         TrustObservationError,
         TrustReconciliationError,
         PilotSafetyReviewError,
+        PilotEvidenceRunError,
         OSError,
         ValueError,
     ) as exc:

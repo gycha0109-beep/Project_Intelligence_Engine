@@ -64,6 +64,9 @@
 53. [STAGE-10F-INDEPENDENT-AUDIT-AUTHORITY.md](STAGE-10F-INDEPENDENT-AUDIT-AUTHORITY.md) — repository-backed Independent Audit Trust Root·Issuer Grant·Artifact authority 설계
 54. [STAGE-10F-IMPLEMENTATION-REVIEW.md](STAGE-10F-IMPLEMENTATION-REVIEW.md) — Stage 10F 구현 리뷰, temporal/replay/rehash hardening
 55. [STAGE-10F-VALIDATION.md](STAGE-10F-VALIDATION.md) — Stage 10F focused/integration/full regression 검증 범위
+56. [STAGE-10G-R0-PILOT-ELIGIBILITY-EVIDENCE-RUN.md](STAGE-10G-R0-PILOT-ELIGIBILITY-EVIDENCE-RUN.md) — 실제 evidence package inventory와 Stage 10E exact replay 실행 계약
+57. [STAGE-10G-IMPLEMENTATION-REVIEW.md](STAGE-10G-IMPLEMENTATION-REVIEW.md) — Stage 10G evidence/runtime boundary와 fail-closed 구현 리뷰
+58. [STAGE-10G-VALIDATION.md](STAGE-10G-VALIDATION.md) — Stage 10G focused/full regression 및 committed-evidence 해석
 
 ## 권위 규칙
 
@@ -95,33 +98,39 @@
 - Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 Ready / unmerged
 - Stage 10C — Source Replay & Outcome Reconciliation: `PASS`, PR #21 merged into Stage 10D stacked branch
 - Stage 10E — R0 Pilot Safety Review: `PASS`, PR #22 merged into Stage 10D stacked branch; merge commit `3614442ba0797e8b26f65daa7c9879ff8caa3934`
-- Stage 10F — Independent Audit Authority Contract: implementation/review/hardening complete on PR #23; documentation-inclusive final exact-head CI와 Ready transition을 terminal authority로 사용
+- Stage 10F — Independent Audit Authority Contract: `PASS`, PR #23 merged into Stage 10D stacked branch; merge commit `35697b32c1bc751b4831ea92756db44495e6c792`
+- Stage 10G — R0 Pilot Eligibility Evidence Run: implementation/review/hardening on PR #24; terminal documentation-inclusive CI pending
 
-## Stage 10F가 여는 경로
+## Stage 10G evidence boundary
 
-Stage 10F는 기존의 고정 blocker였던 다음 상태에 repository-backed 검증 경로를 추가한다.
+Stage 10G does not manufacture evidence required to pass Stage 10E. It inventories a supplied evidence root and only invokes the existing authority-aware Stage 10E path when the package is complete.
 
-```text
-INDEPENDENT_AUDIT
-PROVENANCE_UNVERIFIED
-```
-
-Audit Trust Root, Issuer Grant, exact audit artifact, Stage 10B Outcome이 모두 일치하고 temporal/source replay를 통과한 경우에만 Stage 10C는 audit Outcome을 다음으로 승격할 수 있다.
+Canonical top-level package:
 
 ```text
-RECONCILED
+comparison-registry.json
+reconciliation-sources.json
+reconciliation-report.json
+observation-policy.json
+observation-report.json
 ```
 
-Stage 10E는 그 결과만 distinct R0 assessment 기준 verified audit coverage로 계산한다.
+The Stage 10G start snapshot contains no committed R0 evidence package. However `.pie/` and `.review-runs/` are gitignored, so this only establishes committed-repository absence, not global runtime-evidence absence.
 
-## 다음 경계
+Therefore current committed-tree interpretation is:
 
-Stage 10F 구현 PASS 자체는 실제 evidence package가 Stage 10E eligibility를 만족한다는 의미가 아니다. 다음 실행 순서는 다음과 같다.
+```text
+NOT_ELIGIBLE
+PROVIDE_COMPLETE_R0_EVIDENCE_PACKAGE
+```
 
-1. 실제 Stage 10B/10C/10D evidence package에 Stage 10F audit authority를 적용한다.
-2. Stage 10E exact source replay를 다시 실행한다.
-3. 결과가 `ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW`인지 확인한다.
-4. eligibility가 확보된 뒤에만 별도 `R0 Pilot Activation Contract`를 설계한다.
+A later supplied package may be replayed. Only if exact replay reaches:
+
+```text
+ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW
+```
+
+should a separate activation contract be considered.
 
 그 전까지 다음 고정값은 변경하지 않는다.
 
@@ -130,4 +139,4 @@ automation_authorized=false
 pilot_authorized=false
 ```
 
-`ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW` 상태도 pilot activation 권한이 아니다. 실제 pilot activation은 별도 activation contract와 명시적 사람 승인 이후에만 가능하다.
+실제 pilot activation은 별도 `R0 Pilot Activation Contract`와 명시적 사람 승인 이후에만 가능하다.

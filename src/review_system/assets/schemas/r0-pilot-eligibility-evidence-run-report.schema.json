@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/r0-pilot-eligibility-evidence-run-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "generated_at",
+    "mode",
+    "target_band",
+    "automation_authorized",
+    "pilot_authorized",
+    "package_contract",
+    "inventory",
+    "package_complete",
+    "source_replay",
+    "pilot_review",
+    "blockers",
+    "status",
+    "next_step",
+    "evidence_snapshot_sha256",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "pattern": "^r0-pilot-evidence-run-[0-9a-f]{32}$"},
+    "project_id": {"type": ["string", "null"], "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "target_band": {"const": "R0"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "package_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "root_name", "expected_files"],
+      "properties": {
+        "name": {"const": "R0_PILOT_EVIDENCE_PACKAGE_V1"},
+        "root_name": {"type": "string", "minLength": 1},
+        "expected_files": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "filename", "present", "sha256"],
+        "properties": {
+          "key": {
+            "enum": [
+              "comparison_registry",
+              "reconciliation_sources",
+              "reconciliation_report",
+              "observation_policy",
+              "observation_report"
+            ]
+          },
+          "filename": {"type": "string", "minLength": 1},
+          "present": {"type": "boolean"},
+          "sha256": {
+            "oneOf": [
+              {"type": "null"},
+              {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            ]
+          }
+        }
+      }
+    },
+    "package_complete": {"type": "boolean"},
+    "source_replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "verified", "error_codes"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "verified": {"type": "boolean"},
+        "error_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "pilot_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "review_id", "report_sha256", "status", "next_step", "blockers"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "review_id": {"type": ["string", "null"]},
+        "report_sha256": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          ]
+        },
+        "status": {
+          "type": ["string", "null"],
+          "enum": [null, "NOT_ELIGIBLE", "ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW"]
+        },
+        "next_step": {"type": ["string", "null"]},
+        "blockers": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "status": {
+      "enum": ["NOT_ELIGIBLE", "ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW"]
+    },
+    "next_step": {"type": "string", "minLength": 1},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
