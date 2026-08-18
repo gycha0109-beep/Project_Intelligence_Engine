@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/r0-pilot-safety-review-report.schema.json",
+  "title": "PIE R0 Pilot Safety Review Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "review_id", "project_id", "generated_at", "mode",
+    "automation_authorized", "pilot_authorized", "target_band", "sources",
+    "source_replay", "reconciliation", "observation", "checks", "blockers",
+    "status", "next_step", "evidence_snapshot_sha256", "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "review_id": {"type": "string", "pattern": "^r0-pilot-safety-review-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "target_band": {"const": "R0"},
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registry", "reconciliation_report", "reconciliation_sources", "observation_report", "observation_policy"],
+      "properties": {
+        "registry": {"$ref": "#/$defs/registry_source"},
+        "reconciliation_report": {"$ref": "#/$defs/reconciliation_source"},
+        "reconciliation_sources": {"type": "object", "additionalProperties": false, "required": ["source", "manifest_sha256"], "properties": {"source": {"type": "string", "minLength": 1}, "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+        "observation_report": {"$ref": "#/$defs/observation_source"},
+        "observation_policy": {"type": "object", "additionalProperties": false, "required": ["source", "policy_id", "policy_sha256"], "properties": {"source": {"type": "string", "minLength": 1}, "policy_id": {"type": "string", "pattern": "^trust-observation-policy-[0-9a-f]{32}$"}, "policy_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}
+      }
+    },
+    "source_replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reconciliation_verified", "observation_verified"],
+      "properties": {
+        "reconciliation_verified": {"type": "boolean"},
+        "observation_verified": {"type": "boolean"}
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "source_reconciliation_complete", "assessment_unreconciled_count",
+        "conclusive_outcome_count", "conclusive_outcome_unreconciled_count",
+        "conclusive_duplicate_authority_count", "conclusive_unsupported_source_count",
+        "conclusive_provenance_unverified_count", "verified_r0_independent_audit_assessment_count"
+      ],
+      "properties": {
+        "status": {"enum": ["RECONCILED", "UNRECONCILED"]},
+        "source_reconciliation_complete": {"type": "boolean"},
+        "assessment_unreconciled_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_unreconciled_count": {"type": "integer", "minimum": 0},
+        "conclusive_duplicate_authority_count": {"type": "integer", "minimum": 0},
+        "conclusive_unsupported_source_count": {"type": "integer", "minimum": 0},
+        "conclusive_provenance_unverified_count": {"type": "integer", "minimum": 0},
+        "verified_r0_independent_audit_assessment_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "r0_false_negative", "r0_false_negative_rate",
+        "confirmed_unsafe_challenge_count", "r0_independent_audit_count",
+        "registry_r0_independent_audit_assessment_count", "minimum_r0_independent_audit_count"
+      ],
+      "properties": {
+        "status": {"enum": ["INSUFFICIENT_EVIDENCE", "THRESHOLD_BLOCKED", "THRESHOLDS_SATISFIED_AWAITING_SOURCE_RECONCILIATION"]},
+        "r0_false_negative": {"type": "integer", "minimum": 0},
+        "r0_false_negative_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 0},
+        "r0_independent_audit_count": {"type": "integer", "minimum": 0},
+        "registry_r0_independent_audit_assessment_count": {"type": "integer", "minimum": 0},
+        "minimum_r0_independent_audit_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "passed"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"}
+        }
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "status": {"enum": ["NOT_ELIGIBLE", "ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW"]},
+    "next_step": {"enum": [
+      "ESTABLISH_INDEPENDENT_AUDIT_AUTHORITY",
+      "REPAIR_AND_REPLAY_SOURCE_EVIDENCE",
+      "RESOLVE_OBSERVATION_SAFETY_BLOCKERS",
+      "RESOLVE_SOURCE_RECONCILIATION_BLOCKERS",
+      "RESOLVE_PILOT_SAFETY_BLOCKERS",
+      "REQUEST_EXPLICIT_HUMAN_PILOT_AUTHORIZATION"
+    ]},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "registry_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "project_id", "registry_id", "registry_sha256"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "project_id": {"type": "string", "minLength": 1},
+        "registry_id": {"type": "string", "pattern": "^trust-comparison-[0-9a-f]{32}$"},
+        "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "reconciliation_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "project_id", "report_id", "report_sha256", "evidence_snapshot_sha256", "registry_id", "registry_sha256"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "project_id": {"type": "string", "minLength": 1},
+        "report_id": {"type": "string", "pattern": "^trust-reconciliation-[0-9a-f]{32}$"},
+        "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "registry_id": {"type": "string", "pattern": "^trust-comparison-[0-9a-f]{32}$"},
+        "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "observation_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "project_id", "report_id", "report_sha256", "registry_id", "registry_sha256"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "project_id": {"type": "string", "minLength": 1},
+        "report_id": {"type": "string", "pattern": "^trust-observation-[0-9a-f]{32}$"},
+        "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "registry_id": {"type": "string", "pattern": "^trust-comparison-[0-9a-f]{32}$"},
+        "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}
