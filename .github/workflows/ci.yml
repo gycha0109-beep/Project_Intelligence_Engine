@@ -28,26 +28,17 @@ jobs:
           rows += [f"UNEXPECTED:{test.id()}" for test in result.unexpectedSuccesses]
           Path('suite-result-ids.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
           PY
-      - name: Failure group application-asset-buildmap
-        continue-on-error: true
+      - name: Stop if application-asset-buildmap failed
         run: if grep -E -q 'test_(application|asset|baseline|buildmap)' suite-result-ids.txt; then exit 1; fi
-      - name: Failure group cli-defect-evaluation-github
-        continue-on-error: true
+      - name: Stop if cli-defect-evaluation-github failed
         run: if grep -E -q 'test_(cli|defect|evaluation|gate|github)' suite-result-ids.txt; then exit 1; fi
-      - name: Failure group identity-ledger-policy-profile
-        continue-on-error: true
+      - name: Stop if identity-ledger-policy-profile failed
         run: if grep -E -q 'test_(identity|intelligence|ledger|merge|packs|path|policy|profile)' suite-result-ids.txt; then exit 1; fi
-      - name: Failure group project-reground-review-run-validation
-        continue-on-error: true
+      - name: Stop if project-reground-review-run-validation failed
         run: if grep -E -q 'test_(project|reground|review|run|validation)' suite-result-ids.txt; then exit 1; fi
-      - name: Failure group trust
-        continue-on-error: true
+      - name: Stop if Trust failed
         run: if grep -q 'test_trust' suite-result-ids.txt; then exit 1; fi
-      - name: Failure group uncategorized
-        continue-on-error: true
-        run: |
-          if test -s suite-result-ids.txt && ! grep -E -q 'test_(application|asset|baseline|buildmap|cli|defect|evaluation|gate|github|identity|intelligence|ledger|merge|packs|path|policy|profile|project|reground|review|run|validation|trust)' suite-result-ids.txt; then exit 1; fi
-      - name: Captured full suite must be clean
+      - name: Stop if uncategorized result remains
         run: test ! -s suite-result-ids.txt
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
