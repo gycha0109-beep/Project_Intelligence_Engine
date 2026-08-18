@@ -91,26 +91,20 @@ def _schema_errors(value: Any) -> list[str]:
 
 def _inventory(evidence_root: str | Path) -> tuple[Path, list[dict[str, Any]], list[str]]:
     root = Path(evidence_root).expanduser()
-    blockers: list[str] = []
     if _path_has_symlink(root):
-        blockers.append("EVIDENCE_ROOT_UNSAFE")
+        raise PilotEvidenceRunError("evidence root must not contain symlinks")
     root = root.resolve()
     inventory: list[dict[str, Any]] = []
+    blockers: list[str] = []
     for key, filename in EXPECTED_FILES:
         source = root / filename
         present = False
         digest: str | None = None
-        code = key.upper()
-        if _path_has_symlink(source):
-            blockers.append(f"EVIDENCE_PATH_UNSAFE:{code}")
-        elif source.exists():
-            if source.is_file():
-                present = True
-                digest = file_sha256(source)
-            else:
-                blockers.append(f"EVIDENCE_FILE_NOT_REGULAR:{code}")
+        if not _path_has_symlink(source) and source.exists() and source.is_file():
+            present = True
+            digest = file_sha256(source)
         else:
-            blockers.append(f"EVIDENCE_FILE_MISSING:{code}")
+            blockers.append(f"EVIDENCE_FILE_MISSING:{key.upper()}")
         inventory.append({"key": key, "filename": filename, "present": present, "sha256": digest})
     return root, inventory, sorted(set(blockers))
 
@@ -323,12 +317,7 @@ def verify_pilot_evidence_run_report_data(report: Any) -> list[str]:
             if isinstance(item, dict) and item.get("present") is False
         ]
         recorded_complete = report.get("package_complete") is True
-        if recorded_complete and not package_complete:
-            errors.append("package_complete projection mismatch")
-        if not recorded_complete and package_complete and not any(
-            str(value).startswith(("EVIDENCE_PATH_UNSAFE:", "EVIDENCE_FILE_NOT_REGULAR:", "EVIDENCE_ROOT_UNSAFE"))
-            for value in report.get("blockers", [])
-        ):
+        if recorded_complete != package_complete:
             errors.append("package_complete projection mismatch")
 
         source_replay = report.get("source_replay") if isinstance(report.get("source_replay"), dict) else {}
