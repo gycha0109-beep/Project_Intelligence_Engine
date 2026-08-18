@@ -42,7 +42,7 @@ class TrustReconciliationHardeningTests(unittest.TestCase):
                 link.symlink_to(original)
             except OSError:
                 self.skipTest("symlinks unavailable")
-            fixture.assessment_sources[0]["trust_report"] = fixture.rel(link)
+            fixture.assessment_sources[0]["trust_report"] = link.relative_to(root).as_posix()
             fixture.persist()
             with self.assertRaisesRegex(TrustReconciliationError, "symlink"):
                 reconcile_sources(fixture.registry_path, fixture.sources_path)
