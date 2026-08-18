@@ -55,6 +55,9 @@
 44. [STAGE-10D-OPERATING-OBSERVATION-THRESHOLD-POLICY.md](STAGE-10D-OPERATING-OBSERVATION-THRESHOLD-POLICY.md) — R0 operating observation과 threshold policy 설계
 45. [STAGE-10D-IMPLEMENTATION-REVIEW.md](STAGE-10D-IMPLEMENTATION-REVIEW.md) — Stage 10D 구현 리뷰와 안전 경계
 46. [STAGE-10D-VALIDATION.md](STAGE-10D-VALIDATION.md) — Stage 10D 검증 결과
+47. [STAGE-10C-SOURCE-OUTCOME-RECONCILIATION.md](STAGE-10C-SOURCE-OUTCOME-RECONCILIATION.md) — Trust source replay와 Outcome authority reconciliation 설계
+48. [STAGE-10C-IMPLEMENTATION-REVIEW.md](STAGE-10C-IMPLEMENTATION-REVIEW.md) — Stage 10C 구현 리뷰와 temporal/source hardening
+49. [STAGE-10C-VALIDATION.md](STAGE-10C-VALIDATION.md) — Stage 10C focused/full regression 검증 결과
 
 ## 권위 규칙
 
@@ -83,8 +86,18 @@
 - Stage 9 — BuildMap Export: `PASS`, PR #17 검토 대기
 - Stage 10A — Trust Gate Readiness: `PASS`, PR #18 검토 대기
 - Stage 10B — Decision Comparison & Outcome Audit Foundation: `PASS`, PR #19 Ready / unmerged
-- Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 검토 대기
+- Stage 10D — Operating Observation & Threshold Policy: `PASS`, PR #20 Ready / unmerged
+- Stage 10C — Source Replay & Outcome Reconciliation: implementation/hardening regression `PASS`; PR #21 documentation-inclusive exact-head CI 대기
 
 ## 다음 단계
 
-Stage 10C는 Registry assessment와 Outcome을 원본 Trust report·Defect Registry·Evaluation evidence에 재결합하는 source replay 및 Outcome reconciliation을 설계한다. Stage 10D threshold를 만족하더라도 Stage 10C reconciliation과 별도 R0 pilot safety review 전에는 R0 auto-pass를 시작하지 않는다. R1 conditional auto-approval은 그 이후에도 별도 단계다.
+Stage 10C의 documentation-inclusive exact-head CI가 green이고 PR #21이 Ready for Review가 된 뒤 다음 별도 단계는 `R0 Pilot Safety Review`다. 그 단계에서 처음으로 Stage 10A classifier, Stage 10B confirmed Outcomes, Stage 10C source reconciliation, Stage 10D observation threshold evidence를 함께 평가한다.
+
+그 전까지 다음 고정값은 변경하지 않는다.
+
+```text
+automation_authorized=false
+pilot_authorized=false
+```
+
+Stage 10D threshold가 만족되더라도 Stage 10C reconciliation과 별도 R0 Pilot Safety Review 전에는 R0 auto-pass를 시작하지 않는다. R1 conditional auto-approval은 그 이후에도 별도 단계다.
