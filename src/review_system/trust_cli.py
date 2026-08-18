@@ -20,6 +20,8 @@ from .trust_comparison_cli import add_comparison_subparsers
 from .trust_evidence_acquisition import EvidenceAcquisitionError, EvidenceAcquisitionVerificationError
 from .trust_evidence_acquisition_cli import add_evidence_acquisition_subparsers
 from .trust_observation import TrustObservationError, TrustObservationVerificationError
+from .trust_prospective_evidence import ProspectiveEvidenceError, ProspectiveEvidenceVerificationError
+from .trust_prospective_evidence_cli import add_prospective_subparsers
 from .trust_observation_cli import add_observation_subparsers
 from .trust_pilot_evidence_run import PilotEvidenceRunError, PilotEvidenceRunVerificationError
 from .trust_pilot_evidence_run_cli import add_pilot_evidence_run_subparsers
@@ -133,6 +135,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_pilot_review_subparsers(sub)
     add_pilot_evidence_run_subparsers(sub)
     add_evidence_acquisition_subparsers(sub)
+    add_prospective_subparsers(sub)
     return parser
 
 
@@ -149,6 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PilotSafetyReviewVerificationError,
         PilotEvidenceRunVerificationError,
         EvidenceAcquisitionVerificationError,
+        ProspectiveEvidenceVerificationError,
     ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -161,6 +165,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PilotSafetyReviewError,
         PilotEvidenceRunError,
         EvidenceAcquisitionError,
+        ProspectiveEvidenceError,
         OSError,
         ValueError,
     ) as exc:
