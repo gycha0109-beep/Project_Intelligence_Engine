@@ -15,43 +15,32 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: Diagnose application-buildmap group
+      - name: Capture full-suite failure ids
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import unittest
+          suite = unittest.defaultTestLoader.discover('tests')
+          result = unittest.TextTestRunner(verbosity=0).run(suite)
+          ids = [test.id() for test, _ in result.failures + result.errors]
+          Path('failure-ids.txt').write_text('\n'.join(ids) + '\n', encoding='utf-8')
+          PY
+      - name: Failure is Stage 10C core
+        continue-on-error: true
+        run: if grep -q 'test_trust_reconciliation\.' failure-ids.txt; then exit 1; fi
+      - name: Failure is Stage 10C hardening
+        continue-on-error: true
+        run: if grep -q 'test_trust_reconciliation_hardening' failure-ids.txt; then exit 1; fi
+      - name: Failure is Trust existing
+        continue-on-error: true
+        run: if grep -E -q 'test_trust_(gate|comparison|observation)' failure-ids.txt; then exit 1; fi
+      - name: Failure is validation
+        continue-on-error: true
+        run: if grep -q 'test_validation' failure-ids.txt; then exit 1; fi
+      - name: Failure is other existing domain
         continue-on-error: true
         run: |
-          python -m unittest discover -s tests -p 'test_application*.py' -v
-          python -m unittest discover -s tests -p 'test_asset*.py' -v
-          python -m unittest discover -s tests -p 'test_baseline*.py' -v
-          python -m unittest discover -s tests -p 'test_buildmap*.py' -v
-      - name: Diagnose cli-defect-evaluation-github group
-        continue-on-error: true
-        run: |
-          python -m unittest discover -s tests -p 'test_cli*.py' -v
-          python -m unittest discover -s tests -p 'test_defect*.py' -v
-          python -m unittest discover -s tests -p 'test_evaluation*.py' -v
-          python -m unittest discover -s tests -p 'test_gate*.py' -v
-          python -m unittest discover -s tests -p 'test_github*.py' -v
-      - name: Diagnose intelligence-ledger-policy group
-        continue-on-error: true
-        run: |
-          python -m unittest discover -s tests -p 'test_identity*.py' -v
-          python -m unittest discover -s tests -p 'test_intelligence*.py' -v
-          python -m unittest discover -s tests -p 'test_ledger*.py' -v
-          python -m unittest discover -s tests -p 'test_merge*.py' -v
-          python -m unittest discover -s tests -p 'test_packs*.py' -v
-          python -m unittest discover -s tests -p 'test_path*.py' -v
-          python -m unittest discover -s tests -p 'test_policy*.py' -v
-          python -m unittest discover -s tests -p 'test_profile*.py' -v
-      - name: Diagnose project-reground-run group
-        continue-on-error: true
-        run: |
-          python -m unittest discover -s tests -p 'test_project*.py' -v
-          python -m unittest discover -s tests -p 'test_reground*.py' -v
-          python -m unittest discover -s tests -p 'test_review*.py' -v
-          python -m unittest discover -s tests -p 'test_run*.py' -v
-          python -m unittest discover -s tests -p 'test_validation*.py' -v
-      - name: Diagnose combined Trust cluster
-        continue-on-error: true
-        run: python -m unittest discover -s tests -p 'test_trust*.py' -v
+          if test -s failure-ids.txt && ! grep -E -q 'test_trust_reconciliation|test_trust_(gate|comparison|observation)|test_validation' failure-ids.txt; then exit 1; fi
       - run: python -m unittest discover -s tests -v
       - run: urs version
       - run: urs validate-profile profiles/examples/journey-connect.yml
