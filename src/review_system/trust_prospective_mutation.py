@@ -3,6 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 import os
 from pathlib import Path
+import re
 import shutil
 import tempfile
 from typing import Any, Iterable
@@ -19,6 +20,12 @@ from .trust_prospective_common import (
     _safe_root, _timestamp, _validate_manifest_candidate, utc_now,
 )
 
+
+_PACKET_ID = re.compile(r"^prospective-review-packet-[0-9a-f]{32}$")
+_PACKET_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_PACKET_REASON_PREFIXES = ("REVIEW_PACKET_ID:", "REVIEW_PACKET_SHA256:")
+
+
 def record_case_review(
     workspace_root: str | Path,
     *,
@@ -26,6 +33,8 @@ def record_case_review(
     review_level: str,
     decision: str,
     actor: str,
+    review_packet_id: str,
+    review_packet_sha256: str,
     occurred_at: str | None = None,
     confirmed_risk_band: str | None = None,
     reason_codes: Iterable[str] = (),
@@ -33,6 +42,21 @@ def record_case_review(
     level = review_level.upper()
     if level not in {"REVIEWED", "AUDITED"}:
         raise ProspectiveEvidenceError("prospective safety review requires REVIEWED or AUDITED; workflow acceptance is not evidence")
+    if not isinstance(review_packet_id, str) or _PACKET_ID.fullmatch(review_packet_id) is None:
+        raise ProspectiveEvidenceError("prospective safety review requires a valid governed review_packet_id")
+    if not isinstance(review_packet_sha256, str) or _PACKET_SHA256.fullmatch(review_packet_sha256) is None:
+        raise ProspectiveEvidenceError("prospective safety review requires a valid review_packet_sha256")
+    supplied_reasons = list(reason_codes)
+    if any(
+        isinstance(value, str) and value.startswith(_PACKET_REASON_PREFIXES)
+        for value in supplied_reasons
+    ):
+        raise ProspectiveEvidenceError("review packet binding reason codes are reserved for governed submission")
+    bound_reasons = [
+        *supplied_reasons,
+        f"REVIEW_PACKET_ID:{review_packet_id}",
+        f"REVIEW_PACKET_SHA256:{review_packet_sha256}",
+    ]
     root = _safe_root(workspace_root)
     registry_path, _manifest_path, _policy_path, registry, manifest, _policy = _required_workspace(root)
     updated = record_decision(
@@ -43,14 +67,21 @@ def record_case_review(
         actor=actor,
         occurred_at=occurred_at,
         confirmed_risk_band=confirmed_risk_band,
-        reason_codes=reason_codes,
+        reason_codes=bound_reasons,
     )
     reconciliation = _replay_candidate(root, updated, manifest, generated_at=updated["events"][-1]["occurred_at"])
     if not reconciliation["summary"]["source_reconciliation_complete"]:
         raise ProspectiveEvidenceVerificationError(["review update would leave source reconciliation incomplete"])
     _replace_one(registry_path, _json_bytes(updated))
     event = updated["events"][-1]
-    return {"event_id": event["event_id"], "assessment_id": assessment_id, "review_level": level, "registry_sha256": updated["registry_sha256"]}
+    return {
+        "event_id": event["event_id"],
+        "assessment_id": assessment_id,
+        "review_level": level,
+        "review_packet_id": review_packet_id,
+        "review_packet_sha256": review_packet_sha256,
+        "registry_sha256": updated["registry_sha256"],
+    }
 
 
 def _copy_outcome_sources(
@@ -188,5 +219,3 @@ def record_case_outcome(
         "registry_sha256": updated_registry["registry_sha256"],
         "idempotent": False,
     }
-
-
