@@ -54,22 +54,56 @@ jobs:
             --output-dir "$RUNNER_TEMP/pie-pr61"
           test -f "$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
 
+      - name: Snapshot exact-head BuildMap CI state
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/pie-pr61/exact-head-ci-at-request.json"
+          if gh run list \
+            --repo "$TARGET_REPO" \
+            --commit "$TARGET_HEAD" \
+            --event pull_request \
+            --limit 20 \
+            --json name,status,conclusion,databaseId,headSha,url > "$OUT"; then
+            cat "$OUT"
+          else
+            echo '[]' > "$OUT"
+            echo 'CI_QUERY_FAILED_CONSERVATIVE_EMPTY_COMPLETION' > "$RUNNER_TEMP/pie-pr61/exact-head-ci-query-warning.txt"
+            cat "$OUT"
+          fi
+
       - name: Build explicit Trust request from candidate scaffold
         shell: bash
         run: |
           set -euo pipefail
           export CANDIDATE="$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
           export REQUEST="$RUNNER_TEMP/pie-pr61/trust-request.json"
+          export CI_SNAPSHOT="$RUNNER_TEMP/pie-pr61/exact-head-ci-at-request.json"
           python - <<'PY'
           import json
           import os
           from pathlib import Path
 
           candidate = json.loads(Path(os.environ["CANDIDATE"]).read_text(encoding="utf-8"))
+          ci_runs = json.loads(Path(os.environ["CI_SNAPSHOT"]).read_text(encoding="utf-8"))
+          completed = []
+          for scenario, workflow_name in (
+              ("database-contract-gate", "Database Contract Gate"),
+              ("web-app-ci", "Web App CI"),
+          ):
+              if any(
+                  run.get("headSha") == os.environ["TARGET_HEAD"]
+                  and run.get("name") == workflow_name
+                  and run.get("status") == "completed"
+                  and run.get("conclusion") == "success"
+                  for run in ci_runs
+              ):
+                  completed.append(scenario)
+
           request = dict(candidate["request_scaffold"])
           request["task_class"] = "database_migration"
           request["required_scenarios"] = ["database-contract-gate", "web-app-ci"]
-          request["completed_scenarios"] = []
+          request["completed_scenarios"] = sorted(completed)
           request["rollback_evidence"] = False
           request["replay_evidence"] = False
           request["readiness_policy"] = {
@@ -172,6 +206,8 @@ jobs:
               "exact_head": os.environ["TARGET_HEAD"],
           }
           for name in [
+              "exact-head-ci-at-request.json",
+              "trust-request.json",
               "materialize.json",
               "prospective-trust-report.json",
               "review-packet.json",
