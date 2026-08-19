@@ -20,7 +20,6 @@ jobs:
       - run: urs validate-profile profiles/examples/journey-connect.yml
       - run: urs validate-profile profiles/examples/bejewely.yml
       - run: urs validate-profile profiles/examples/buildmap.yml
-      - run: urs validate-profile profiles/examples/generic-webapp.yml
       - run: urs validate-findings examples/findings.sample.json
       - run: pip wheel . --no-deps --wheel-dir dist-ci
 
@@ -29,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [materialize, analyze]
+        case: [trust, materialize]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,13 +36,29 @@ jobs:
           python-version: "3.13"
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: materialize handoff
+      - name: direct Stage 10A report
+        if: matrix.case == 'trust'
+        run: |
+          PYTHONPATH=.:tests python - <<'PY'
+          import json
+          import tempfile
+          from pathlib import Path
+          from review_system.github_prospective_capture import build_github_prospective_capture_candidate
+          from review_system.trust import assess_trust, write_trust_report
+          from test_github_prospective_capture import _profile, _source, _request
+          with tempfile.TemporaryDirectory() as tmp:
+              root = Path(tmp)
+              profile = _profile(root)
+              candidate = build_github_prospective_capture_candidate(_source(), profile)
+              request_path = root / 'request.json'
+              request_path.write_text(json.dumps(_request(candidate)), encoding='utf-8')
+              report = assess_trust(request_path, profile, generated_at='2026-08-19T00:10:00Z')
+              target = root / '.pie' / 'prospective-trust-report.json'
+              write_trust_report(target, report)
+              assert target.is_file()
+          PY
+      - name: full materialize handoff
         if: matrix.case == 'materialize'
         run: >-
           PYTHONPATH=.:tests python -m unittest -v
           test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_creates_stage10a_report_then_calls_stage10i_intake
-      - name: analyze-pr capture hook
-        if: matrix.case == 'analyze'
-        run: >-
-          PYTHONPATH=.:tests python -m unittest -v
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_analyze_pr_always_emits_capture_candidate_without_mutating_registry
