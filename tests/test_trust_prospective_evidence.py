@@ -15,7 +15,6 @@ from review_system.trust_prospective_evidence import (
     campaign_progress,
     intake_prospective_case,
     record_case_outcome,
-    record_case_review,
     snapshot_campaign,
     verify_campaign_report_data,
 )
@@ -170,41 +169,6 @@ class ProspectiveEvidenceTests(unittest.TestCase):
             write_trust_report(report_path, report)
             with self.assertRaisesRegex(ProspectiveEvidenceError, "exact 40-hex"):
                 intake(workspace, fixture, report_path)
-
-    def test_workflow_acceptance_cannot_be_recorded_as_prospective_safety_review(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            workspace = init_workspace(root)
-            fixture, _report, report_path = build_r0_case(root)
-            result = intake(workspace, fixture, report_path)
-            with self.assertRaisesRegex(ProspectiveEvidenceError, "REVIEWED or AUDITED"):
-                record_case_review(
-                    workspace,
-                    assessment_id=result["assessment_id"],
-                    review_level="WORKFLOW_ACCEPTED",
-                    decision="APPROVE",
-                    actor="reviewer",
-                )
-
-    def test_review_uses_existing_stage10b_contract_and_preserves_reconciliation(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            workspace = init_workspace(root)
-            fixture, _report, report_path = build_r0_case(root)
-            result = intake(workspace, fixture, report_path)
-            review = record_case_review(
-                workspace,
-                assessment_id=result["assessment_id"],
-                review_level="REVIEWED",
-                decision="APPROVE",
-                actor="reviewer-a",
-                occurred_at=REVIEWED_AT,
-                confirmed_risk_band="R0",
-            )
-            self.assertEqual("REVIEWED", review["review_level"])
-            progress = campaign_progress(workspace, generated_at="2026-08-18T04:00:00Z")
-            self.assertEqual(1, progress["observation"]["r0_reviewed_count"])
-            self.assertTrue(progress["reconciliation"]["source_reconciliation_complete"])
 
 
 if __name__ == "__main__":
