@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/prospective-review-packet.schema.json",
+  "title": "PIE Governed Prospective Review Packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "packet_contract",
+    "packet_id",
+    "packet_sha256",
+    "project_id",
+    "assessment_id",
+    "assessment_sha256",
+    "task_id",
+    "source_revision",
+    "trust_report_id",
+    "trust_report_sha256",
+    "github",
+    "predicted_risk_band",
+    "changed_files",
+    "hard_gates",
+    "review_requirement",
+    "evidence_references",
+    "source_replay_state",
+    "reconciliation_state",
+    "generated_at",
+    "mode",
+    "automation_authorized",
+    "pilot_authorized",
+    "human_review_recorded",
+    "outcome_recorded",
+    "evidence_snapshot_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "packet_contract": {"const": "GOVERNED_PROSPECTIVE_REVIEW_PACKET_V1"},
+    "packet_id": {"type": "string", "pattern": "^prospective-review-packet-[0-9a-f]{32}$"},
+    "packet_sha256": {"$ref": "#/$defs/sha256"},
+    "project_id": {"type": "string", "minLength": 1},
+    "assessment_id": {"type": "string", "pattern": "^assessment-[0-9a-f]{32}$"},
+    "assessment_sha256": {"$ref": "#/$defs/sha256"},
+    "task_id": {"type": "string", "minLength": 1},
+    "source_revision": {"type": "string", "pattern": "^git:[0-9a-f]{40}$"},
+    "trust_report_id": {"type": "string", "minLength": 1},
+    "trust_report_sha256": {"$ref": "#/$defs/sha256"},
+    "github": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "candidate_evidence_snapshot_sha256",
+        "candidate_report_sha256",
+        "hostname",
+        "repository",
+        "pr_number",
+        "pr_url",
+        "base_oid",
+        "head_oid"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^github-capture-[0-9a-f]{32}$"},
+        "candidate_evidence_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_report_sha256": {"$ref": "#/$defs/sha256"},
+        "hostname": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "minLength": 1},
+        "pr_number": {"type": "integer", "minimum": 1},
+        "pr_url": {"type": ["string", "null"]},
+        "base_oid": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+        "head_oid": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "predicted_risk_band": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
+    "changed_files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "hard_gates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "review_requirement": {
+      "enum": [
+        "HUMAN_CONFIRMATION_REQUIRED",
+        "INDEPENDENT_REVIEW_REQUIRED",
+        "HUMAN_APPROVAL_REQUIRED",
+        "DUAL_INDEPENDENT_REVIEW_REQUIRED"
+      ]
+    },
+    "evidence_references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trust_evidence_fingerprint_sha256",
+        "ledger_sha256",
+        "policy_registry_id",
+        "policy_registry_sha256",
+        "evaluation_id",
+        "evaluation_report_sha256",
+        "reground_report_id",
+        "reground_report_sha256",
+        "reground_dataset_id",
+        "reground_dataset_sha256"
+      ],
+      "properties": {
+        "trust_evidence_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+        "ledger_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "policy_registry_id": {"type": ["string", "null"]},
+        "policy_registry_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "evaluation_id": {"type": ["string", "null"]},
+        "evaluation_report_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "reground_report_id": {"type": ["string", "null"]},
+        "reground_report_sha256": {"$ref": "#/$defs/nullableSha256"},
+        "reground_dataset_id": {"type": ["string", "null"]},
+        "reground_dataset_sha256": {"$ref": "#/$defs/nullableSha256"}
+      }
+    },
+    "source_replay_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trust_sources_verified",
+        "assessment_source_sha256",
+        "assessment_reconciled",
+        "assessment_reconciliation_status"
+      ],
+      "properties": {
+        "trust_sources_verified": {"const": true},
+        "assessment_source_sha256": {"$ref": "#/$defs/sha256"},
+        "assessment_reconciled": {"const": true},
+        "assessment_reconciliation_status": {"const": "RECONCILED"}
+      }
+    },
+    "reconciliation_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source_reconciliation_complete"],
+      "properties": {
+        "status": {"enum": ["RECONCILED", "UNRECONCILED"]},
+        "source_reconciliation_complete": {"type": "boolean"}
+      }
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "human_review_recorded": {"const": false},
+    "outcome_recorded": {"const": false},
+    "evidence_snapshot_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableSha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    }
+  }
+}

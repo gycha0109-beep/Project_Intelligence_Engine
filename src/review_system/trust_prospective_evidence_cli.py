@@ -19,10 +19,10 @@ from .trust_prospective_evidence import (
     campaign_progress,
     intake_prospective_case,
     record_case_outcome,
-    record_case_review,
     snapshot_campaign,
     write_campaign_report,
 )
+from .trust_prospective_review_cli import add_prospective_review_subparsers
 
 
 def _print(value: object, *, stream=None) -> None:
@@ -41,21 +41,6 @@ def cmd_intake(args: argparse.Namespace) -> int:
         reground_report=args.reground_report,
         reground_observations=args.reground_observations,
         captured_at=args.captured_at,
-    )
-    _print({"valid": True, **result})
-    return 0
-
-
-def cmd_review(args: argparse.Namespace) -> int:
-    result = record_case_review(
-        args.workspace,
-        assessment_id=args.assessment_id,
-        review_level=args.review_level,
-        decision=args.decision,
-        actor=args.actor,
-        occurred_at=args.occurred_at,
-        confirmed_risk_band=args.confirmed_risk_band,
-        reason_codes=args.reason,
     )
     _print({"valid": True, **result})
     return 0
@@ -150,16 +135,7 @@ def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command.add_argument("--captured-at")
     command.set_defaults(func=cmd_intake)
 
-    command = sub.add_parser("record-prospective-review")
-    command.add_argument("--workspace", required=True)
-    command.add_argument("--assessment-id", required=True)
-    command.add_argument("--review-level", choices=["REVIEWED", "AUDITED"], required=True)
-    command.add_argument("--decision", choices=["APPROVE", "REQUEST_CHANGES", "HOLD", "REJECT", "RECLASSIFY"], required=True)
-    command.add_argument("--confirmed-risk-band", choices=["R0", "R1", "R2", "R3", "R4"])
-    command.add_argument("--reason", action="append", default=[])
-    command.add_argument("--actor", required=True)
-    command.add_argument("--occurred-at")
-    command.set_defaults(func=cmd_review)
+    add_prospective_review_subparsers(sub, emit=_print)
 
     command = sub.add_parser("record-prospective-outcome")
     command.add_argument("--workspace", required=True)
