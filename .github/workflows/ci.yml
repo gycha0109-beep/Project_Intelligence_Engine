@@ -23,3 +23,25 @@ jobs:
       - run: urs validate-profile profiles/examples/generic-webapp.yml
       - run: urs validate-findings examples/findings.sample.json
       - run: pip wheel . --no-deps --wheel-dir dist-ci
+
+  stage10j-diagnostic:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - tests.test_github_prospective_capture
+          - tests.test_github_prospective_capture_cli
+          - tests.test_application_analyze_pr
+          - tests.test_trust_prospective_evidence
+          - tests.test_trust_prospective_evidence_cli
+          - tests.test_trust_prospective_evidence_hardening
+          - tests.test_trust_prospective_evidence_outcomes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      - run: python scripts/sync_package_assets.py
+      - run: python -m unittest -v ${{ matrix.module }}
