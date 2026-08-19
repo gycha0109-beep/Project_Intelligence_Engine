@@ -182,7 +182,7 @@ def approve_candidate_rule(
     updated_candidates = {
         **candidates,
         "rules": [
-            ({**rule, "status": "approved", "promoted_at": timestamp} if rule.get("id") == candidate_id else rule)
+            ({**promoted, "promoted_at": timestamp} if rule.get("id") == candidate_id else rule)
             for rule in candidate_rules
         ],
     }

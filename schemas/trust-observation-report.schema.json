@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-observation-report.schema.json",
+  "title": "PIE Trust Observation Readiness Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_id", "project_id", "generated_at", "mode", "automation_authorized", "pilot_authorized", "target_band", "registry", "policy", "observation", "checks", "status", "blockers", "source_reconciliation", "next_step", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "report_id": {"type": "string", "pattern": "^trust-observation-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "target_band": {"const": "R0"},
+    "registry": {"type": "object", "additionalProperties": false, "required": ["registry_id", "registry_sha256"], "properties": {"registry_id": {"type": "string", "pattern": "^trust-comparison-[0-9a-f]{32}$"}, "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_sha256", "thresholds"],
+      "properties": {
+        "policy_id": {"type": "string", "pattern": "^trust-observation-policy-[0-9a-f]{32}$"},
+        "policy_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "policy_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "thresholds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["minimum_r0_assessment_count", "minimum_r0_reviewed_count", "minimum_r0_conclusive_outcome_count", "minimum_r0_confirmed_safe_count", "minimum_confirmed_unsafe_challenge_count", "minimum_r0_independent_audit_count", "minimum_r0_outcome_coverage", "minimum_r0_evidence_span_days", "maximum_r0_false_negatives", "maximum_r0_false_negative_rate"],
+          "properties": {
+            "minimum_r0_assessment_count": {"type": "integer", "minimum": 1},
+            "minimum_r0_reviewed_count": {"type": "integer", "minimum": 1},
+            "minimum_r0_conclusive_outcome_count": {"type": "integer", "minimum": 1},
+            "minimum_r0_confirmed_safe_count": {"type": "integer", "minimum": 1},
+            "minimum_confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 1},
+            "minimum_r0_independent_audit_count": {"type": "integer", "minimum": 1},
+            "minimum_r0_outcome_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+            "minimum_r0_evidence_span_days": {"type": "number", "minimum": 1},
+            "maximum_r0_false_negatives": {"const": 0},
+            "maximum_r0_false_negative_rate": {"const": 0.0}
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["r0_assessment_count", "r0_reviewed_count", "r0_conclusive_outcome_count", "r0_confirmed_safe_count", "confirmed_unsafe_challenge_count", "r0_independent_audit_count", "r0_outcome_coverage", "r0_evidence_span_days", "r0_true_positive", "r0_false_positive", "r0_true_negative", "r0_false_negative", "r0_false_negative_rate", "r0_reviewer_alignment_rate"],
+      "properties": {
+        "r0_assessment_count": {"type": "integer", "minimum": 0},
+        "r0_reviewed_count": {"type": "integer", "minimum": 0},
+        "r0_conclusive_outcome_count": {"type": "integer", "minimum": 0},
+        "r0_confirmed_safe_count": {"type": "integer", "minimum": 0},
+        "confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 0},
+        "r0_independent_audit_count": {"type": "integer", "minimum": 0},
+        "r0_outcome_coverage": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "r0_evidence_span_days": {"type": "number", "minimum": 0},
+        "r0_true_positive": {"type": "integer", "minimum": 0},
+        "r0_false_positive": {"type": "integer", "minimum": 0},
+        "r0_true_negative": {"type": "integer", "minimum": 0},
+        "r0_false_negative": {"type": "integer", "minimum": 0},
+        "r0_false_negative_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "r0_reviewer_alignment_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "checks": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"type": "object", "additionalProperties": false, "required": ["id", "actual", "operator", "required", "passed"], "properties": {"id": {"type": "string", "minLength": 1}, "actual": {"type": ["integer", "number", "null"]}, "operator": {"enum": [">=", "<="]}, "required": {"type": ["integer", "number"]}, "passed": {"type": "boolean"}}}},
+    "status": {"enum": ["INSUFFICIENT_EVIDENCE", "THRESHOLD_BLOCKED", "THRESHOLDS_SATISFIED_AWAITING_SOURCE_RECONCILIATION"]},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "source_reconciliation": {"type": "object", "additionalProperties": false, "required": ["required_before_pilot", "verified_in_this_stage"], "properties": {"required_before_pilot": {"const": true}, "verified_in_this_stage": {"const": false}}},
+    "next_step": {"enum": ["COLLECT_MORE_CONFIRMED_OBSERVATION", "INVESTIGATE_CONFIRMED_FALSE_NEGATIVES", "PERFORM_SOURCE_RECONCILIATION_THEN_SEPARATE_R0_PILOT_SAFETY_REVIEW"]},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

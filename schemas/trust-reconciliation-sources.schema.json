@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-reconciliation-sources.schema.json",
+  "title": "PIE Trust reconciliation source manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "assessment_sources", "outcome_sources"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project_id": {"type": "string", "minLength": 1},
+    "assessment_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assessment_id", "trust_report", "request", "profile"],
+        "properties": {
+          "assessment_id": {"type": "string", "minLength": 1},
+          "trust_report": {"type": "string", "minLength": 1},
+          "request": {"type": "string", "minLength": 1},
+          "profile": {"type": "string", "minLength": 1},
+          "ledger": {"type": ["string", "null"], "minLength": 1},
+          "policy_registry": {"type": ["string", "null"], "minLength": 1},
+          "evaluation_report": {"type": ["string", "null"], "minLength": 1},
+          "reground_report": {"type": ["string", "null"], "minLength": 1},
+          "reground_observations": {"type": ["string", "null"], "minLength": 1}
+        }
+      }
+    },
+    "outcome_sources": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event_id", "authority_type", "defect_registry", "ledger"],
+            "properties": {
+              "event_id": {"type": "string", "minLength": 1},
+              "authority_type": {"const": "PRODUCTION_DEFECT"},
+              "defect_registry": {"type": "string", "minLength": 1},
+              "ledger": {"type": "string", "minLength": 1}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event_id", "authority_type", "evaluation_report"],
+            "properties": {
+              "event_id": {"type": "string", "minLength": 1},
+              "authority_type": {"const": "CONTROLLED_EVALUATION"},
+              "evaluation_report": {"type": "string", "minLength": 1}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event_id", "authority_type", "audit_artifact", "audit_authority_registry"],
+            "properties": {
+              "event_id": {"type": "string", "minLength": 1},
+              "authority_type": {"const": "INDEPENDENT_AUDIT"},
+              "audit_artifact": {"type": "string", "minLength": 1},
+              "audit_authority_registry": {"type": "string", "minLength": 1}
+            }
+          }
+        ]
+      }
+    }
+  }
+}

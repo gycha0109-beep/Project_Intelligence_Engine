@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "policy_version": "1.0.0",
+  "mode": "REPORT_ONLY",
+  "target_band": "R0",
+  "thresholds": {
+    "minimum_r0_assessment_count": 20,
+    "minimum_r0_reviewed_count": 20,
+    "minimum_r0_conclusive_outcome_count": 10,
+    "minimum_r0_confirmed_safe_count": 10,
+    "minimum_confirmed_unsafe_challenge_count": 5,
+    "minimum_r0_independent_audit_count": 5,
+    "minimum_r0_outcome_coverage": 0.5,
+    "minimum_r0_evidence_span_days": 14,
+    "maximum_r0_false_negatives": 0,
+    "maximum_r0_false_negative_rate": 0.0
+  }
+}

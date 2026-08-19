@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .io import dump_json, load_data
+from .path_globs import expand_trailing_recursive_glob
 from .profile import repository_root_for, resolve_profile_file
 
 
@@ -36,15 +37,16 @@ def collect_protected_files(root: Path, patterns: Iterable[str]) -> list[Path]:
         if not raw_pattern:
             continue
         pattern = _validate_pattern(raw_pattern)
-        for path in root.glob(pattern):
-            if path.is_symlink():
-                raise BaselineError(f"protected path must not be a symlink: {path}")
-            if not path.is_file():
-                continue
-            resolved = path.resolve()
-            if resolved != root and root not in resolved.parents:
-                raise BaselineError(f"protected path escaped repository root: {path}")
-            files.add(resolved)
+        for expanded_pattern in expand_trailing_recursive_glob(pattern):
+            for path in root.glob(expanded_pattern):
+                if path.is_symlink():
+                    raise BaselineError(f"protected path must not be a symlink: {path}")
+                if not path.is_file():
+                    continue
+                resolved = path.resolve()
+                if resolved != root and root not in resolved.parents:
+                    raise BaselineError(f"protected path escaped repository root: {path}")
+                files.add(resolved)
     return sorted(files)
 
 

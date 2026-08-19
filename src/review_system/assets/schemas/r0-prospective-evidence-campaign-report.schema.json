@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/r0-prospective-evidence-campaign-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "campaign_id", "campaign_contract", "project_id", "generated_at",
+    "mode", "target_band", "automation_authorized", "pilot_authorized",
+    "registry", "policy", "reconciliation", "observation", "checks",
+    "status", "next_step", "evidence_snapshot_sha256", "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "campaign_id": {"type": "string", "pattern": "^r0-prospective-campaign-[0-9a-f]{32}$"},
+    "campaign_contract": {"const": "PROSPECTIVE_R0_EVIDENCE_CAMPAIGN_V1"},
+    "project_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "target_band": {"const": "R0"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "registry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["registry_id", "registry_sha256"],
+      "properties": {
+        "registry_id": {"type": "string", "minLength": 1},
+        "registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_sha256", "thresholds"],
+      "properties": {
+        "policy_id": {"type": "string", "minLength": 1},
+        "policy_version": {"type": "string", "minLength": 1},
+        "policy_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "thresholds": {"type": "object"}
+      }
+    },
+    "reconciliation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "source_reconciliation_complete", "assessment_unreconciled_count", "conclusive_outcome_unreconciled_count"],
+      "properties": {
+        "status": {"enum": ["RECONCILED", "UNRECONCILED"]},
+        "source_reconciliation_complete": {"type": "boolean"},
+        "assessment_unreconciled_count": {"type": "integer", "minimum": 0},
+        "conclusive_outcome_unreconciled_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "r0_assessment_count", "r0_reviewed_count", "r0_conclusive_outcome_count",
+        "r0_confirmed_safe_count", "confirmed_unsafe_challenge_count",
+        "r0_independent_audit_count", "r0_outcome_coverage", "r0_evidence_span_days",
+        "r0_true_positive", "r0_false_positive", "r0_true_negative", "r0_false_negative",
+        "r0_false_negative_rate", "r0_reviewer_alignment_rate"
+      ],
+      "properties": {
+        "r0_assessment_count": {"type": "integer", "minimum": 0},
+        "r0_reviewed_count": {"type": "integer", "minimum": 0},
+        "r0_conclusive_outcome_count": {"type": "integer", "minimum": 0},
+        "r0_confirmed_safe_count": {"type": "integer", "minimum": 0},
+        "confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 0},
+        "r0_independent_audit_count": {"type": "integer", "minimum": 0},
+        "r0_outcome_coverage": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "r0_evidence_span_days": {"type": "number", "minimum": 0},
+        "r0_true_positive": {"type": "integer", "minimum": 0},
+        "r0_false_positive": {"type": "integer", "minimum": 0},
+        "r0_true_negative": {"type": "integer", "minimum": 0},
+        "r0_false_negative": {"type": "integer", "minimum": 0},
+        "r0_false_negative_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "r0_reviewer_alignment_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "checks": {
+      "type": "array", "minItems": 10, "maxItems": 10,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "actual", "operator", "required", "passed"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "actual": {"type": ["integer", "number", "null"]},
+          "operator": {"enum": [">=", "<="]},
+          "required": {"type": ["integer", "number"]},
+          "passed": {"type": "boolean"}
+        }
+      }
+    },
+    "status": {"enum": ["COLLECTING_EVIDENCE", "BLOCKED_SAFETY_SIGNAL", "BLOCKED_SOURCE_RECONCILIATION", "READY_FOR_STAGE_10G_REPLAY"]},
+    "next_step": {"type": "string", "minLength": 1},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

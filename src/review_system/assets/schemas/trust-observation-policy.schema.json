@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/trust-observation-policy.schema.json",
+  "title": "PIE Trust Observation Threshold Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_version", "mode", "target_band", "thresholds"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "policy_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "mode": {"const": "REPORT_ONLY"},
+    "target_band": {"const": "R0"},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_r0_assessment_count",
+        "minimum_r0_reviewed_count",
+        "minimum_r0_conclusive_outcome_count",
+        "minimum_r0_confirmed_safe_count",
+        "minimum_confirmed_unsafe_challenge_count",
+        "minimum_r0_independent_audit_count",
+        "minimum_r0_outcome_coverage",
+        "minimum_r0_evidence_span_days",
+        "maximum_r0_false_negatives",
+        "maximum_r0_false_negative_rate"
+      ],
+      "properties": {
+        "minimum_r0_assessment_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_reviewed_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_conclusive_outcome_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_confirmed_safe_count": {"type": "integer", "minimum": 1},
+        "minimum_confirmed_unsafe_challenge_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_independent_audit_count": {"type": "integer", "minimum": 1},
+        "minimum_r0_outcome_coverage": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "minimum_r0_evidence_span_days": {"type": "number", "minimum": 1},
+        "maximum_r0_false_negatives": {"const": 0},
+        "maximum_r0_false_negative_rate": {"const": 0.0}
+      }
+    }
+  }
+}

@@ -5,22 +5,34 @@ import json
 import sys
 from pathlib import Path
 
+from .application import (
+    AnalyzeChangeRequest,
+    AnalyzePullRequestRequest,
+    ApproveRuleRequest,
+    CalculateGateRequest,
+    IndexProjectRequest,
+    ReviewRunValidationError,
+    analyze_project_change,
+    analyze_pull_request,
+    approve_rule,
+    calculate_review_gate,
+    index_project,
+)
 from .baseline import verify_snapshot_file, write_snapshot
-from .gate import calculate_gate_from_run
-from .github_connector import GitHubCLI, collect_pull_request, doctor, refresh_source_hash, validate_pull_request_source
+from .buildmap_cli import cmd_export as cmd_export_buildmap, cmd_validate as cmd_validate_buildmap_export
+from .trust_cli import cmd_assess as cmd_assess_trust, cmd_validate as cmd_validate_trust_report
+from .github_connector import GitHubCLI, doctor, validate_pull_request_source
 from .project_init import available_presets, initialize_project
-from .io import dump_json, dump_yaml, dump_yaml_pair_atomic, load_data
+from .io import dump_json, dump_yaml, load_data
 from .intelligence_config import (
-    load_intelligence_config,
     load_rules,
-    path_matches,
     validate_intelligence_config,
     validate_rules,
 )
-from .intelligence_graph import build_project_graph, validate_project_graph
-from .intelligence_impact import analyze_change, compare_change_sets
-from .intelligence_learning import approve_candidate_rule, discover_rule_candidates, merge_rule_candidates
-from .intelligence_report import comparison_markdown, impact_markdown, pull_request_markdown
+from .intelligence_graph import validate_project_graph
+from .intelligence_impact import compare_change_sets
+from .intelligence_learning import discover_rule_candidates, merge_rule_candidates
+from .intelligence_report import comparison_markdown
 from .intelligence_state import capture_project_state, git_changed_files
 from .merge import merge_findings
 from .packs import select_packs_with_reasons
@@ -158,19 +170,22 @@ def cmd_merge_findings(args: argparse.Namespace) -> int:
 
 
 def cmd_calculate_gate(args: argparse.Namespace) -> int:
-    run, errors = validate_review_run_file(args.run)
-    if errors:
-        _print_errors(errors)
-        return 2
     try:
-        policy = load_data(args.policy or asset("core/default-gate-policy.yml"))
-        result = calculate_gate_from_run(run, policy, trust_metrics=args.trust_metrics)
+        result = calculate_review_gate(
+            CalculateGateRequest(
+                run=args.run,
+                policy=args.policy,
+                output=args.output,
+                trust_metrics=args.trust_metrics,
+            )
+        )
+    except ReviewRunValidationError as exc:
+        _print_errors(list(exc.errors))
+        return 2
     except Exception as exc:
         return _error(exc)
-    if args.output:
-        dump_json(args.output, result)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if result["decision"] in {"PASS", "CONDITIONAL_PASS"} else 3
+    print(json.dumps(result.gate, indent=2, ensure_ascii=False))
+    return 0 if result.gate["decision"] in {"PASS", "CONDITIONAL_PASS"} else 3
 
 
 def cmd_calculate_gate_dir(args: argparse.Namespace) -> int:
@@ -294,69 +309,54 @@ def _profile_and_root(profile_path: str, repository_root: str | None = None) -> 
     return profile, root
 
 
+
 def cmd_index_project(args: argparse.Namespace) -> int:
     try:
-        profile, root = _profile_and_root(args.profile, args.repository_root)
-        config = load_intelligence_config(args.config)
-        graph_config = config.get("graph", {})
-        graph = build_project_graph(
-            root,
-            include=profile.get("scope", {}).get("include", ["**/*"]),
-            exclude=profile.get("scope", {}).get("exclude", []),
-            components=config.get("components", []),
-            max_file_size_bytes=int(graph_config.get("max_file_size_bytes", 1_000_000)),
+        result = index_project(
+            IndexProjectRequest(
+                profile=args.profile,
+                config=args.config,
+                output=args.output,
+                repository_root=args.repository_root,
+            )
         )
-        dump_json(args.output, graph)
     except Exception as exc:
         return _error(exc)
-    print(f"INDEXED project: files={graph['stats']['files']}; edges={graph['stats']['edges']}; warnings={len(graph['warnings'])}; output={args.output}")
+    graph = result.graph
+    print(
+        f"INDEXED project: files={graph['stats']['files']}; edges={graph['stats']['edges']}; "
+        f"warnings={len(graph['warnings'])}; output={args.output}"
+    )
     return 0
-
-
-def _read_changed_files(args: argparse.Namespace, root: Path) -> list[str]:
-    if args.files:
-        return [line.strip() for line in Path(args.files).read_text(encoding="utf-8").splitlines() if line.strip()]
-    if args.base:
-        return git_changed_files(root, args.base, args.head)
-    raise ValueError("provide --files or --base")
 
 
 def cmd_analyze_change(args: argparse.Namespace) -> int:
     try:
-        profile, root = _profile_and_root(args.profile, args.repository_root)
-        graph = load_data(args.graph)
-        if not isinstance(graph, dict):
-            raise ValueError("graph must be an object")
-        graph_errors = validate_project_graph(graph)
-        if graph_errors:
-            raise ValueError("invalid graph: " + "; ".join(graph_errors))
-        if args.approved_rules and not Path(args.approved_rules).is_file():
-            raise ValueError(f"approved rules file does not exist: {args.approved_rules}")
-        rules = load_rules(args.approved_rules, required_status="approved") if args.approved_rules else {"rules": []}
-        changed_files = _read_changed_files(args, root)
-        result = analyze_change(
-            graph,
-            changed_files,
-            configured_packs=profile.get("review", {}).get("packs", []),
-            approved_rules=rules.get("rules", []),
-            max_depth=args.max_depth,
-            change_id=args.change_id,
-            base_revision=args.base,
-            head_revision=args.head if args.base else None,
+        result = analyze_project_change(
+            AnalyzeChangeRequest(
+                profile=args.profile,
+                graph=args.graph,
+                approved_rules=args.approved_rules,
+                files=args.files,
+                base=args.base,
+                head=args.head,
+                change_id=args.change_id,
+                max_depth=args.max_depth,
+                repository_root=args.repository_root,
+                output=args.output,
+                markdown_output=args.markdown_output,
+            ),
+            git_diff_reader=git_changed_files,
         )
-        dump_json(args.output, result)
-        if args.markdown_output:
-            target = Path(args.markdown_output)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(impact_markdown(result), encoding="utf-8")
     except Exception as exc:
         return _error(exc)
+    analysis = result.analysis
     print(
-        f"ANALYZED change: direct={len(result['change']['changed_files'])}; "
-        f"impacted={len(result['impact']['dependent_files'])}; packs={len(result['review']['selected_packs'])}; output={args.output}"
+        f"ANALYZED change: direct={len(analysis['change']['changed_files'])}; "
+        f"impacted={len(analysis['impact']['dependent_files'])}; "
+        f"packs={len(analysis['review']['selected_packs'])}; output={args.output}"
     )
     return 0
-
 
 def cmd_compare_changes(args: argparse.Namespace) -> int:
     try:
@@ -418,41 +418,21 @@ def cmd_discover_rule_candidates(args: argparse.Namespace) -> int:
 
 def cmd_approve_rule(args: argparse.Namespace) -> int:
     try:
-        candidates = load_rules(args.candidates)
-        approved = load_rules(args.approved, required_status="approved")
-        updated_candidates, updated_approved = approve_candidate_rule(
-            candidates,
-            approved,
-            args.rule_id,
-            approved_by=args.approved_by,
-            approved_at=args.approved_at,
-            rationale=args.rationale,
+        approve_rule(
+            ApproveRuleRequest(
+                candidates=args.candidates,
+                approved=args.approved,
+                rule_id=args.rule_id,
+                approved_by=args.approved_by,
+                approved_at=args.approved_at,
+                rationale=args.rationale,
+            )
         )
-        dump_yaml_pair_atomic(args.approved, updated_approved, args.candidates, updated_candidates)
     except Exception as exc:
         return _error(exc)
     print(f"APPROVED rule: {args.rule_id}; approved_file={args.approved}")
     return 0
 
-
-
-def _resolve_project_path(repository_root: Path, value: str | None, default_relative: str) -> Path:
-    if value:
-        path = Path(value)
-        return path.resolve() if path.is_absolute() else (repository_root / path).resolve()
-    return (repository_root / default_relative).resolve()
-
-
-def _scoped_working_tree_changes(entries: list[str], include: list[str], exclude: list[str]) -> list[str]:
-    changed: set[str] = set()
-    for entry in entries:
-        raw = entry[3:] if len(entry) > 3 else ""
-        raw_paths = raw.split(" -> ", 1) if " -> " in raw else [raw]
-        for value in raw_paths:
-            path = value.strip().strip('"').replace("\\", "/")
-            if path and path_matches(path, include or ["**/*"]) and not path_matches(path, exclude):
-                changed.add(path)
-    return sorted(changed)
 
 
 
@@ -506,160 +486,42 @@ def cmd_github_doctor(args: argparse.Namespace) -> int:
     return 0 if result["ready"] else 4
 
 
+
 def cmd_analyze_pr(args: argparse.Namespace) -> int:
     try:
-        requested_root = Path(args.repository_root).resolve()
-        if not requested_root.is_dir():
-            raise ValueError(f"repository root does not exist: {requested_root}")
-
-        profile_path = _resolve_project_path(requested_root, args.profile, ".review/project.yml")
-        config_path = _resolve_project_path(requested_root, args.config, ".review/intelligence/config.yml")
-        graph_path = _resolve_project_path(requested_root, args.graph, ".review/intelligence/graph.json")
-        approved_rules_path = _resolve_project_path(
-            requested_root,
-            args.approved_rules,
-            ".review/intelligence/approved-rules.yml",
-        )
-        if not profile_path.is_file():
-            raise ValueError(f"project profile does not exist: {profile_path}; run 'pie init-project --preset <name>' first")
-        if not config_path.is_file():
-            raise ValueError(f"intelligence config does not exist: {config_path}; run 'pie init-project --preset <name>' first")
-
-        profile, project_root = _profile_and_root(str(profile_path), str(requested_root))
-        cli = GitHubCLI(executable=args.gh_executable, timeout_seconds=args.timeout)
-        source, diff_text = collect_pull_request(
-            cli,
-            args.pull_request,
-            cwd=project_root,
+        request = AnalyzePullRequestRequest(
+            pull_request=args.pull_request,
+            repository_root=args.repository_root,
             repository=args.repo,
-            include_diff=not args.skip_diff,
-            include_discussion=not args.skip_discussion,
-        )
-
-        current_repo = cli.current_repository(project_root)
-        expected_name = source["repository"]["name_with_owner"].lower()
-        expected_host = source["repository"]["hostname"].lower()
-        verification: dict[str, object] = {
-            "status": "unverified",
-            "expected_repository": source["repository"]["name_with_owner"],
-            "expected_hostname": source["repository"]["hostname"],
-            "local_repository": current_repo,
-        }
-        if current_repo:
-            same_name = current_repo["name_with_owner"].lower() == expected_name
-            same_host = current_repo.get("hostname", "github.com").lower() == expected_host
-            verification["status"] = "matched" if same_name and same_host else "mismatch"
-            if verification["status"] == "mismatch" and not args.allow_repository_mismatch:
-                raise ValueError(
-                    "local repository does not match the pull request repository; "
-                    "use the correct project folder or pass --allow-repository-mismatch explicitly"
-                )
-        elif not args.allow_repository_mismatch:
-            raise ValueError(
-                "cannot verify the local repository against the pull request; "
-                "run inside the matching Git repository or pass --allow-repository-mismatch explicitly"
-            )
-        source["local_repository_verification"] = verification
-
-        state = capture_project_state(project_root, project_id=profile["project"]["id"])
-        source["local_project_state"] = state["repository"]
-        remote_head = source["pull_request"].get("head_oid")
-        local_head = state["repository"].get("head_revision")
-        if remote_head and local_head and remote_head != local_head:
-            if not args.allow_head_mismatch:
-                raise ValueError(
-                    "local HEAD does not match the PR head; check out the exact PR head or pass "
-                    "--allow-head-mismatch explicitly for degraded analysis"
-                )
-            source["warnings"].append(
-                "local HEAD does not match the PR head; analysis was explicitly allowed and the graph may be degraded"
-            )
-        scope = profile.get("scope", {})
-        scoped_dirty = _scoped_working_tree_changes(
-            state["repository"].get("working_tree_entries", []),
-            scope.get("include", ["**/*"]),
-            scope.get("exclude", []),
-        )
-        if scoped_dirty:
-            if not args.allow_dirty_worktree:
-                raise ValueError(
-                    "working tree has changes inside the analysis scope: "
-                    f"{', '.join(scoped_dirty)}; commit/stash them or pass --allow-dirty-worktree explicitly"
-                )
-            source["warnings"].append(
-                "analysis includes explicit dirty-worktree changes and may not represent the PR head: "
-                + ", ".join(scoped_dirty)
-            )
-        refresh_source_hash(source)
-
-        config = load_intelligence_config(config_path)
-        # PR analysis is evidence-sensitive: a structurally valid cached graph
-        # may belong to a different checkout. Rebuild against the verified head.
-        graph_config = config.get("graph", {})
-        graph = build_project_graph(
-            project_root,
-            include=profile.get("scope", {}).get("include", ["**/*"]),
-            exclude=profile.get("scope", {}).get("exclude", []),
-            components=config.get("components", []),
-            max_file_size_bytes=int(graph_config.get("max_file_size_bytes", 1_000_000)),
-        )
-        dump_json(graph_path, graph)
-
-        if approved_rules_path.exists():
-            rules = load_rules(approved_rules_path, required_status="approved")
-        else:
-            rules = {"schema_version": "1.0", "rules": []}
-            source["warnings"].append(f"approved rules file does not exist: {approved_rules_path}")
-            refresh_source_hash(source)
-
-        changed_files = [
-            item["path"]
-            for item in source["pull_request"].get("changed_files", [])
-            if isinstance(item, dict) and isinstance(item.get("path"), str)
-        ]
-        if not changed_files:
-            raise ValueError("GitHub returned no changed files for this pull request")
-        pr_number = source["pull_request"]["number"]
-        impact = analyze_change(
-            graph,
-            changed_files,
-            configured_packs=profile.get("review", {}).get("packs", []),
-            approved_rules=rules.get("rules", []),
+            profile=args.profile,
+            config=args.config,
+            graph=args.graph,
+            approved_rules=args.approved_rules,
+            refresh_graph=args.refresh_graph,
+            skip_diff=args.skip_diff,
+            skip_discussion=args.skip_discussion,
+            allow_repository_mismatch=args.allow_repository_mismatch,
+            allow_head_mismatch=args.allow_head_mismatch,
+            allow_dirty_worktree=args.allow_dirty_worktree,
             max_depth=args.max_depth,
-            change_id=f"PR-{pr_number}",
-            base_revision=source["pull_request"].get("base_oid"),
-            head_revision=source["pull_request"].get("head_oid"),
+            output_dir=args.output_dir,
         )
-        impact["source_evidence_sha256"] = source["source_sha256"]
-
-        output_dir = (
-            Path(args.output_dir).resolve()
-            if args.output_dir
-            else (project_root / ".pie" / f"pr-{pr_number}").resolve()
+        result = analyze_pull_request(
+            request,
+            github_cli=GitHubCLI(
+                executable=args.gh_executable,
+                timeout_seconds=args.timeout,
+            ),
+            capture_state=capture_project_state,
         )
-        output_dir.mkdir(parents=True, exist_ok=True)
-        source_path = output_dir / "github-source.json"
-        impact_path = output_dir / "impact.json"
-        report_path = output_dir / "REPORT.md"
-        dump_json(source_path, source)
-        dump_json(impact_path, impact)
-        report_path.write_text(pull_request_markdown(source, impact), encoding="utf-8")
-        diff_path = output_dir / "pull-request.diff"
-        if diff_text is not None:
-            # Preserve the exact bytes hashed by the connector. Path.write_text
-            # performs newline translation on Windows and would invalidate the
-            # companion diff SHA-256 evidence.
-            diff_path.write_bytes(diff_text.encode("utf-8"))
-        elif diff_path.exists():
-            diff_path.unlink()
     except Exception as exc:
         return _error(exc)
 
     print(
-        f"ANALYZED pull request: repo={source['repository']['name_with_owner']}; "
-        f"pr=#{source['pull_request']['number']}; files={len(changed_files)}; "
-        f"impacted={len(impact['impact']['dependent_files'])}; "
-        f"packs={len(impact['review']['selected_packs'])}; output={output_dir}"
+        f"ANALYZED pull request: repo={result.source['repository']['name_with_owner']}; "
+        f"pr=#{result.source['pull_request']['number']}; files={len(result.changed_files)}; "
+        f"impacted={len(result.impact['impact']['dependent_files'])}; "
+        f"packs={len(result.impact['review']['selected_packs'])}; output={result.output_dir}"
     )
     return 0
 
@@ -858,6 +720,43 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--gh-executable", help=argparse.SUPPRESS)
     p.add_argument("--output-dir")
     p.set_defaults(func=cmd_analyze_pr)
+
+    p = sub.add_parser("export-buildmap", help="Export one verified PIE Run as a metadata-only BuildMap reference")
+    p.add_argument("--ledger", required=True)
+    p.add_argument("--project-id", required=True)
+    p.add_argument("--run-id", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--redact-path", action="append", default=[])
+    p.add_argument("--generated-at")
+    p.set_defaults(func=cmd_export_buildmap)
+
+    p = sub.add_parser("validate-buildmap-export", help="Validate a BuildMap export and optionally replay it against a Ledger")
+    p.add_argument("export")
+    p.add_argument("--ledger")
+    p.set_defaults(func=cmd_validate_buildmap_export)
+
+    p = sub.add_parser("trust-assess", help="Generate a report-only Trust Gate readiness assessment")
+    p.add_argument("--request", required=True)
+    p.add_argument("--profile", required=True)
+    p.add_argument("--ledger")
+    p.add_argument("--policy-registry")
+    p.add_argument("--evaluation-report")
+    p.add_argument("--reground-report")
+    p.add_argument("--reground-observations")
+    p.add_argument("--output", required=True)
+    p.add_argument("--generated-at")
+    p.set_defaults(func=cmd_assess_trust)
+
+    p = sub.add_parser("validate-trust-report", help="Validate a Trust readiness report and optional source replay")
+    p.add_argument("report")
+    p.add_argument("--request")
+    p.add_argument("--profile")
+    p.add_argument("--ledger")
+    p.add_argument("--policy-registry")
+    p.add_argument("--evaluation-report")
+    p.add_argument("--reground-report")
+    p.add_argument("--reground-observations")
+    p.set_defaults(func=cmd_validate_trust_report)
     return parser
 
 
