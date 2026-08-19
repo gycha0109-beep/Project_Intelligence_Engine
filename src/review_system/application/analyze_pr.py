@@ -6,6 +6,11 @@ from pathlib import Path
 from typing import Any
 
 from ..github_connector import GitHubCLI, collect_pull_request, refresh_source_hash
+from ..github_prospective_capture import (
+    build_github_prospective_capture_candidate,
+    candidate_filename,
+    write_github_prospective_capture_candidate,
+)
 from ..identity import pull_request_run_identity, write_identity_manifest
 from ..intelligence_config import load_intelligence_config, load_rules, path_matches
 from ..intelligence_graph import build_project_graph
@@ -45,6 +50,7 @@ class AnalyzePullRequestResult:
     report_path: Path
     diff_path: Path | None
     changed_files: tuple[str, ...]
+    prospective_candidate_path: Path | None = None
 
 
 def _resolve_project_path(repository_root: Path, value: str | None, default_relative: str) -> Path:
@@ -167,8 +173,6 @@ def analyze_pull_request(
     refresh_source_hash(source)
 
     config = load_intelligence_config(config_path)
-    # PR analysis remains evidence-sensitive. The compatibility flag is retained,
-    # but the verified PR head graph is always rebuilt as in v0.3.0.
     graph_config = config.get("graph", {})
     graph = build_project_graph(
         project_root,
@@ -232,6 +236,10 @@ def analyze_pull_request(
     identity = pull_request_run_identity(profile["project"]["id"], source)
     write_identity_manifest(output_dir, identity)
 
+    candidate = build_github_prospective_capture_candidate(source, profile_path)
+    prospective_candidate_path = output_dir / candidate_filename(candidate)
+    write_github_prospective_capture_candidate(prospective_candidate_path, candidate)
+
     return AnalyzePullRequestResult(
         source=source,
         impact=impact,
@@ -241,4 +249,5 @@ def analyze_pull_request(
         report_path=report_path,
         diff_path=diff_path,
         changed_files=changed_files,
+        prospective_candidate_path=prospective_candidate_path,
     )
