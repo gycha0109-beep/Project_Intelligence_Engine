@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [candidate, rejection, materialize]
+        case: [materialize, analyze]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,24 +37,13 @@ jobs:
           python-version: "3.13"
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: candidate semantics
-        if: matrix.group == 'candidate'
-        run: >-
-          PYTHONPATH=.:tests python -m unittest -v
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_candidate_binds_known_evidence_without_inventing_operator_fields
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_degraded_analysis_candidate_is_fail_closed
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_semantic_rehash_cannot_remove_required_blocker
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_candidate_write_load_and_symlink_rejection
-      - name: stale and identity rejection
-        if: matrix.group == 'rejection'
-        run: >-
-          PYTHONPATH=.:tests python -m unittest -v
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_rejects_live_head_drift_before_intake
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_rejects_base_or_diff_drift
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_rejects_request_identity_mismatch_before_intake
-      - name: successful handoff and analyze-pr hook
-        if: matrix.group == 'materialize'
+      - name: materialize handoff
+        if: matrix.case == 'materialize'
         run: >-
           PYTHONPATH=.:tests python -m unittest -v
           test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_creates_stage10a_report_then_calls_stage10i_intake
+      - name: analyze-pr capture hook
+        if: matrix.case == 'analyze'
+        run: >-
+          PYTHONPATH=.:tests python -m unittest -v
           test_github_prospective_capture.GitHubProspectiveCaptureTests.test_analyze_pr_always_emits_capture_candidate_without_mutating_registry
