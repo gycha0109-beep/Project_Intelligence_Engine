@@ -47,6 +47,7 @@ invalid/partial packet                     -> fail closed
 Stage 10I source replay mismatch           -> fail closed / no registry mutation
 packet preparation                         -> no registry mutation
 reserved packet reason-code spoofing       -> fail closed
+formatting/key-order packet byte mutation  -> fail closed / no registry mutation
 ```
 
 The packet hash is canonical semantic JSON, and the on-disk packet has an independent canonical byte contract: UTF-8, recursively sorted object keys, two-space indentation, and one terminal newline. Whitespace/key-order-only reserialization therefore fails before review authority creation. Changed governed meaning is separately protected by `packet_sha256` and authoritative source reconstruction, including semantic rehash forgery attempts.
@@ -148,19 +149,44 @@ urs validate-findings examples/findings.sample.json
 pip wheel . --no-deps --wheel-dir dist-ci
 ```
 
-## 6. Docs-inclusive final gate
+## 6. Docs-inclusive and byte-hardening final evidence
 
-The source-validation result above proves the implementation head before Stage 10K closeout documentation.
+The initial Stage 10K implementation completed its docs-inclusive gate on PR #28:
 
-The final PR gate is stricter:
+```text
+PR #28 final head: 7549aa293bdf2cdd727d405c90c322387a249a90
+CI #1010 / Run 32211362162
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+merge commit into stacked parent: 8bd401209f6837fb9ecddde6772ff79f3c8a80fc
+post-merge CI #1012 / Run 32211480125: SUCCESS on 3.11 / 3.13 / 3.14
+```
 
-1. all required Stage 10K documents and architecture index update are present,
-2. temporary diagnostics are absent from the diff,
-3. the exact docs-inclusive PR HEAD passes the same canonical Python 3.11/3.13/3.14 matrix,
-4. PR #28 remains OPEN and MERGEABLE with Stage 10K-only scope,
-5. no governance/safety authority expansion is present.
+Final review identified one remaining distinction required by the Stage 10K attack contract: canonical semantic hashing did not by itself reject formatting/key-order-only packet byte reserialization. PR #29 added an independent canonical on-disk byte contract without changing `packet_sha256` semantics or any review authority.
 
-The exact docs-inclusive commit SHA and Actions run are authoritative in GitHub PR/CI metadata because a file cannot contain the SHA of the commit that contains that same file without changing the commit. Stage closeout reporting must cite that final external metadata explicitly.
+```text
+PR #29 final hardening head: 9d20dab0429d0d4542c4465e70fa990287dcb7e5
+CI #1015 / Run 32211722146
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+merge commit into stacked parent: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+post-merge CI #1017 / Run 32211832639
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+```
+
+Therefore the final Stage 10K code authority before docs-only closeout is:
+
+```text
+stacked parent: agent/stage-10d-operating-observation-threshold-policy
+exact code HEAD: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+CI #1017 / Run 32211832639: SUCCESS
+```
+
+The docs-only closeout commit necessarily has a later SHA than the code authority it documents. Its exact CI is external GitHub metadata and must also be reported at Stage closeout. No temporary diagnostic or self-patch workflow may remain in the final diff.
 
 ## 7. Safety interpretation
 
@@ -170,6 +196,7 @@ A green Stage 10K gate means:
 review packet construction = validated
 assessment/Trust/GitHub replay binding = validated
 stale packet rejection = validated
+literal packet-byte binding = validated
 explicit human decision persistence binding = validated
 ```
 
