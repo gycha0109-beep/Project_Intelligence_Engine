@@ -1,47 +1,101 @@
 # Project Intelligence Engine v0.3.0
 
-Project-aware change intelligence built on the Universal Review System control plane.
+Project-aware technical intelligence and evidence-governance tooling built on the Universal Review System control plane.
 
-PIE v0.3.0 adds a usable GitHub pull-request intake boundary. A PR number or URL is collected through the authenticated GitHub CLI, bound to local project evidence, analyzed against the project graph and approved rules, and written as reproducible JSON/Markdown artifacts.
+The package version remains `0.3.0`. The current Stage 0–10K development baseline extends the original GitHub PR intake with deterministic identity, evidence projection, defect/evaluation/policy tracking, reground analysis, metadata-only BuildMap export, and a report-only Trust evidence pipeline.
 
-## Architecture baseline
+## Current authority boundary
 
-The current implementation, target Control Plane, gap analysis, migration sequence, and Stage 0 validation are maintained in [`docs/architecture/`](docs/architecture/README.md).
+PIE is a **project-local technical intelligence / evidence authority**.
 
-The architecture baseline is anchored to an explicit commit. Actual code and schemas remain authoritative when later changes make a document stale.
-
-## What the ZIP is
-
-The PIE ZIP is the **tool source package**. It is not the repository being reviewed, and a PR URL is not pasted into the extracted ZIP.
-
-Normal layout:
+The current baseline is intentionally conservative:
 
 ```text
-D:\Tools\project-intelligence-engine-v0.3.0\   <- PIE tool
-D:\Ji_hwan\K_beauty\                           <- repository to analyze
+mode=REPORT_ONLY
+automation_authorized=false
+pilot_authorized=false
 ```
 
-Install PIE once, then run `pie` while your terminal is inside the target repository.
+CI success, PR merge, workflow acceptance, packet generation, or implementation completion do **not** become `REVIEWED`, `AUDITED`, a safety Outcome, pilot authorization, or automation authorization.
+
+BuildMap remains a separate product/strategic reasoning authority. PIE exports metadata-only references for BuildMap but does not depend on the BuildMap runtime. Factory Intelligence and cross-project production knowledge are outside the current implementation.
+
+## What PIE currently provides
+
+### Change intelligence
+
+- project/profile and Review Pack resolution
+- protected-path snapshots and verification
+- Project Graph indexing
+- change-impact and parallel-change analysis
+- rule-candidate discovery and explicit approval
+- read-only GitHub PR collection and reproducible PR evidence
+
+### Evidence and learning foundation
+
+- deterministic Run and Artifact identities
+- rebuildable SQLite Evidence Ledger projection
+- project-level Defect Registry
+- deterministic baseline/challenger Evaluation Lab
+- versioned Policy Registry
+- Reground freshness and impacted-recheck analysis
+- metadata-only BuildMap reference export
+
+### Trust and prospective evidence
+
+- Stage 10A report-only R0–R4 Trust assessment
+- explicit Stage 10B `WORKFLOW_ACCEPTED` / `REVIEWED` / `AUDITED` decision separation
+- authoritative Outcome and reconciliation contracts
+- R0 observation threshold reporting
+- independent-audit authority verification
+- report-only R0 pilot safety/eligibility evidence
+- prospective R0 evidence campaign intake
+- GitHub prospective capture candidate/materialization
+- deterministic Stage 10K review packets bound to exact assessment, Trust, GitHub, and evidence snapshots
+
+The prospective path is:
+
+```text
+real GitHub change
+-> Stage 10J capture
+-> Stage 10I assessment
+-> Stage 10K deterministic review packet
+-> explicit human REVIEWED / AUDITED
+-> later authoritative Outcome
+-> reconciliation / observation / replay
+```
+
+Synthetic tests and retrospective workflow history are not real prospective runtime evidence.
+
+## Architecture and integration evidence
+
+Detailed contracts, implementation reviews, validation records, and the Stage 0–10K integration closeout are under [`docs/architecture/`](docs/architecture/README.md).
+
+Main integration audit:
+
+- [`INTEGRATION-CLOSEOUT-STAGE-0-10K.md`](docs/architecture/INTEGRATION-CLOSEOUT-STAGE-0-10K.md)
+
+Actual code and schemas remain authoritative when historical stage documents describe an earlier snapshot.
 
 ## Requirements
 
 - Python 3.11 or newer
 - Git
-- GitHub CLI (`gh`) for `github-doctor` and `analyze-pr`
-- An authenticated GitHub CLI session (`gh auth login`)
+- GitHub CLI (`gh`) for `github-doctor`, `analyze-pr`, and live GitHub prospective replay
+- authenticated GitHub CLI session (`gh auth login`)
 
-PIE never asks you to paste a GitHub token into its config. It reuses the credential managed by `gh` and invokes commands without a shell.
+PIE does not require a GitHub token in project configuration. GitHub collection reuses the credential managed by `gh` and executes argument vectors without a shell.
 
 ## Install
 
-### From the wheel
+### From a wheel
 
 ```powershell
 py -m pip install .\project_intelligence_engine-0.3.0-py3-none-any.whl
 pie version
 ```
 
-### From the extracted source ZIP
+### From source
 
 ```powershell
 cd D:\Tools\project-intelligence-engine-v0.3.0
@@ -49,38 +103,75 @@ py -m pip install .
 pie version
 ```
 
-The legacy `urs` command remains available as an alias.
+The legacy `urs` command remains available as a compatibility alias.
 
-## First real use: Bejewely
+## CLI surfaces
+
+Core command:
+
+```text
+pie
+urs
+```
+
+Dedicated subsystem entry points:
+
+```text
+pie-ledger
+pie-defect
+pie-eval
+pie-policy
+pie-reground
+pie-buildmap
+pie-trust
+pie-trust-comparison
+pie-trust-audit
+pie-trust-observation
+pie-trust-reconciliation
+pie-trust-pilot-review
+pie-trust-pilot-evidence
+pie-trust-evidence-acquisition
+pie-trust-prospective
+```
+
+These entry points expose existing deterministic/report-only contracts; their existence does not authorize a pilot or automation.
+
+## First project setup
+
+Example with the Bejewely preset:
 
 ```powershell
-# 1. GitHub CLI login, once per PC/account
+# GitHub CLI login, once per PC/account
 gh auth login
 
-# 2. Move to the repository to be analyzed
+# Move to the repository to analyze
 cd D:\Ji_hwan\K_beauty
 
-# 3. Create PIE project files, once per repository
+# Create PIE project files once
 pie init-project --preset bejewely
 
-# 4. Check gh installation, login, and current repository binding
+# Verify GitHub CLI and repository binding
 pie github-doctor
 
-# 5. Analyze one PR URL
+# Analyze one PR
 pie analyze-pr https://github.com/gycha0109-beep/K_beauty/pull/71
 ```
 
-The default result directory is:
+The default PR analysis directory is:
 
 ```text
-K_beauty/.pie/pr-71/
-├─ github-source.json   # PR metadata, reviews, comments, checks, source hash
-├─ pull-request.diff    # collected patch when GitHub permits it
-├─ impact.json          # PIE impact analysis
-└─ REPORT.md            # readable summary
+.pie/pr-71/
+├─ github-source.json
+├─ pull-request.diff
+├─ impact.json
+├─ identity.json
+├─ prospective-capture-candidate.json
+└─ REPORT.md
 ```
 
-Validate that the GitHub evidence has not been edited:
+Candidate generation is read-only with respect to prospective review authority. Explicit materialization and explicit human review are separate operations.
+
+Validate GitHub evidence with:
 
 ```powershell
 pie validate-github-source .pie\pr-71\github-source.json
@@ -95,79 +186,50 @@ journey-connect
 generic-webapp
 ```
 
-`init-project` creates these files without overwriting existing files unless `--force` is explicitly supplied:
+`init-project` creates project-local review/intelligence configuration without overwriting existing files unless `--force` is explicitly supplied.
 
-```text
-.review/
-├─ project.yml
-└─ intelligence/
-   ├─ config.yml
-   ├─ approved-rules.yml
-   ├─ candidate-rules.yml
-   └─ README.md
-```
+## GitHub safeguards
 
-## GitHub commands
+- repository mismatch blocks analysis by default
+- local HEAD / PR exact-head mismatch blocks by default
+- scoped dirty worktree changes block by default
+- changed-file and discussion collection is paginated and source-hashed
+- diff failure is explicit degraded evidence rather than silently complete evidence
+- prospective materialization revalidates live repository, PR, head, base, changed files, local repository state, Project Profile identity, Trust request identity, and source replay
+- GitHub capture/materialization does not create `REVIEWED`, `AUDITED`, Outcome, pilot, or automation authority
+- PIE's GitHub intake does not perform automatic merge, approval, label, comment, or deployment actions
 
-### Diagnose setup
+Explicit degraded-analysis overrides such as `--allow-head-mismatch` and `--allow-dirty-worktree` remain analysis-only overrides; they do not grant Trust authority.
 
-```bash
-pie github-doctor
-```
+## Evidence and Trust safeguards
 
-Checks:
+- source revisions and identities are deterministic and exact where authority requires them
+- schema/hash verification is supplemented by authoritative source replay for governed decisions
+- path traversal and symlink inputs are rejected on authority-sensitive file surfaces
+- writes use atomic-replace patterns where the contract requires preservation
+- zero-denominator metrics remain undefined rather than appearing perfect
+- R0 false negatives remain zero-tolerance in the observation policy contract
+- `WORKFLOW_ACCEPTED` is not reviewed evidence
+- Stage 10K packet preparation is not human review
+- Stage 10K `AUDITED` is not Stage 10F `INDEPENDENT_AUDIT` Outcome authority
+- pilot eligibility can only request a later explicit human authorization; `pilot_authorized` remains false
 
-- `gh` is installed
-- the requested GitHub hostname is authenticated
-- the current folder resolves to a GitHub repository
+## Storage model
 
-### Analyze by URL
+PIE remains primarily local and project-scoped.
 
-```bash
-pie analyze-pr https://github.com/OWNER/REPO/pull/123
-```
+- source artifacts and registries are file-authoritative
+- the Evidence Ledger SQLite database is a rebuildable projection
+- runtime prospective evidence workspaces are local/gitignored evidence unless explicitly managed elsewhere
+- no central cross-project Trust/Factory database is introduced by the Stage 0–10K baseline
 
-### Analyze by number
+## Further documentation
 
-Inside the matching local repository:
+Start with:
 
-```bash
-pie analyze-pr 123
-```
+- [`docs/architecture/README.md`](docs/architecture/README.md)
+- [`docs/architecture/STAGE-10K-GOVERNED-PROSPECTIVE-REVIEW-HANDOFF.md`](docs/architecture/STAGE-10K-GOVERNED-PROSPECTIVE-REVIEW-HANDOFF.md)
+- [`docs/architecture/STAGE-10K-VALIDATION.md`](docs/architecture/STAGE-10K-VALIDATION.md)
+- [`docs/architecture/INTEGRATION-CLOSEOUT-STAGE-0-10K.md`](docs/architecture/INTEGRATION-CLOSEOUT-STAGE-0-10K.md)
 
-Outside a matching repository:
-
-```bash
-pie analyze-pr 123 --repo OWNER/REPO --repository-root D:\path\to\local\repo
-```
-
-### Important safeguards
-
-- A detected or unverifiable local/remote repository blocks analysis by default.
-- Existing project configuration is not overwritten without `--force`.
-- A diff collection failure is recorded as a warning; metadata-based impact analysis can still proceed, but the report marks diff evidence unavailable.
-- If local `HEAD` differs from the PR head SHA, analysis blocks by default. Use the exact PR head; `--allow-head-mismatch` is an explicit degraded-analysis override.
-- PR analysis rebuilds the graph at the verified head and blocks scoped dirty changes by default; `--allow-dirty-worktree` is an explicit degraded-analysis override.
-- `init-project` adds `.pie/` to `.gitignore`. GitHub evidence may contain PR bodies, comments, reviews, and patches; do not publish it without reviewing sensitive content.
-- Inline review comments are collected through paginated read-only `gh api` calls.
-- No GitHub write action, merge, checkout, comment, or deployment command is executed.
-
-## Existing intelligence commands
-
-The v0.2 commands remain available:
-
-- `index-project`
-- `validate-graph`
-- `analyze-change`
-- `compare-changes`
-- `capture-state`
-- `discover-rule-candidates`
-- `approve-rule`
-
-All Universal Review System commands also remain available.
-
-See:
-
-- [`docs/PIE-GITHUB-CONNECTOR-DESIGN-KO.md`](docs/PIE-GITHUB-CONNECTOR-DESIGN-KO.md)
-- [`docs/PIE-GITHUB-CONNECTOR-USAGE-KO.md`](docs/PIE-GITHUB-CONNECTOR-USAGE-KO.md)
-- [`docs/PIE-v0.3.0-IMPLEMENTATION-REVIEW-KO.md`](docs/PIE-v0.3.0-IMPLEMENTATION-REVIEW-KO.md)
+Historical GitHub intake documents remain available under `docs/` for the original v0.3.0 usage and implementation context.
