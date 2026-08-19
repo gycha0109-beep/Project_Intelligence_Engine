@@ -1,0 +1,120 @@
+name: Stage 10K closeout docs patch
+on:
+  push:
+    branches:
+      - agent/stage-10k-closeout-docs
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/stage-10k-closeout-docs
+      - name: Apply Stage 10K closeout evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected exactly one replacement in {path}")
+              target.write_text(text.replace(old, new), encoding="utf-8")
+
+          validation = "docs/architecture/STAGE-10K-VALIDATION.md"
+          old = '''## 6. Docs-inclusive final gate
+
+The source-validation result above proves the implementation head before Stage 10K closeout documentation.
+
+The final PR gate is stricter:
+
+1. all required Stage 10K documents and architecture index update are present,
+2. temporary diagnostics are absent from the diff,
+3. the exact docs-inclusive PR HEAD passes the same canonical Python 3.11/3.13/3.14 matrix,
+4. PR #28 remains OPEN and MERGEABLE with Stage 10K-only scope,
+5. no governance/safety authority expansion is present.
+
+The exact docs-inclusive commit SHA and Actions run are authoritative in GitHub PR/CI metadata because a file cannot contain the SHA of the commit that contains that same file without changing the commit. Stage closeout reporting must cite that final external metadata explicitly.
+'''
+          new = '''## 6. Docs-inclusive and byte-hardening final evidence
+
+The initial Stage 10K implementation completed its docs-inclusive gate on PR #28:
+
+```text
+PR #28 final head: 7549aa293bdf2cdd727d405c90c322387a249a90
+CI #1010 / Run 32211362162
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+merge commit into stacked parent: 8bd401209f6837fb9ecddde6772ff79f3c8a80fc
+post-merge CI #1012 / Run 32211480125: SUCCESS on 3.11 / 3.13 / 3.14
+```
+
+Final review identified one remaining distinction required by the Stage 10K attack contract: canonical semantic hashing did not by itself reject formatting/key-order-only packet byte reserialization. PR #29 added an independent canonical on-disk byte contract without changing `packet_sha256` semantics or any review authority.
+
+```text
+PR #29 final hardening head: 9d20dab0429d0d4542c4465e70fa990287dcb7e5
+CI #1015 / Run 32211722146
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+merge commit into stacked parent: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+post-merge CI #1017 / Run 32211832639
+Python 3.11: SUCCESS
+Python 3.13: SUCCESS
+Python 3.14: SUCCESS
+```
+
+Therefore the final Stage 10K code authority before docs-only closeout is:
+
+```text
+stacked parent: agent/stage-10d-operating-observation-threshold-policy
+exact code HEAD: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+CI #1017 / Run 32211832639: SUCCESS
+```
+
+The docs-only closeout commit necessarily has a later SHA than the code authority it documents. Its exact CI is external GitHub metadata and must also be reported at Stage closeout. No temporary diagnostic or self-patch workflow may remain in the final diff.
+'''
+          replace_once(validation, old, new)
+
+          implementation = "docs/architecture/STAGE-10K-IMPLEMENTATION-REVIEW.md"
+          old = '''No Stage 10K implementation action is itself a human governance decision.\n'''
+          new = '''No Stage 10K implementation action is itself a human governance decision.
+
+## 11. Final byte-hardening and merge evidence
+
+After the first Stage 10K merge, final attack-contract review separated literal packet-byte tamper from semantic rehash forgery. PR #29 added canonical packet file bytes — UTF-8, recursively sorted keys, two-space indentation, one terminal newline — while preserving the existing canonical semantic `packet_sha256` identity and Stage 10I/10J source replay.
+
+Validated hardening evidence:
+
+```text
+PR #29 head: 9d20dab0429d0d4542c4465e70fa990287dcb7e5
+CI #1015 / Run 32211722146: SUCCESS on Python 3.11 / 3.13 / 3.14
+stacked merge commit: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+post-merge CI #1017 / Run 32211832639: SUCCESS on Python 3.11 / 3.13 / 3.14
+```
+
+This hardening adds no review level, Outcome authority, Trust Root/issuer authority, threshold relaxation, pilot authorization, or automation authorization.
+'''
+          replace_once(implementation, old, new)
+
+          readme = "docs/architecture/README.md"
+          old = '- Stage 10K — Governed Prospective Review Packet & Explicit Human Review Binding: implementation on PR #28; canonical source CI #1002 / Run `32211117393` PASS; docs-inclusive exact-head gate required before merge\n'
+          new = '- Stage 10K — Governed Prospective Review Packet & Explicit Human Review Binding: `PASS`; PR #28 and byte-hardening PR #29 merged into Stage 10D stacked branch; final code HEAD `bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3`; post-merge CI #1017 / Run `32211832639` SUCCESS on Python 3.11 / 3.13 / 3.14; real runtime campaign remains unchanged\n'
+          replace_once(readme, old, new)
+          PY
+      - name: Remove temporary patch workflow
+        run: rm .github/workflows/stage10k-closeout-docs-patch.yml
+      - name: Commit closeout docs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs(stage10k): close final validation record"
+          git push origin HEAD:agent/stage-10k-closeout-docs
