@@ -32,52 +32,20 @@ jobs:
           python-version: "3.13"
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: bypass Stage 10A report generation
+      - name: capture failing materialize traceback
         run: |
-          PYTHONPATH=.:tests python - <<'PY'
-          import json
-          import tempfile
-          from pathlib import Path
-          from unittest.mock import patch
-          from review_system.github_prospective_capture import (
-              build_github_prospective_capture_candidate,
-              materialize_github_prospective_capture,
-              write_github_prospective_capture_candidate,
-          )
-          from test_github_prospective_capture import HEAD, _MaterializeCLI, _profile, _source, _request
-          with tempfile.TemporaryDirectory() as tmp:
-              root = Path(tmp)
-              profile = _profile(root)
-              candidate = build_github_prospective_capture_candidate(_source(), profile)
-              candidate_path = write_github_prospective_capture_candidate(root / 'candidate.json', candidate)
-              request_path = root / 'request.json'
-              request_path.write_text(json.dumps(_request(candidate)), encoding='utf-8')
-              with (
-                  patch('review_system.github_prospective_capture.assess_trust', return_value={}),
-                  patch('review_system.github_prospective_capture.write_trust_report'),
-                  patch(
-                      'review_system.github_prospective_capture.intake_prospective_case',
-                      return_value={
-                          'assessment_id': 'assessment-test',
-                          'predicted_risk_band': 'R2',
-                          'source_revision': HEAD,
-                          'idempotent': False,
-                          'registry_sha256': 'd' * 64,
-                      },
-                  ),
-              ):
-                  result = materialize_github_prospective_capture(
-                      candidate_path,
-                      request=request_path,
-                      workspace=root / 'workspace',
-                      profile=profile,
-                      repository_root=root,
-                      github_cli=_MaterializeCLI(),
-                      collect_pr=lambda *args, **kwargs: (_source(), None),
-                      capture_state=lambda *args, **kwargs: {'repository': {'head_revision': HEAD, 'working_tree_dirty': False}},
-                      trust_report_output=root / '.pie' / 'prospective-trust-report.json',
-                      generated_at='2026-08-19T00:10:00Z',
-                      captured_at='2026-08-19T00:11:00Z',
-                  )
-                  assert result['assessment_id'] == 'assessment-test'
-          PY
+          set +e
+          PYTHONPATH=.:tests python -m unittest -v \
+            test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_creates_stage10a_report_then_calls_stage10i_intake \
+            > stage10j-materialize.log 2>&1
+          code=$?
+          echo "$code" > stage10j-exitcode.txt
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage10j-materialize-traceback
+          path: |
+            stage10j-materialize.log
+            stage10j-exitcode.txt
+      - name: preserve diagnostic failure
+        run: test "$(cat stage10j-exitcode.txt)" = "0"
