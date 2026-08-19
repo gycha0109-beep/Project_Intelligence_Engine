@@ -5,8 +5,14 @@ import json
 import sys
 from typing import Sequence
 
+from .github_connector import GitHubCLI, GitHubCLIError
+from .github_prospective_capture import (
+    GitHubProspectiveCaptureError,
+    GitHubProspectiveCaptureVerificationError,
+    load_github_prospective_capture_candidate,
+    materialize_github_prospective_capture,
+)
 from .trust_comparison import TrustComparisonError
-
 from .trust_prospective_evidence import (
     ProspectiveEvidenceError,
     ProspectiveEvidenceVerificationError,
@@ -89,17 +95,58 @@ def cmd_snapshot(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_verify_github_capture(args: argparse.Namespace) -> int:
+    source, candidate = load_github_prospective_capture_candidate(args.candidate)
+    _print({
+        "valid": True,
+        "candidate": str(source),
+        "candidate_id": candidate["candidate_id"],
+        "status": candidate["status"],
+        "next_step": candidate["next_step"],
+        "blockers": candidate["blockers"],
+        "automation_authorized": False,
+        "pilot_authorized": False,
+    })
+    return 0
+
+
+def cmd_materialize_github_capture(args: argparse.Namespace) -> int:
+    result = materialize_github_prospective_capture(
+        args.candidate,
+        request=args.request,
+        workspace=args.workspace,
+        profile=args.profile,
+        repository_root=args.repository_root,
+        github_cli=GitHubCLI(executable=args.gh_executable, timeout_seconds=args.timeout),
+        repository=args.repo,
+        ledger=args.ledger,
+        policy_registry=args.policy_registry,
+        evaluation_report=args.evaluation_report,
+        reground_report=args.reground_report,
+        reground_observations=args.reground_observations,
+        trust_report_output=args.trust_report_output,
+        generated_at=args.generated_at,
+        captured_at=args.captured_at,
+    )
+    _print({"valid": True, **result})
+    return 0
+
+
+def _add_optional_trust_sources(command: argparse.ArgumentParser) -> None:
+    command.add_argument("--ledger")
+    command.add_argument("--policy-registry")
+    command.add_argument("--evaluation-report")
+    command.add_argument("--reground-report")
+    command.add_argument("--reground-observations")
+
+
 def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command = sub.add_parser("intake-prospective-case")
     command.add_argument("--workspace", required=True)
     command.add_argument("--trust-report", required=True)
     command.add_argument("--request", required=True)
     command.add_argument("--profile", required=True)
-    command.add_argument("--ledger")
-    command.add_argument("--policy-registry")
-    command.add_argument("--evaluation-report")
-    command.add_argument("--reground-report")
-    command.add_argument("--reground-observations")
+    _add_optional_trust_sources(command)
     command.add_argument("--captured-at")
     command.set_defaults(func=cmd_intake)
 
@@ -142,6 +189,25 @@ def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command.add_argument("--generated-at")
     command.set_defaults(func=cmd_snapshot)
 
+    command = sub.add_parser("verify-github-prospective-capture")
+    command.add_argument("--candidate", required=True)
+    command.set_defaults(func=cmd_verify_github_capture)
+
+    command = sub.add_parser("materialize-github-prospective-capture")
+    command.add_argument("--candidate", required=True)
+    command.add_argument("--request", required=True)
+    command.add_argument("--workspace", required=True)
+    command.add_argument("--profile", required=True)
+    command.add_argument("--repository-root", required=True)
+    command.add_argument("--repo")
+    _add_optional_trust_sources(command)
+    command.add_argument("--trust-report-output")
+    command.add_argument("--generated-at")
+    command.add_argument("--captured-at")
+    command.add_argument("--timeout", type=int, default=120)
+    command.add_argument("--gh-executable", help=argparse.SUPPRESS)
+    command.set_defaults(func=cmd_materialize_github_capture)
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pie-trust-prospective", description="Collect prospective Trust evidence without inferring human review or automation authority.")
@@ -154,10 +220,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
     try:
         return args.func(args)
-    except ProspectiveEvidenceVerificationError as exc:
+    except (ProspectiveEvidenceVerificationError, GitHubProspectiveCaptureVerificationError) as exc:
         _print({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
-    except (ProspectiveEvidenceError, TrustComparisonError, OSError, ValueError) as exc:
+    except (
+        ProspectiveEvidenceError,
+        GitHubProspectiveCaptureError,
+        GitHubCLIError,
+        TrustComparisonError,
+        OSError,
+        ValueError,
+    ) as exc:
         _print({"valid": False, "error": str(exc)}, stream=sys.stderr)
         return 3
 
