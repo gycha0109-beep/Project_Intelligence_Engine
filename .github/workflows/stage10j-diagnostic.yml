@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - agent/stage-10j-github-prospective-capture-hook
+  pull_request:
 jobs:
   capture-full-unittest:
     runs-on: ubuntu-latest
