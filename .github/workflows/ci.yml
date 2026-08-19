@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [trust, materialize]
+        case: [call, result, file, mock]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,29 +36,63 @@ jobs:
           python-version: "3.13"
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - name: direct Stage 10A report
-        if: matrix.case == 'trust'
+      - name: materialize postcondition isolation
+        env:
+          DIAGNOSTIC_CASE: ${{ matrix.case }}
         run: |
           PYTHONPATH=.:tests python - <<'PY'
           import json
+          import os
           import tempfile
           from pathlib import Path
-          from review_system.github_prospective_capture import build_github_prospective_capture_candidate
-          from review_system.trust import assess_trust, write_trust_report
-          from test_github_prospective_capture import _profile, _source, _request
+          from unittest.mock import patch
+          from review_system.github_prospective_capture import (
+              build_github_prospective_capture_candidate,
+              materialize_github_prospective_capture,
+              write_github_prospective_capture_candidate,
+          )
+          from test_github_prospective_capture import HEAD, _MaterializeCLI, _profile, _source, _request
+          case = os.environ['DIAGNOSTIC_CASE']
           with tempfile.TemporaryDirectory() as tmp:
               root = Path(tmp)
               profile = _profile(root)
               candidate = build_github_prospective_capture_candidate(_source(), profile)
+              candidate_path = write_github_prospective_capture_candidate(root / 'candidate.json', candidate)
               request_path = root / 'request.json'
               request_path.write_text(json.dumps(_request(candidate)), encoding='utf-8')
-              report = assess_trust(request_path, profile, generated_at='2026-08-19T00:10:00Z')
-              target = root / '.pie' / 'prospective-trust-report.json'
-              write_trust_report(target, report)
-              assert target.is_file()
+              report_path = root / '.pie' / 'prospective-trust-report.json'
+              with patch(
+                  'review_system.github_prospective_capture.intake_prospective_case',
+                  return_value={
+                      'assessment_id': 'assessment-test',
+                      'predicted_risk_band': 'R2',
+                      'source_revision': HEAD,
+                      'idempotent': False,
+                      'registry_sha256': 'd' * 64,
+                  },
+              ) as intake:
+                  result = materialize_github_prospective_capture(
+                      candidate_path,
+                      request=request_path,
+                      workspace=root / 'workspace',
+                      profile=profile,
+                      repository_root=root,
+                      github_cli=_MaterializeCLI(),
+                      collect_pr=lambda *args, **kwargs: (_source(), None),
+                      capture_state=lambda *args, **kwargs: {'repository': {'head_revision': HEAD, 'working_tree_dirty': False}},
+                      trust_report_output=report_path,
+                      generated_at='2026-08-19T00:10:00Z',
+                      captured_at='2026-08-19T00:11:00Z',
+                  )
+                  if case == 'result':
+                      assert result['assessment_id'] == 'assessment-test'
+                      assert result['source_revision'] == HEAD
+                      assert result['automation_authorized'] is False
+                      assert result['pilot_authorized'] is False
+                      assert result['human_review_recorded'] is False
+                      assert result['outcome_recorded'] is False
+                  elif case == 'file':
+                      assert report_path.is_file()
+                  elif case == 'mock':
+                      intake.assert_called_once()
           PY
-      - name: full materialize handoff
-        if: matrix.case == 'materialize'
-        run: >-
-          PYTHONPATH=.:tests python -m unittest -v
-          test_github_prospective_capture.GitHubProspectiveCaptureTests.test_materialization_creates_stage10a_report_then_calls_stage10i_intake
