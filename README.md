@@ -165,7 +165,7 @@ The default PR analysis directory is:
 ├─ pull-request.diff
 ├─ impact.json
 ├─ identity.json
-├─ prospective-capture-candidate.json
+├─ prospective-capture-<head-12>.json
 └─ REPORT.md
 ```
 
