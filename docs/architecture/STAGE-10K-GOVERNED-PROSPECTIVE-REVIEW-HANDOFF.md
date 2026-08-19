@@ -55,7 +55,7 @@ Required packet identity/provenance includes:
 - fixed report-only governance flags
 - `evidence_snapshot_sha256`
 
-`packet_id` is deterministic from the governed assessment/GitHub/evidence snapshot identity. `packet_sha256` is a canonical JSON semantic hash of the packet excluding its own hash field. The on-disk writer emits one deterministic formatted representation, while semantic verification and authoritative source replay prevent changed packet meaning from creating review authority.
+`packet_id` is deterministic from the governed assessment/GitHub/evidence snapshot identity. `packet_sha256` is a canonical JSON semantic hash of the packet excluding its own hash field. In addition, Stage 10K requires one canonical on-disk byte representation: UTF-8 JSON, recursively sorted object keys, two-space indentation, and one terminal newline. Formatting/key-order byte drift is rejected before review authority can be created, while semantic verification and authoritative source replay separately prevent changed packet meaning plus recomputed hashes from creating review authority.
 
 ## 3. Assessment and source binding
 

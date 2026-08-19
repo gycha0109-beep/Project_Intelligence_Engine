@@ -49,7 +49,7 @@ packet preparation                         -> no registry mutation
 reserved packet reason-code spoofing       -> fail closed
 ```
 
-The packet hash is canonical semantic JSON. The deterministic writer fixes the normal on-disk representation; validation treats whitespace/key-order-only reserialization as the same semantic packet rather than as a new evidence snapshot. Changed governed meaning is protected both by `packet_sha256` and by source reconstruction.
+The packet hash is canonical semantic JSON, and the on-disk packet has an independent canonical byte contract: UTF-8, recursively sorted object keys, two-space indentation, and one terminal newline. Whitespace/key-order-only reserialization therefore fails before review authority creation. Changed governed meaning is separately protected by `packet_sha256` and authoritative source reconstruction, including semantic rehash forgery attempts.
 
 ## 3. Failure history
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -57,6 +58,31 @@ class GovernedProspectiveReviewHardeningTests(unittest.TestCase):
             dump_json(packet_path, value)
             with self.assertRaises(ProspectiveReviewVerificationError):
                 load_review_packet(packet_path)
+
+    def test_formatting_only_packet_byte_mutation_cannot_create_review_authority(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            _fixture, source, _candidate, candidate_path, workspace, _intake, packet, packet_path = self._case(root)
+            before = (workspace / "comparison-registry.json").read_bytes()
+            packet_path.write_text(
+                json.dumps(packet, indent=4, ensure_ascii=False, sort_keys=False) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ProspectiveReviewVerificationError, "byte representation is not canonical"):
+                submit_review_packet(
+                    packet_path,
+                    workspace_root=workspace,
+                    github_candidate=candidate_path,
+                    repository_root=root,
+                    github_cli=object(),
+                    review_level="REVIEWED",
+                    decision="APPROVE",
+                    actor="reviewer-a",
+                    occurred_at=REVIEW_AT,
+                    confirmed_risk_band="R0",
+                    collect_pr=lambda *args, **kwargs: (deepcopy(source), None),
+                )
+            self.assertEqual(before, (workspace / "comparison-registry.json").read_bytes())
 
     def test_semantic_rehash_forgery_is_rejected_by_exact_source_replay(self):
         with tempfile.TemporaryDirectory() as temporary:

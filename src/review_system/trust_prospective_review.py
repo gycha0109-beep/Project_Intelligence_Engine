@@ -160,7 +160,7 @@ def write_review_packet(path: str | Path, packet: dict[str, Any]) -> Path:
         raise ProspectiveReviewVerificationError(errors)
     target = _safe_output(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    payload = (json.dumps(packet, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    payload = (json.dumps(packet, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
     descriptor, name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
     temporary = Path(name)
     try:
@@ -178,9 +178,13 @@ def write_review_packet(path: str | Path, packet: dict[str, Any]) -> Path:
 def load_review_packet(path: str | Path) -> tuple[Path, dict[str, Any]]:
     source = _safe_input(path, "prospective review packet")
     try:
-        value = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = source.read_bytes()
+        value = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ProspectiveReviewError(f"cannot load prospective review packet: {exc}") from exc
+    canonical = (json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
+    if raw != canonical:
+        raise ProspectiveReviewVerificationError(["packet byte representation is not canonical"])
     errors = verify_review_packet_data(value)
     if errors:
         raise ProspectiveReviewVerificationError(errors)
