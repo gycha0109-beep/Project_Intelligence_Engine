@@ -5,6 +5,8 @@ import json
 import sys
 from typing import Sequence
 
+from .github_connector import GitHubCLIError
+from .github_prospective_capture import GitHubProspectiveCaptureError, GitHubProspectiveCaptureVerificationError
 from .trust import (
     TrustError,
     TrustVerificationError,
@@ -113,7 +115,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pie-trust",
-        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, R0 pilot safety review, pilot eligibility evidence-run, and runtime evidence acquisition reports.",
+        description="Generate report-only Trust evidence, comparison outcomes, audit authority, observation readiness, source reconciliation, R0 pilot safety review, pilot eligibility evidence-run, runtime evidence acquisition, and prospective capture reports.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -153,6 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PilotEvidenceRunVerificationError,
         EvidenceAcquisitionVerificationError,
         ProspectiveEvidenceVerificationError,
+        GitHubProspectiveCaptureVerificationError,
     ) as exc:
         _print_json({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -166,6 +169,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         PilotEvidenceRunError,
         EvidenceAcquisitionError,
         ProspectiveEvidenceError,
+        GitHubProspectiveCaptureError,
+        GitHubCLIError,
         OSError,
         ValueError,
     ) as exc:
