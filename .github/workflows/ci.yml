@@ -29,14 +29,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - tests.test_github_prospective_capture
-          - tests.test_github_prospective_capture_cli
-          - tests.test_application_analyze_pr
-          - tests.test_trust_prospective_evidence
-          - tests.test_trust_prospective_evidence_cli
-          - tests.test_trust_prospective_evidence_hardening
-          - tests.test_trust_prospective_evidence_outcomes
+        pattern:
+          - test_github_prospective_capture.py
+          - test_github_prospective_capture_cli.py
+          - test_application_analyze_pr.py
+          - test_trust_prospective_evidence.py
+          - test_trust_prospective_evidence_cli.py
+          - test_trust_prospective_evidence_hardening.py
+          - test_trust_prospective_evidence_outcomes.py
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,4 +44,4 @@ jobs:
           python-version: "3.13"
       - run: pip install -e .
       - run: python scripts/sync_package_assets.py
-      - run: python -m unittest -v ${{ matrix.module }}
+      - run: python -m unittest discover -s tests -p "${{ matrix.pattern }}" -v
