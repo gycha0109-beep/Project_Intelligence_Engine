@@ -73,6 +73,12 @@
 62. [STAGE-10I-PROSPECTIVE-R0-EVIDENCE-COLLECTION.md](STAGE-10I-PROSPECTIVE-R0-EVIDENCE-COLLECTION.md) — 미래 실제 변경을 R0 evidence case로 수집하는 계약
 63. [STAGE-10I-IMPLEMENTATION-REVIEW.md](STAGE-10I-IMPLEMENTATION-REVIEW.md) — Stage 10I exact revision, replay, transaction, snapshot hardening 리뷰
 64. [STAGE-10I-VALIDATION.md](STAGE-10I-VALIDATION.md) — Stage 10I focused/full regression 검증과 runtime 해석
+65. [STAGE-10J-GITHUB-PROSPECTIVE-CAPTURE.md](STAGE-10J-GITHUB-PROSPECTIVE-CAPTURE.md) — GitHub PR prospective capture candidate와 explicit materialization 경계
+66. [STAGE-10J-IMPLEMENTATION-REVIEW.md](STAGE-10J-IMPLEMENTATION-REVIEW.md) — Stage 10J exact-head/source-revision/identity-manifest 구현 리뷰
+67. [STAGE-10J-VALIDATION.md](STAGE-10J-VALIDATION.md) — Stage 10J capture/materialization 회귀 검증
+68. [STAGE-10K-GOVERNED-PROSPECTIVE-REVIEW-HANDOFF.md](STAGE-10K-GOVERNED-PROSPECTIVE-REVIEW-HANDOFF.md) — exact evidence snapshot에 REVIEWED/AUDITED human decision을 bind하는 governed review packet 계약
+69. [STAGE-10K-IMPLEMENTATION-REVIEW.md](STAGE-10K-IMPLEMENTATION-REVIEW.md) — Stage 10K packet/source/stale/human-action boundary 구현 리뷰
+70. [STAGE-10K-VALIDATION.md](STAGE-10K-VALIDATION.md) — Stage 10K 공격·회귀·exact-head CI 검증
 
 ## 권위 규칙
 
@@ -108,6 +114,8 @@
 - Stage 10G — R0 Pilot Eligibility Evidence Run: `PASS`, PR #24 merged into Stage 10D stacked branch; merge commit `0b705a5d9ca2dddd3e4e77bc7ddcd3f99417b5df`
 - Stage 10H — R0 Evidence Acquisition & Runtime Package Population: `PASS`, PR #25 merged into Stage 10D stacked branch; merge commit `9bc98964d74105fadd3cbc89ac3fc17d83fd6734`; runtime eligibility `NOT_ELIGIBLE`
 - Stage 10I — Prospective R0 Evidence Collection & Case Intake: implementation on PR #26; runtime campaign remains zero-case until future real changes are captured
+- Stage 10J — GitHub Prospective Capture Hook: `PASS`, PR #27 merged into Stage 10D stacked branch; merge commit `0f2f905a9f370fe1b24b4aeca2b1c2a3a15ee380`
+- Stage 10K — Governed Prospective Review Packet & Explicit Human Review Binding: implementation on PR #28; canonical source CI #1002 / Run `32211117393` PASS; docs-inclusive exact-head gate required before merge
 
 ## Stage 10G evidence boundary
 
@@ -164,6 +172,25 @@ actual change
 ```
 
 Historical workflow actions are not backfilled. The initialized runtime campaign remains zero-case until future real changes are captured.
+
+## Stage 10J GitHub capture boundary
+
+Stage 10J connects ordinary GitHub PR analysis to the prospective evidence path without converting analysis into review authority. `pie analyze-pr` emits a candidate only; explicit materialization revalidates live GitHub repository/PR/head/base/changed-files, local repository/HEAD/clean-worktree state, Project Profile identity, Trust request identity, and Stage 10A source replay before Stage 10I intake.
+
+Candidate generation, CI success, PR merge, and materialization do not imply `REVIEWED`, `AUDITED`, Outcome, pilot authorization, or automation authorization.
+
+## Stage 10K governed review boundary
+
+Stage 10K binds the existing Stage 10B `REVIEWED`/`AUDITED` human decision authority to a deterministic packet containing the exact Stage 10I assessment/Trust evidence and Stage 10J GitHub snapshot that was presented for review.
+
+```text
+prepare packet != REVIEWED != AUDITED
+WORKFLOW_ACCEPTED != REVIEWED
+CI SUCCESS != REVIEWED
+PR merge != REVIEWED
+```
+
+A governed submission must replay current Stage 10I sources and live GitHub state, match the exact packet identity/hash, and include an explicit human decision/actor. Stale or substituted packet evidence fails closed. Stage 10K `AUDITED` remains distinct from the Stage 10F `INDEPENDENT_AUDIT` Outcome authority.
 
 Only a real package whose Stage 10G exact replay reaches:
 
