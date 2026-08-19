@@ -175,7 +175,9 @@ class GovernedProspectiveReviewHardeningTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             _fixture, source, _candidate, candidate_path, _workspace, _intake, _packet, packet_path = self._case(root)
-            other_workspace = init_workspace(root / "other-project", project_id="other-project")
+            other_project_root = root / "other-project"
+            other_project_root.mkdir()
+            other_workspace = init_workspace(other_project_root, project_id="other-project")
             before = (other_workspace / "comparison-registry.json").read_bytes()
             with self.assertRaises(ProspectiveReviewVerificationError):
                 submit_review_packet(
