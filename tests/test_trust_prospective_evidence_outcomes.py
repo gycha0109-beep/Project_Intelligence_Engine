@@ -14,12 +14,11 @@ from review_system.trust_prospective_evidence import (
     intake_prospective_case,
     campaign_progress,
     record_case_outcome,
-    record_case_review,
     snapshot_campaign,
     verify_campaign_report_data,
 )
 from test_trust_prospective_evidence import (
-    CAPTURED_AT, GENERATED_AT, REVIEWED_AT, build_r0_case, init_workspace, intake,
+    CAPTURED_AT, GENERATED_AT, build_r0_case, init_workspace, intake,
 )
 from test_trust_reconciliation import ReconciliationFixture
 
@@ -69,15 +68,6 @@ class ProspectiveEvidenceOutcomeSnapshotTests(unittest.TestCase):
                 reground_report=trust.reground_report,
                 reground_observations=trust.observations,
                 captured_at=CAPTURED_AT,
-            )
-            record_case_review(
-                workspace,
-                assessment_id=result["assessment_id"],
-                review_level="REVIEWED",
-                decision="APPROVE",
-                actor="reviewer-a",
-                occurred_at=REVIEWED_AT,
-                confirmed_risk_band="R0",
             )
             first = record_case_outcome(
                 workspace,
@@ -156,7 +146,6 @@ class ProspectiveEvidenceOutcomeSnapshotTests(unittest.TestCase):
             self.assertTrue(second["idempotent"])
             self.assertEqual(first["package"], second["package"])
             self.assertEqual("PACKAGE_POPULATED_NOT_ELIGIBLE", first["status"])
-
 
 
 if __name__ == "__main__":
