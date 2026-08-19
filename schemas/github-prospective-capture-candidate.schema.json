@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/github-prospective-capture-candidate.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "capture_contract", "candidate_id", "project_id", "generated_at",
+    "mode", "automation_authorized", "pilot_authorized", "human_review_recorded", "outcome_recorded",
+    "repository", "pull_request", "source_evidence_sha256", "profile_sha256", "local_verification",
+    "task_id", "changed_files", "request_scaffold", "blockers", "status", "next_step",
+    "evidence_snapshot_sha256", "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "capture_contract": {"const": "GITHUB_PROSPECTIVE_CAPTURE_V1"},
+    "candidate_id": {"type": "string", "pattern": "^github-capture-[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "REPORT_ONLY"},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "human_review_recorded": {"const": false},
+    "outcome_recorded": {"const": false},
+    "repository": {
+      "type": "object", "additionalProperties": false,
+      "required": ["hostname", "name_with_owner"],
+      "properties": {
+        "hostname": {"type": "string", "minLength": 1},
+        "name_with_owner": {"type": "string", "minLength": 3}
+      }
+    },
+    "pull_request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["number", "url", "base_oid", "head_oid"],
+      "properties": {
+        "number": {"type": "integer", "minimum": 1},
+        "url": {"type": ["string", "null"]},
+        "base_oid": {"type": ["string", "null"]},
+        "head_oid": {"type": ["string", "null"]}
+      }
+    },
+    "source_evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "local_verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repository_status", "local_head", "working_tree_dirty", "exact_repository_match", "exact_head_match", "clean_worktree"],
+      "properties": {
+        "repository_status": {"type": "string", "minLength": 1},
+        "local_head": {"type": ["string", "null"]},
+        "working_tree_dirty": {"type": "boolean"},
+        "exact_repository_match": {"type": "boolean"},
+        "exact_head_match": {"type": "boolean"},
+        "clean_worktree": {"type": "boolean"}
+      }
+    },
+    "task_id": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9._:-]+$"},
+    "changed_files": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "request_scaffold": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "task_id", "source_revision", "task_class", "changed_files", "required_scenarios", "completed_scenarios", "repository_match", "head_match", "rollback_evidence", "replay_evidence", "readiness_policy"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "task_id": {"type": "string", "minLength": 1},
+        "source_revision": {"type": ["string", "null"]},
+        "task_class": {"type": "null"},
+        "changed_files": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "required_scenarios": {"type": "null"},
+        "completed_scenarios": {"type": "null"},
+        "repository_match": {"type": "boolean"},
+        "head_match": {"type": "boolean"},
+        "rollback_evidence": {"type": "null"},
+        "replay_evidence": {"type": "null"},
+        "readiness_policy": {"type": "null"}
+      }
+    },
+    "blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "status": {"enum": ["BLOCKED_EXACT_HEAD_REANALYSIS_REQUIRED", "BLOCKED_OPERATOR_INPUT_REQUIRED"]},
+    "next_step": {"enum": ["RERUN_PIE_ANALYZE_PR_AT_EXACT_CLEAN_HEAD", "COMPLETE_TRUST_REQUEST_AND_MATERIALIZE"]},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
