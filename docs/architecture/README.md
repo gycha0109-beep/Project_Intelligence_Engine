@@ -115,7 +115,7 @@
 - Stage 10H — R0 Evidence Acquisition & Runtime Package Population: `PASS`, PR #25 merged into Stage 10D stacked branch; merge commit `9bc98964d74105fadd3cbc89ac3fc17d83fd6734`; runtime eligibility `NOT_ELIGIBLE`
 - Stage 10I — Prospective R0 Evidence Collection & Case Intake: implementation on PR #26; runtime campaign remains zero-case until future real changes are captured
 - Stage 10J — GitHub Prospective Capture Hook: `PASS`, PR #27 merged into Stage 10D stacked branch; merge commit `0f2f905a9f370fe1b24b4aeca2b1c2a3a15ee380`
-- Stage 10K — Governed Prospective Review Packet & Explicit Human Review Binding: implementation on PR #28; canonical source CI #1002 / Run `32211117393` PASS; docs-inclusive exact-head gate required before merge
+- Stage 10K — Governed Prospective Review Packet & Explicit Human Review Binding: `PASS`; PR #28 and byte-hardening PR #29 merged into Stage 10D stacked branch; final code HEAD `bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3`; post-merge CI #1017 / Run `32211832639` SUCCESS on Python 3.11 / 3.13 / 3.14; real runtime campaign remains unchanged
 
 ## Stage 10G evidence boundary
 
@@ -190,7 +190,7 @@ CI SUCCESS != REVIEWED
 PR merge != REVIEWED
 ```
 
-A governed submission must replay current Stage 10I sources and live GitHub state, match the exact packet identity/hash, and include an explicit human decision/actor. Stale or substituted packet evidence fails closed. Stage 10K `AUDITED` remains distinct from the Stage 10F `INDEPENDENT_AUDIT` Outcome authority.
+A governed submission must replay current Stage 10I sources and live GitHub state, match the exact packet identity/hash and canonical byte representation, and include an explicit human decision/actor. Stale, substituted, semantically rehashed, or byte-reformatted packet evidence fails closed. Stage 10K `AUDITED` remains distinct from the Stage 10F `INDEPENDENT_AUDIT` Outcome authority.
 
 Only a real package whose Stage 10G exact replay reaches:
 
