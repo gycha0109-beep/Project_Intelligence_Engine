@@ -1,0 +1,203 @@
+name: BuildMap PR61 Prospective PIE Validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/buildmap-pr61-prospective.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prospective:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_REPO: gycha0109-beep/BuildMap
+      TARGET_PR: "61"
+      TARGET_HEAD: 4fda9b28dda17b3815ba536b99b2ea522d80dbb3
+    steps:
+      - name: Checkout PIE validation branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PIE exact validation source
+        run: pip install -e .
+
+      - name: Checkout exact BuildMap PR head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone "https://github.com/${TARGET_REPO}.git" "$RUNNER_TEMP/BuildMap"
+          cd "$RUNNER_TEMP/BuildMap"
+          git checkout --detach "$TARGET_HEAD"
+          test "$(git rev-parse HEAD)" = "$TARGET_HEAD"
+          test -z "$(git status --porcelain)"
+          git remote -v
+
+      - name: Capture exact PR and generate Stage 10J candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pie-pr61"
+          pie analyze-pr "$TARGET_PR" \
+            --repo "$TARGET_REPO" \
+            --repository-root "$RUNNER_TEMP/BuildMap" \
+            --profile "$GITHUB_WORKSPACE/profiles/examples/buildmap.yml" \
+            --config "$GITHUB_WORKSPACE/intelligence/examples/buildmap-config.yml" \
+            --approved-rules "$GITHUB_WORKSPACE/src/review_system/assets/bootstrap/intelligence/approved-rules.yml" \
+            --graph "$RUNNER_TEMP/buildmap-graph.json" \
+            --output-dir "$RUNNER_TEMP/pie-pr61"
+          test -f "$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
+
+      - name: Build explicit Trust request from candidate scaffold
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CANDIDATE="$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
+          export REQUEST="$RUNNER_TEMP/pie-pr61/trust-request.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          candidate = json.loads(Path(os.environ["CANDIDATE"]).read_text(encoding="utf-8"))
+          request = dict(candidate["request_scaffold"])
+          request["task_class"] = "database_migration"
+          request["required_scenarios"] = ["database-contract-gate", "web-app-ci"]
+          request["completed_scenarios"] = []
+          request["rollback_evidence"] = False
+          request["replay_evidence"] = False
+          request["readiness_policy"] = {
+              "policy_id": "buildmap-prospective-observation",
+              "policy_version": "1.0.0",
+              "min_ledger_runs": 10,
+              "min_ledger_decisions": 10,
+              "min_defects": 1,
+              "min_closed_defects": 0,
+              "min_reground_observations": 10,
+              "min_reground_coverage": 0.8,
+              "min_reground_precision": 0.9,
+              "min_reground_recall": 0.9,
+              "max_reground_false_positive_rate": 0.1,
+              "require_active_policy": True,
+              "require_pass_evaluation": True,
+              "require_holdout": True,
+              "require_repeatability": True,
+              "require_zero_protected_negative_regressions": True,
+          }
+          Path(os.environ["REQUEST"]).write_text(
+              json.dumps(request, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(request, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Verify Stage 10J candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE="$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
+          pie-trust-prospective verify-github-prospective-capture \
+            --candidate "$CANDIDATE" \
+            | tee "$RUNNER_TEMP/pie-pr61/verify-candidate.json"
+
+      - name: Materialize Stage 10I prospective case
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE="$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
+          pie-trust-prospective materialize-github-prospective-capture \
+            --candidate "$CANDIDATE" \
+            --request "$RUNNER_TEMP/pie-pr61/trust-request.json" \
+            --workspace "$RUNNER_TEMP/prospective-workspace" \
+            --profile "$GITHUB_WORKSPACE/profiles/examples/buildmap.yml" \
+            --repository-root "$RUNNER_TEMP/BuildMap" \
+            --repo "$TARGET_REPO" \
+            --trust-report-output "$RUNNER_TEMP/pie-pr61/prospective-trust-report.json" \
+            | tee "$RUNNER_TEMP/pie-pr61/materialize.json"
+
+          pie validate-trust-report "$RUNNER_TEMP/pie-pr61/prospective-trust-report.json" \
+            --request "$RUNNER_TEMP/pie-pr61/trust-request.json" \
+            --profile "$GITHUB_WORKSPACE/profiles/examples/buildmap.yml" \
+            | tee "$RUNNER_TEMP/pie-pr61/verify-trust-report.txt"
+
+      - name: Prepare and source-replay Stage 10K review packet
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE="$RUNNER_TEMP/pie-pr61/prospective-capture-${TARGET_HEAD:0:12}.json"
+          ASSESSMENT_ID=$(python -c 'import json,os; print(json.load(open(os.environ["RUNNER_TEMP"] + "/pie-pr61/materialize.json"))["assessment_id"])')
+
+          pie-trust-prospective prepare-prospective-review \
+            --workspace "$RUNNER_TEMP/prospective-workspace" \
+            --assessment-id "$ASSESSMENT_ID" \
+            --github-candidate "$CANDIDATE" \
+            --repository-root "$RUNNER_TEMP/BuildMap" \
+            --repo "$TARGET_REPO" \
+            --output "$RUNNER_TEMP/pie-pr61/review-packet.json" \
+            | tee "$RUNNER_TEMP/pie-pr61/prepare-review.json"
+
+          pie-trust-prospective verify-prospective-review \
+            --workspace "$RUNNER_TEMP/prospective-workspace" \
+            --github-candidate "$CANDIDATE" \
+            --repository-root "$RUNNER_TEMP/BuildMap" \
+            --repo "$TARGET_REPO" \
+            --packet "$RUNNER_TEMP/pie-pr61/review-packet.json" \
+            | tee "$RUNNER_TEMP/pie-pr61/verify-review.json"
+
+          pie-trust-prospective prospective-campaign-progress \
+            --workspace "$RUNNER_TEMP/prospective-workspace" \
+            --output "$RUNNER_TEMP/pie-pr61/campaign-progress.json" \
+            | tee "$RUNNER_TEMP/pie-pr61/campaign-progress-stdout.json"
+
+      - name: Emit compact result summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "pie-pr61"
+          result = {
+              "target_repository": os.environ["TARGET_REPO"],
+              "pull_request": int(os.environ["TARGET_PR"]),
+              "exact_head": os.environ["TARGET_HEAD"],
+          }
+          for name in [
+              "materialize.json",
+              "prospective-trust-report.json",
+              "review-packet.json",
+              "campaign-progress.json",
+          ]:
+              path = root / name
+              if path.exists():
+                  try:
+                      result[name] = json.loads(path.read_text(encoding="utf-8"))
+                  except Exception as exc:
+                      result[name] = {"read_error": str(exc)}
+          (root / "RESULT-SUMMARY.json").write_text(
+              json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(result, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Upload prospective evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildmap-pr61-pie-prospective
+          path: |
+            ${{ runner.temp }}/pie-pr61
+            ${{ runner.temp }}/prospective-workspace
+            ${{ runner.temp }}/buildmap-graph.json
+          if-no-files-found: warn
+          retention-days: 7
