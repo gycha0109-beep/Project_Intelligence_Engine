@@ -233,12 +233,12 @@ def analyze_pull_request(
             diff_file.unlink()
         diff_path = None
 
-    identity = pull_request_run_identity(profile["project"]["id"], source)
-    write_identity_manifest(output_dir, identity)
-
     candidate = build_github_prospective_capture_candidate(source, profile_path)
     prospective_candidate_path = output_dir / candidate_filename(candidate)
     write_github_prospective_capture_candidate(prospective_candidate_path, candidate)
+
+    identity = pull_request_run_identity(profile["project"]["id"], source)
+    write_identity_manifest(output_dir, identity)
 
     return AnalyzePullRequestResult(
         source=source,
