@@ -1,0 +1,30 @@
+name: Stage 10J Diagnostic
+on:
+  push:
+    branches:
+      - agent/stage-10j-github-prospective-capture-hook
+jobs:
+  capture-full-unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      - run: python scripts/sync_package_assets.py
+      - name: capture full unittest output
+        run: |
+          set +e
+          python -m unittest discover -s tests -v > stage10j-full-unittest.log 2>&1
+          code=$?
+          echo "$code" > stage10j-exitcode.txt
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage10j-full-unittest
+          path: |
+            stage10j-full-unittest.log
+            stage10j-exitcode.txt
+      - name: preserve test result
+        run: test "$(cat stage10j-exitcode.txt)" = "0"
