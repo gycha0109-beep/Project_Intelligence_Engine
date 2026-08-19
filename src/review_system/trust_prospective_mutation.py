@@ -45,9 +45,13 @@ def _load_review_packet_archive(
     except ValueError as exc:
         raise ProspectiveEvidenceError("governed prospective review packet archive escaped workspace") from exc
     try:
-        packet = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = source.read_bytes()
+        packet = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ProspectiveEvidenceError(f"cannot load governed prospective review packet archive: {exc}") from exc
+    canonical = (json.dumps(packet, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
+    if raw != canonical:
+        raise ProspectiveEvidenceError("governed prospective review packet archive byte representation is not canonical")
     if not isinstance(packet, dict):
         raise ProspectiveEvidenceError("governed prospective review packet archive must contain an object")
     payload = deepcopy(packet)

@@ -67,7 +67,7 @@ The packet contains two related hashes:
 
 Changed packet meaning without a valid rehash is rejected by packet verification. Recomputing a syntactically valid packet hash after changing governed meaning is insufficient because `verify_review_packet_sources()` rebuilds the expected packet from the current authoritative Stage 10I/10J sources at the original `generated_at` and compares the governed projection.
 
-The current hash contract is canonical semantic JSON, not a second hash over whitespace/key-order serialization. The packet writer emits deterministic JSON formatting; semantically modified packet bytes are covered, while formatting-only reserialization is normalized by the canonical semantic identity rather than treated as a different safety snapshot.
+The hash contract remains canonical semantic JSON, while the file contract adds an independent canonical byte representation: UTF-8, recursively sorted object keys, two-space indentation, and one terminal newline. `load_review_packet()` and the archived-packet mutation guard both reject any non-canonical byte representation before review authority can be created. This separates literal packet-byte tamper protection from semantic-rehash protection.
 
 ## 5. Source and drift review
 
