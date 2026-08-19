@@ -124,6 +124,7 @@ Focused hardening covers:
 
 - packet hash mutation,
 - semantic packet mutation without rehash,
+- formatting/key-order packet byte mutation,
 - semantic rehash forgery,
 - `assessment_id` substitution,
 - `source_revision` substitution,
@@ -168,6 +169,12 @@ The helper intentionally creates only the campaign workspace below an already-ex
 
 This was a test construction defect, not a product authority bypass. The corrected test then validates that a packet from one project cannot be reused to mutate another project's registry.
 
+### Finding C — semantic hash did not make formatting-only byte drift fail closed
+
+The first complete Stage 10K implementation correctly protected packet meaning with a canonical semantic hash and authoritative source reconstruction, but a formatting/key-order-only JSON reserialization could preserve the same semantic packet identity.
+
+Because Stage 10K's required attacks explicitly distinguish packet-byte mutation from semantic rehash forgery, PR #29 added an independent canonical on-disk byte contract and a registry-immutability attack test. This was a governance hardening gap, not a successful review-authority escalation in prior validation.
+
 ### Diagnostic handling
 
 A temporary CI modification captured unittest output as per-version artifacts because the connected Actions surface did not initially expose the needed traceback.
@@ -188,3 +195,18 @@ Implementation/CI PASS means only that the governed packet and explicit review-b
 It does not mean that any real prospective case has been human-reviewed, audited, proven safe, made pilot-eligible, or authorized for automation.
 
 No Stage 10K implementation action is itself a human governance decision.
+
+## 11. Final byte-hardening and merge evidence
+
+The initial Stage 10K implementation merged through PR #28 after docs-inclusive exact-head CI #1010 / Run `32211362162` succeeded on Python 3.11, 3.13, and 3.14. Its stacked merge commit was `8bd401209f6837fb9ecddde6772ff79f3c8a80fc`, followed by successful post-merge CI #1012 / Run `32211480125`.
+
+The literal byte-hardening then completed through PR #29:
+
+```text
+PR #29 head: 9d20dab0429d0d4542c4465e70fa990287dcb7e5
+CI #1015 / Run 32211722146: SUCCESS on Python 3.11 / 3.13 / 3.14
+stacked merge commit: bbccd692feb3f7e3dea3293d3cdb3ab3be9bbdd3
+post-merge CI #1017 / Run 32211832639: SUCCESS on Python 3.11 / 3.13 / 3.14
+```
+
+This hardening adds no review level, Outcome authority, Trust Root/issuer authority, threshold relaxation, pilot authorization, or automation authorization.
