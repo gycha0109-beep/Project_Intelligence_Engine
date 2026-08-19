@@ -12,7 +12,7 @@ from typing import Any, Callable
 from jsonschema import Draft202012Validator, FormatChecker
 
 from .github_connector import GitHubCLI, collect_pull_request, validate_pull_request_source
-from .identity import canonical_json_sha256
+from .identity import canonical_json_sha256, normalize_source_revision
 from .intelligence_state import capture_project_state
 from .io import load_data
 from .paths import asset
@@ -431,6 +431,7 @@ def materialize_github_prospective_capture(
     head_oid = candidate["pull_request"]["head_oid"]
     if not isinstance(head_oid, str) or SHA40.fullmatch(head_oid) is None:
         raise GitHubProspectiveCaptureError("candidate has no exact 40-hex PR head")
+    normalized_head_revision = normalize_source_revision(head_oid)
     root = Path(repository_root).expanduser().resolve()
     if not root.is_dir():
         raise GitHubProspectiveCaptureError(f"repository root does not exist: {root}")
@@ -478,7 +479,7 @@ def materialize_github_prospective_capture(
     request_source, trust_request = load_trust_request(_safe_input(request, "Trust request"))
     if trust_request["task_id"] != candidate["task_id"]:
         raise GitHubProspectiveCaptureError("Trust request task_id does not match candidate task_id")
-    if trust_request["source_revision"] != head_oid:
+    if trust_request["source_revision"] != normalized_head_revision:
         raise GitHubProspectiveCaptureError("Trust request source_revision does not match candidate PR head")
     if trust_request["changed_files"] != candidate["changed_files"]:
         raise GitHubProspectiveCaptureError("Trust request changed_files do not exactly match candidate")
@@ -503,7 +504,7 @@ def materialize_github_prospective_capture(
         )
         if replay_errors:
             raise GitHubProspectiveCaptureVerificationError([f"existing Trust report source replay: {value}" for value in replay_errors])
-        if report.get("request", {}).get("task_id") != candidate["task_id"] or report.get("request", {}).get("source_revision") != head_oid:
+        if report.get("request", {}).get("task_id") != candidate["task_id"] or report.get("request", {}).get("source_revision") != normalized_head_revision:
             raise GitHubProspectiveCaptureError("existing Trust report identity does not match candidate")
     else:
         report = assess_trust(
