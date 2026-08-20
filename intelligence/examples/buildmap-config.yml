@@ -4,13 +4,13 @@ graph:
 components:
   - id: decision-timeline
     name: Decision Timeline
-    paths: ["src/**/decision*/**", "src/**/timeline*/**", "docs/**/decision*", "docs/**/timeline*"]
+    paths: ["src/**/decision*/**", "src/**/timeline*/**", "apps/web/app/projects/*/decision-actions.ts", "apps/web/app/projects/*/decisions/**", "apps/web/components/buildmap/*decision*", "docs/**/decision*", "docs/**/timeline*"]
   - id: change-card
     name: Change Card and Review
-    paths: ["src/**/change*card*/**", "src/**/review*/**"]
+    paths: ["src/**/change*card*/**", "src/**/review*/**", "apps/web/app/projects/*/workspace/review/**"]
   - id: public-feedback
     name: Public Project and Feedback
-    paths: ["src/**/public*/**", "src/**/feedback*/**"]
+    paths: ["src/**/public*/**", "src/**/feedback*/**", "apps/web/app/projects/*/feedback-actions.ts", "apps/web/app/projects/*/feedback/**"]
   - id: database-security
     name: Supabase Database and Security
     paths: ["supabase/migrations/**", "supabase/tests/**", "supabase/functions/**"]

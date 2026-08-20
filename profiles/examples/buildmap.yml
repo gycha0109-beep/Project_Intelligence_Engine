@@ -12,8 +12,8 @@ technology:
   database:
     engine: postgresql
 scope:
-  include: ["src/**", "supabase/**", "scripts/**", "tests/**", "docs/**"]
-  exclude: ["node_modules/**", ".next/**", "output/**"]
+  include: ["apps/web/**", "src/**", "supabase/**", "scripts/**", "tests/**", "docs/**"]
+  exclude: ["node_modules/**", ".next/**", "output/**", "apps/web/node_modules/**", "apps/web/.next/**", "apps/web/dist/**", "apps/web/coverage/**", "apps/web/output/**"]
 protected_paths: []
 commands:
   baseline: ["pnpm test"]
