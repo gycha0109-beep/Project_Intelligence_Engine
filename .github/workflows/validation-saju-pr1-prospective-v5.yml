@@ -1,4 +1,4 @@
-name: Validation - Saju PR1 prospective evidence v5
+name: Validation - Saju PR1 prospective evidence v6
 
 on:
   pull_request:
@@ -242,6 +242,59 @@ jobs:
           print(json.dumps(coverage, indent=2))
           PY
 
+      - name: Bootstrap canonical Stage 10I campaign workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORKSPACE="${GITHUB_WORKSPACE}/validation-evidence/workspace"
+          pie-trust-comparison init-comparison-registry \
+            --registry "${WORKSPACE}/comparison-registry.json" \
+            --project-id saju \
+            | tee validation-evidence/workspace-registry-init.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from review_system.trust_reconciliation_authority import load_source_manifest
+          from review_system.trust_observation import load_policy, verify_policy_data
+
+          root = Path('validation-evidence/workspace')
+          manifest = {
+              'schema_version': '1.0',
+              'project_id': 'saju',
+              'assessment_sources': [],
+              'outcome_sources': [],
+          }
+          (root / 'reconciliation-sources.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+
+          policy = {
+              'schema_version': '1.0',
+              'policy_version': '1.0.0',
+              'mode': 'REPORT_ONLY',
+              'target_band': 'R0',
+              'thresholds': {
+                  'minimum_r0_assessment_count': 1,
+                  'minimum_r0_reviewed_count': 1,
+                  'minimum_r0_conclusive_outcome_count': 1,
+                  'minimum_r0_confirmed_safe_count': 1,
+                  'minimum_confirmed_unsafe_challenge_count': 1,
+                  'minimum_r0_independent_audit_count': 1,
+                  'minimum_r0_outcome_coverage': 1.0,
+                  'minimum_r0_evidence_span_days': 10,
+                  'maximum_r0_false_negatives': 0,
+                  'maximum_r0_false_negative_rate': 0.0,
+              },
+          }
+          (root / 'observation-policy.json').write_text(json.dumps(policy, indent=2) + '\n', encoding='utf-8')
+          _, loaded_manifest = load_source_manifest(root / 'reconciliation-sources.json')
+          _, loaded_policy = load_policy(root / 'observation-policy.json')
+          assert loaded_manifest == manifest
+          assert not verify_policy_data(loaded_policy), verify_policy_data(loaded_policy)
+          print(json.dumps({'manifest_assessment_sources': 0, 'manifest_outcome_sources': 0, 'policy_mode': loaded_policy['mode'], 'target_band': loaded_policy['target_band']}, indent=2))
+          PY
+          pie-trust-observation verify-observation-policy \
+            --policy "${WORKSPACE}/observation-policy.json" \
+            | tee validation-evidence/workspace-policy-verify.json
+
       - name: Stage 10I - materialize prospective assessment
         shell: bash
         env:
@@ -338,6 +391,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: saju-pr1-prospective-evidence-v5
+          name: saju-pr1-prospective-evidence-v6
           path: validation-evidence/
           if-no-files-found: error
