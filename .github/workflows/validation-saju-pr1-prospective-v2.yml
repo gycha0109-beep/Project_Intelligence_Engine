@@ -1,0 +1,359 @@
+name: Validation - Saju PR1 prospective evidence v2
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/validation-saju-pr1-prospective-v2.yml"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  SAJU_REPO: gycha0109-beep/Saju
+  SAJU_PR: "1"
+  SAJU_HEAD: 6d2baeeb61ef162d5e1ec65a0b69b1ef5a4de5fd
+  SAJU_BASE: 2a36ff6111b6b21dbe9956b9da65555b3122d9e1
+  SAJU_CI_RUN: "32319775179"
+
+jobs:
+  prospective-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PIE validation harness
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PIE
+        run: pip install -e .
+
+      - name: Checkout exact Saju PR head without mutating Saju
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir saju
+          git -C saju init
+          git -C saju remote add origin "https://github.com/${SAJU_REPO}.git"
+          git -C saju fetch --depth=1 origin "${SAJU_HEAD}"
+          git -C saju checkout --detach FETCH_HEAD
+          test "$(git -C saju rev-parse HEAD)" = "${SAJU_HEAD}"
+          test -z "$(git -C saju status --porcelain)"
+
+      - name: Verify live GitHub access and exact PR identity
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p validation-evidence/input validation-evidence/analysis validation-evidence/workspace
+          gh api "repos/${SAJU_REPO}" --jq '.full_name' | grep -Fx "${SAJU_REPO}"
+          gh api "repos/${SAJU_REPO}/pulls/${SAJU_PR}" > validation-evidence/live-pr-before.json
+          python - <<'PY'
+          import json, os
+          p = json.load(open('validation-evidence/live-pr-before.json', encoding='utf-8'))
+          assert p['state'] == 'open', p['state']
+          assert p['head']['sha'] == os.environ['SAJU_HEAD'], p['head']['sha']
+          assert p['base']['sha'] == os.environ['SAJU_BASE'], p['base']['sha']
+          print(json.dumps({'state': p['state'], 'head': p['head']['sha'], 'base': p['base']['sha']}, indent=2))
+          PY
+
+      - name: Preserve exact Saju CI failure snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://api.github.com/repos/${SAJU_REPO}/actions/runs/${SAJU_CI_RUN}" > validation-evidence/ci-395-run.json
+          curl -fsSL "https://api.github.com/repos/${SAJU_REPO}/actions/runs/${SAJU_CI_RUN}/jobs?per_page=100" > validation-evidence/ci-395-jobs.json
+          python - <<'PY'
+          import json, os
+          run = json.load(open('validation-evidence/ci-395-run.json', encoding='utf-8'))
+          jobs = json.load(open('validation-evidence/ci-395-jobs.json', encoding='utf-8'))['jobs']
+          assert run['head_sha'] == os.environ['SAJU_HEAD'], run['head_sha']
+          assert run['status'] == 'completed', run['status']
+          assert run['conclusion'] == 'failure', run['conclusion']
+          steps = {s['name']: s.get('conclusion') for j in jobs for s in j.get('steps', [])}
+          expected = {
+              'Run node scripts/check-line-endings.mjs': 'success',
+              'Run node scripts/check-phase7-commentary-style.mjs': 'success',
+              'Run npm test': 'success',
+              'Run npm run build': 'success',
+              'Run npm run smoke:w5': 'success',
+              'Run node scripts/phase10-schema-contract.mjs': 'failure',
+              'Run node scripts/phase10-snapshot-xy.mjs': 'skipped',
+              'Run npm run smoke:phase10-gate': 'skipped',
+          }
+          mismatch = {k: (steps.get(k), v) for k, v in expected.items() if steps.get(k) != v}
+          assert not mismatch, mismatch
+          json.dump({'run_id': run['id'], 'head_sha': run['head_sha'], 'conclusion': run['conclusion'], 'steps': {k: steps[k] for k in expected}}, open('validation-evidence/ci-scenario-summary.json','w',encoding='utf-8'), indent=2)
+          print(json.dumps({'run_id': run['id'], 'conclusion': run['conclusion'], 'verified_steps': len(expected)}, indent=2))
+          PY
+
+      - name: Create runtime-only Saju profile and graph config
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > validation-evidence/input/saju-profile.yml <<'YAML'
+          schema_version: "1.0"
+          project:
+            id: saju
+            name: Saju
+            repository_root: "."
+            baseline_branch: main
+          technology:
+            languages: [typescript, javascript]
+            frameworks: [vitest]
+            build:
+              tool: npm
+          scope:
+            include:
+              - ".github/**"
+              - ".gitignore"
+              - ".npmrc"
+              - ".nvmrc"
+              - ".prettierignore"
+              - ".prettierrc.json"
+              - "README.md"
+              - "docs/**"
+              - "eslint.config.mjs"
+              - "package-lock.json"
+              - "package.json"
+              - "src/**"
+              - "test/**"
+              - "tsconfig.build.json"
+              - "tsconfig.json"
+            exclude:
+              - "node_modules/**"
+              - "dist/**"
+              - "coverage/**"
+          protected_paths: []
+          commands:
+            baseline: ["npm test"]
+            build: ["npm run build"]
+            test: ["npm test"]
+            smoke: ["npm run smoke:w5", "npm run smoke:phase10-gate"]
+          review:
+            packs:
+              - universal/architecture
+              - universal/requirements-traceability
+              - universal/test-completeness
+              - runtime/performance
+              - runtime/retries-idempotency
+            parallel_workers: 3
+          YAML
+
+          cat > validation-evidence/input/saju-intelligence.yml <<'YAML'
+          schema_version: "1.0"
+          graph:
+            max_file_size_bytes: 1000000
+          components:
+            - id: calculation
+              name: Calculation Engine
+              paths: ["src/calculation/**", "src/contracts/calculation.ts"]
+            - id: contracts
+              name: Contracts
+              paths: ["src/contracts/**"]
+            - id: interpretation
+              name: Interpretation Engine
+              paths: ["src/interpretation/**"]
+            - id: llm-narrative
+              name: LLM and Narrative
+              paths: ["src/llm/**", "src/narrative/**"]
+            - id: research
+              name: Research Evidence
+              paths: ["src/research/**"]
+            - id: reading-harness
+              name: Reading and Developer Harness
+              paths: ["src/reading/**", "src/harness/**"]
+            - id: verification
+              name: Verification
+              paths: ["test/**", ".github/workflows/**"]
+            - id: documentation
+              name: Documentation
+              paths: ["docs/**", "README.md"]
+          YAML
+          pie validate-profile validation-evidence/input/saju-profile.yml
+
+      - name: Stage 10J - analyze exact Saju PR and create prospective candidate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pie analyze-pr "${SAJU_PR}" \
+            --repo "${SAJU_REPO}" \
+            --repository-root "${GITHUB_WORKSPACE}/saju" \
+            --profile "${GITHUB_WORKSPACE}/validation-evidence/input/saju-profile.yml" \
+            --config "${GITHUB_WORKSPACE}/validation-evidence/input/saju-intelligence.yml" \
+            --graph "${GITHUB_WORKSPACE}/validation-evidence/analysis/project-graph.json" \
+            --refresh-graph \
+            --skip-discussion \
+            --output-dir "${GITHUB_WORKSPACE}/validation-evidence/analysis"
+          CANDIDATE="$(find validation-evidence/analysis -maxdepth 1 -name 'prospective-capture-*.json' -print -quit)"
+          test -n "${CANDIDATE}"
+          echo "CANDIDATE=${GITHUB_WORKSPACE}/${CANDIDATE}" >> "$GITHUB_ENV"
+          pie-trust-prospective verify-github-prospective-capture --candidate "${CANDIDATE}" | tee validation-evidence/stage10j-verify.json
+          test -z "$(git -C saju status --porcelain)"
+
+      - name: Verify analysis coverage and create honest Trust request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          evidence = Path('validation-evidence')
+          candidate = json.load(open(os.environ['CANDIDATE'], encoding='utf-8'))
+          impact = json.load(open(evidence/'analysis'/'impact.json', encoding='utf-8'))
+          missing = impact['direct']['files_missing_from_graph']
+          assert missing == [], missing
+          ci = json.load(open(evidence/'ci-scenario-summary.json', encoding='utf-8'))
+          step_to_scenario = {
+              'Run node scripts/check-line-endings.mjs': 'line_endings',
+              'Run node scripts/check-phase7-commentary-style.mjs': 'phase7_commentary_style',
+              'Run npm test': 'npm_test',
+              'Run npm run build': 'npm_build',
+              'Run npm run smoke:w5': 'smoke_w5',
+              'Run node scripts/phase10-schema-contract.mjs': 'phase10_schema_contract',
+              'Run node scripts/phase10-snapshot-xy.mjs': 'phase10_snapshot_xy',
+              'Run npm run smoke:phase10-gate': 'smoke_phase10_gate',
+          }
+          required = list(step_to_scenario.values())
+          completed = sorted(step_to_scenario[name] for name, result in ci['steps'].items() if result == 'success')
+          request = {
+              'schema_version': '1.0',
+              'task_id': candidate['task_id'],
+              'source_revision': candidate['pull_request']['head_oid'],
+              'task_class': 'routine_code',
+              'changed_files': candidate['changed_files'],
+              'required_scenarios': required,
+              'completed_scenarios': completed,
+              'repository_match': True,
+              'head_match': True,
+              'rollback_evidence': False,
+              'replay_evidence': False,
+              'readiness_policy': {
+                  'policy_id': 'saju-pr1-validation-v1',
+                  'policy_version': '1.0.0',
+                  'min_ledger_runs': 1,
+                  'min_ledger_decisions': 1,
+                  'min_defects': 1,
+                  'min_closed_defects': 0,
+                  'min_reground_observations': 1,
+                  'min_reground_coverage': 1.0,
+                  'min_reground_precision': 1.0,
+                  'min_reground_recall': 1.0,
+                  'max_reground_false_positive_rate': 0.0,
+                  'require_active_policy': True,
+                  'require_pass_evaluation': True,
+                  'require_holdout': True,
+                  'require_repeatability': True,
+                  'require_zero_protected_negative_regressions': True,
+              },
+          }
+          json.dump(request, open(evidence/'trust-request.json','w',encoding='utf-8'), indent=2)
+          json.dump({'changed_files': len(candidate['changed_files']), 'files_missing_from_graph': missing, 'required_scenarios': required, 'completed_scenarios': completed}, open(evidence/'analysis-coverage.json','w',encoding='utf-8'), indent=2)
+          print(json.dumps({'changed_files': len(candidate['changed_files']), 'missing': len(missing), 'completed': completed}, indent=2))
+          PY
+
+      - name: Stage 10I - materialize prospective assessment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pie-trust-prospective materialize-github-prospective-capture \
+            --candidate "${CANDIDATE}" \
+            --request "${GITHUB_WORKSPACE}/validation-evidence/trust-request.json" \
+            --workspace "${GITHUB_WORKSPACE}/validation-evidence/workspace" \
+            --profile "${GITHUB_WORKSPACE}/validation-evidence/input/saju-profile.yml" \
+            --repository-root "${GITHUB_WORKSPACE}/saju" \
+            --repo "${SAJU_REPO}" \
+            --trust-report-output "${GITHUB_WORKSPACE}/validation-evidence/trust-report.json" \
+            | tee validation-evidence/stage10i-materialize.json
+          ASSESSMENT_ID="$(python -c "import json; print(json.load(open('validation-evidence/stage10i-materialize.json'))['assessment_id'])")"
+          echo "ASSESSMENT_ID=${ASSESSMENT_ID}" >> "$GITHUB_ENV"
+          pie-trust-prospective prospective-campaign-progress \
+            --workspace "${GITHUB_WORKSPACE}/validation-evidence/workspace" \
+            --output "${GITHUB_WORKSPACE}/validation-evidence/campaign-progress.json" \
+            | tee validation-evidence/stage10i-progress-stdout.json
+          test -z "$(git -C saju status --porcelain)"
+
+      - name: Stage 10K - prepare and live-verify governed review packet only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pie-trust-prospective prepare-prospective-review \
+            --workspace "${GITHUB_WORKSPACE}/validation-evidence/workspace" \
+            --assessment-id "${ASSESSMENT_ID}" \
+            --github-candidate "${CANDIDATE}" \
+            --repository-root "${GITHUB_WORKSPACE}/saju" \
+            --repo "${SAJU_REPO}" \
+            --output "${GITHUB_WORKSPACE}/validation-evidence/review-packet.json" \
+            | tee validation-evidence/stage10k-prepare.json
+          pie-trust-prospective verify-prospective-review \
+            --workspace "${GITHUB_WORKSPACE}/validation-evidence/workspace" \
+            --github-candidate "${CANDIDATE}" \
+            --repository-root "${GITHUB_WORKSPACE}/saju" \
+            --repo "${SAJU_REPO}" \
+            --packet "${GITHUB_WORKSPACE}/validation-evidence/review-packet.json" \
+            | tee validation-evidence/stage10k-verify.json
+          test -z "$(git -C saju status --porcelain)"
+
+      - name: Assert report-only boundary and write concise result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          e = Path('validation-evidence')
+          trust = json.load(open(e/'trust-report.json', encoding='utf-8'))
+          packet = json.load(open(e/'review-packet.json', encoding='utf-8'))
+          material = json.load(open(e/'stage10i-materialize.json', encoding='utf-8'))
+          progress = json.load(open(e/'campaign-progress.json', encoding='utf-8'))
+          assert trust['mode'] == 'REPORT_ONLY'
+          assert trust['automation_authorized'] is False
+          assert material['automation_authorized'] is False
+          assert material['pilot_authorized'] is False
+          assert material['human_review_recorded'] is False
+          assert material['outcome_recorded'] is False
+          assert packet['mode'] == 'REPORT_ONLY'
+          assert packet['automation_authorized'] is False
+          assert packet['pilot_authorized'] is False
+          assert packet['human_review_recorded'] is False
+          assert packet['outcome_recorded'] is False
+          result = {
+              'project': 'saju',
+              'pr': 1,
+              'source_revision': material['source_revision'],
+              'assessment_id': material['assessment_id'],
+              'predicted_risk_band': material['predicted_risk_band'],
+              'effective_risk_band': trust['risk']['effective_band'],
+              'review_requirement': trust['task_advisory']['review_requirement'],
+              'readiness_status': trust['readiness']['status'],
+              'triggered_hard_gates': trust['task_advisory']['triggered_hard_gates'],
+              'failed_conditions': trust['readiness']['failed_conditions'],
+              'campaign_status': progress.get('status'),
+              'review_packet_id': packet['packet_id'],
+              'human_review_recorded': False,
+              'outcome_recorded': False,
+              'automation_authorized': False,
+              'pilot_authorized': False,
+          }
+          json.dump(result, open(e/'RESULT.json','w',encoding='utf-8'), indent=2)
+          print(json.dumps(result, indent=2))
+          PY
+
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saju-pr1-prospective-evidence-v2
+          path: validation-evidence/
+          if-no-files-found: error
