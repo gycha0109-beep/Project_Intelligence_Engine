@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "artifact_kind": "R4_SEEN_SEMANTIC_CALIBRATION",
+  "defect_id": "R4_SEMANTIC_UNDERDETECTION",
+  "contract_version": "TRUST_R4_SEMANTIC_UNDERDETECTION_SHADOW_V1",
+  "authority": {
+    "pie_main_sha": "e5cb12b902baa1579253714922d099a74705fae2",
+    "wave1_label_blob_sha": "0e132fb18bfb3d1f841bbc1649632b60f3fe85ae",
+    "blind_r4_holdout_available": false
+  },
+  "scope": {
+    "seen_real_world_cases": true,
+    "blind_generalization_claim": false,
+    "authoritative_runtime_change": false,
+    "evidence_form": "EXACT_SOURCE_PATCH_EXCERPTS_WITH_FROZEN_PR_HEAD_AND_PATH",
+    "limitation": "Excerpts are sufficient to replay the bounded semantic discriminator but are not byte-complete PR patches."
+  },
+  "cases": [
+    {
+      "sample_id": "KB-262",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 262,
+      "head_sha": "1d7accdee1d9f31711834c34139c0f0b3e927770",
+      "path": "scripts/product-evidence/verify-v21-9i-exact-main-replay-gate-v1.mjs",
+      "human_band": "R4",
+      "expected_classification": "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
+      "excerpt": "import assert from \"node:assert/strict\";\nconst summary = { gate: semanticMismatches.length || stopReasons.size ? \"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\" : \"PASS\" };\nif (stopReasons.size > 0) { throw new Error(\"EXACT_MAIN_9I_REPLAY_GATE runtime stop reasons\"); }\nif (semanticMismatches.length > 0) { throw new Error(\"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\"); }\nconsole.log(\"EXACT_MAIN_9I_REPLAY_GATE = PASS\");"
+    },
+    {
+      "sample_id": "KB-272",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 272,
+      "head_sha": "f85fd6466753cb5b3f891e8d1f088ad89235ce54",
+      "path": "lib/exfoliation-normative-policy-reassessment-sufficiency.js",
+      "human_band": "R4",
+      "expected_classification": "NORMATIVE_DECISION_AUTHORITY",
+      "excerpt": "export const V21_9N_POLICY_VERSION = \"enforce-reassessment-sufficiency-governance-v1\";\nexport const V21_9N_DECISION_STATES = Object.freeze({ BLOCKED: \"BLOCKED_INTEGRITY_FAILURE\", READY: \"READY_FOR_SEPARATE_ENFORCE_REASSESSMENT\" });\nexport function evaluateV21_9NSufficiency(readback, authority = {}) {\n  return Object.freeze({ decision_state: V21_9N_DECISION_STATES.CALIBRATION_REQUIRED, ready_for_separate_enforce_reassessment: false, enforce_authorized: false });\n}"
+    },
+    {
+      "sample_id": "KB-277",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 277,
+      "head_sha": "356742aab4076a99ca7524a828facd4a494c3e80",
+      "path": "lib/exfoliation-normative-policy-reassessment-calibration-methodology.js",
+      "human_band": "R4",
+      "expected_classification": "NORMATIVE_DECISION_AUTHORITY",
+      "excerpt": "export const V21_9O_METHODOLOGY_VERSION = \"enforce-reassessment-sufficiency-calibration-methodology-v1\";\nexport const V21_9O_METHODOLOGY_CONTRACT = Object.freeze({ promotion_gate: Object.freeze([\"NORMATIVE_ACCEPTANCE_OBJECTIVES_FROZEN\"]), ready_semantics: \"READY_FOR_SEPARATE_ENFORCE_REASSESSMENT_NEVER_ENFORCE_AUTHORIZATION\" });\nexport function evaluateV21_9OMethodologyScenario(input = {}) {\n  return { execution_state: \"METHODOLOGY_PATH_AVAILABLE\", ready_for_separate_enforce_reassessment: false, enforce_authorized: false };\n}"
+    },
+    {
+      "sample_id": "KB-279",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 279,
+      "head_sha": "9454713bd5414cb12357a806109da5e1f9a20e67",
+      "path": "lib/exfoliation-normative-policy-reassessment-normative-acceptance.js",
+      "human_band": "R4",
+      "expected_classification": "NORMATIVE_DECISION_AUTHORITY",
+      "excerpt": "export const V21_9P_NORMATIVE_ACCEPTANCE_VERSION = \"enforce-reassessment-normative-acceptance-objectives-v1\";\nexport const V21_9P_GOVERNANCE_STATES = Object.freeze({ NORMATIVE_OBJECTIVES_FROZEN: \"NORMATIVE_OBJECTIVES_FROZEN\" });\nexport function evaluateV21_9PNormativeAcceptance(input = {}) {\n  return Object.freeze({ governance_state: V21_9P_GOVERNANCE_STATES.NORMATIVE_OBJECTIVES_FROZEN, decision_state: \"READY_FOR_SEPARATE_ENFORCE_REASSESSMENT\", ready_for_separate_enforce_reassessment: true, enforce_authorized: false });\n}"
+    },
+    {
+      "sample_id": "AR-30",
+      "repository": "gycha0109-beep/AnnoyingRadar",
+      "pull_request": 30,
+      "head_sha": "3bfdababc41a58f65beb17a9bb3c83db4e3100d4",
+      "path": "scripts/run-threads-live-verification.mjs",
+      "human_band": "R4",
+      "expected_classification": "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
+      "excerpt": "import assert from \"node:assert/strict\";\nimport { createServiceClient } from \"../lib/supabase/service.js\";\nasync function persistScenario(client, curatorUserId, scenario, result) { return persistSourceSignals(client, { signals: result.signals }); }\nasync function main() { const client = createServiceClient(); assert.equal(after.signals - before.signals, insertedTotal); console.log(JSON.stringify({ status: \"PASS\" })); }\nmain().catch((error) => { console.error(`[threads-live-verification] FAILED: ${error.message}`); process.exitCode = 1; });"
+    },
+    {
+      "sample_id": "RW-54",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 54,
+      "head_sha": "11a6505d39a3addd119f55dd237081c9a1548f5e",
+      "path": "scripts/verify-ia-1-contracts.mjs",
+      "human_band": "R2",
+      "expected_classification": "SUPPORTING_REGRESSION_ONLY",
+      "excerpt": "function fail(message) { console.error(`IA-1 contract failed: ${message}`); process.exit(1); }\nfunction assert(condition, message) { if (!condition) fail(message); }\nassert(classifyRankingNeighbor(kboWin, kboBat)?.tier === \"A\", \"domain regression\");\nconsole.log(\"IA-1 neighborhood contracts: PASS\");"
+    },
+    {
+      "sample_id": "KB-275",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 275,
+      "head_sha": "c69d9bf1fc9d26a33e9649b617eef4f0ffc1b796",
+      "path": "scripts/verify-eval-p3-persona-simulation-v1.mjs",
+      "human_band": "R2",
+      "acceptable_bands": ["R2", "R3"],
+      "expected_classification": "SUPPORTING_EVALUATION_ONLY",
+      "excerpt": "import assert from \"node:assert/strict\";\nconst summary = { evidence_class: \"SYNTHETIC_SIMULATION_EVIDENCE\", acceptance: { synthetic_evidence_evaluation_only: true }, evaluator_authority: { real_user_preference_oracle: \"NOT_ESTABLISHED\", llm_judge_release_authority: \"NOT_ESTABLISHED\" }, production_boundary: { enforce_authorized_by_persona: false } };\nassert.equal(firstPassHash, secondPassHash);\nconsole.log(\"verify-eval-p3-persona-simulation-v1: PASS\");"
+    },
+    {
+      "sample_id": "NEG-DOC-VERIFICATION",
+      "repository": "synthetic-negative-control",
+      "path": "docs/verification/golden-fixture-strategy.md",
+      "human_band": "R1",
+      "expected_classification": "UNKNOWN",
+      "excerpt": "# Verification strategy\nThis document describes a future verification approach and contains no executable gate or policy evaluator."
+    },
+    {
+      "sample_id": "NEG-DOMAIN-POLICY",
+      "repository": "synthetic-negative-control",
+      "path": "src/recommendation/candidate-policy.ts",
+      "human_band": "R2",
+      "expected_classification": "UNKNOWN",
+      "excerpt": "export function rankCandidatePolicy(candidate, context) { return candidate.score + context.preferenceWeight; }"
+    }
+  ]
+}
