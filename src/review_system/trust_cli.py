@@ -45,6 +45,8 @@ def _add_sources(parser: argparse.ArgumentParser, *, required_core: bool) -> Non
     parser.add_argument("--evaluation-report")
     parser.add_argument("--reground-report")
     parser.add_argument("--reground-observations")
+    parser.add_argument("--github-source")
+    parser.add_argument("--workflow-diff")
 
 
 def cmd_assess(args: argparse.Namespace) -> int:
@@ -56,6 +58,8 @@ def cmd_assess(args: argparse.Namespace) -> int:
         evaluation_report=args.evaluation_report,
         reground_report=args.reground_report,
         reground_observations=args.reground_observations,
+        github_source=args.github_source,
+        workflow_diff=args.workflow_diff,
         generated_at=args.generated_at,
     )
     output = write_trust_report(args.output, report)
@@ -83,6 +87,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
         args.evaluation_report,
         args.reground_report,
         args.reground_observations,
+        args.github_source,
+        args.workflow_diff,
     ))
     if replay_requested:
         if args.request is None or args.profile is None:
@@ -96,6 +102,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
             evaluation_report=args.evaluation_report,
             reground_report=args.reground_report,
             reground_observations=args.reground_observations,
+            github_source=args.github_source,
+            workflow_diff=args.workflow_diff,
         )
         if errors:
             raise TrustVerificationError(errors)
