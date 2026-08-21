@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, Callable
 
 from .trust import (
     BAND_ORDER,
@@ -27,17 +27,21 @@ _WORKFLOW_RISK = {
 def _candidate_risk_projection(
     request: dict[str, Any],
     profile: dict[str, Any],
-    workflow_evidence: dict[str, Any],
+    workflow_evidence: dict[str, Any] | None,
+    *,
+    path_classifier: Callable[[str], tuple[str, str]] = _path_classification,
 ) -> dict[str, Any]:
-    normalized = normalize_workflow_diff_evidence(
-        workflow_evidence,
-        source_revision=request["source_revision"],
-        changed_files=request["changed_files"],
-    )
-    workflow_by_path = {
-        item["path"]: item
-        for item in normalized["workflows"]
-    }
+    workflow_by_path: dict[str, dict[str, Any]] = {}
+    if workflow_evidence is not None:
+        normalized = normalize_workflow_diff_evidence(
+            workflow_evidence,
+            source_revision=request["source_revision"],
+            changed_files=request["changed_files"],
+        )
+        workflow_by_path = {
+            item["path"]: item
+            for item in normalized["workflows"]
+        }
 
     base_band = TASK_CLASS_BANDS[request["task_class"]]
     grouped: dict[tuple[str, str], set[str]] = {}
@@ -45,7 +49,7 @@ def _candidate_risk_projection(
     for path in request["changed_files"]:
         semantic = workflow_by_path.get(path)
         if semantic is None:
-            band, reason_id = _path_classification(path)
+            band, reason_id = path_classifier(path)
         else:
             band, reason_id = _WORKFLOW_RISK[semantic["classification"]]
         path_bands.append(band)
