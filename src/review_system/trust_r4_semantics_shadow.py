@@ -37,7 +37,7 @@ _DECISION_MARKERS = (
     "enforce_authorized",
 )
 _GATE_OUTCOME_RE = re.compile(
-    r"(?:\bgate\s*:|\bGATE\s*=|BLOCKED[_A-Z0-9-]*|['\"]PASS['\"])",
+    r"(?:\bgate\s*:|\b[A-Z0-9_]*GATE\s*=|BLOCKED[_A-Z0-9-]*)",
     re.IGNORECASE,
 )
 _FAILURE_BEHAVIOR_RE = re.compile(
