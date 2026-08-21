@@ -25,6 +25,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python .github/_bootstrap_task_class_corroboration.py
+          python .github/_bootstrap_task_class_corroboration_v2.py
       - name: Commit implementation without bootstrap workflow
         run: echo "commit is owned by the existing CI bootstrap job"
