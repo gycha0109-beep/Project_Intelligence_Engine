@@ -1,0 +1,201 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "trust-risk-calibration-wave1",
+  "artifact_kind": "BLIND_HOLDOUT_ADJUDICATION",
+  "adjudication_status": "LABELS_OPENED_AFTER_REPRODUCIBLE_PREDICTION_FREEZE",
+  "authority": {
+    "prediction_pr": 45,
+    "prediction_head_sha": "c9aa348edd617b34f07d37d4bcfdaf448750be08",
+    "prediction_fixture_blob_sha": "d7f9d97acccc3238da62fef5b73c6119d59998a2",
+    "prediction_ci_run_id": 32457186199,
+    "prediction_ci_run_number": 1154,
+    "prediction_ci_conclusion": "success",
+    "labels_blob_sha": "0e132fb18bfb3d1f841bbc1649632b60f3fe85ae",
+    "labels_opened_only_after_prediction_ci_success": true
+  },
+  "scope": {
+    "partition": "frozen_holdout",
+    "sample_count": 11,
+    "r4_holdout_sample_count": 0,
+    "d1_workflow_bearing_samples": [
+      "RW-43",
+      "RW-46",
+      "RW-57"
+    ]
+  },
+  "summary": {
+    "authoritative": {
+      "exact_expected_matches": 9,
+      "exact_expected_total": 11,
+      "acceptable_band_matches": 9,
+      "acceptable_band_total": 11,
+      "underclassifications": 0,
+      "overclassifications_vs_expected": 2,
+      "mismatches": [
+        "RW-57",
+        "KB-274"
+      ]
+    },
+    "candidate": {
+      "exact_expected_matches": 10,
+      "exact_expected_total": 11,
+      "acceptable_band_matches": 10,
+      "acceptable_band_total": 11,
+      "underclassifications": 0,
+      "overclassifications_vs_expected": 1,
+      "mismatches": [
+        "KB-274"
+      ]
+    },
+    "delta": {
+      "exact_expected_matches": 1,
+      "acceptable_band_matches": 1,
+      "underclassifications": 0,
+      "overclassifications_vs_expected": -1
+    },
+    "d1_workflow_scope": {
+      "exact_expected_matches": 3,
+      "exact_expected_total": 3,
+      "underclassifications": 0,
+      "result": "PASS_FOR_WORKFLOW_SEMANTIC_SCOPE"
+    },
+    "global_result": "IMPROVED_NOT_CLOSED"
+  },
+  "samples": [
+    {
+      "sample_id": "BM-47",
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "confidence": "HIGH",
+      "authoritative_band": "R2",
+      "candidate_band": "R2",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-43",
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "confidence": "HIGH",
+      "authoritative_band": "R3",
+      "candidate_band": "R3",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-44",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R1",
+      "candidate_band": "R1",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-45",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R1",
+      "candidate_band": "R1",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-46",
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "confidence": "HIGH",
+      "authoritative_band": "R3",
+      "candidate_band": "R3",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-47",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R1",
+      "candidate_band": "R1",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-48",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R1",
+      "candidate_band": "R1",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-53",
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "confidence": "HIGH",
+      "authoritative_band": "R2",
+      "candidate_band": "R2",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "RW-57",
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "confidence": "HIGH",
+      "authoritative_band": "R3",
+      "candidate_band": "R2",
+      "authoritative_exact_match": false,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    },
+    {
+      "sample_id": "KB-274",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R3",
+      "candidate_band": "R3",
+      "authoritative_exact_match": false,
+      "candidate_exact_match": false,
+      "candidate_acceptable_match": false
+    },
+    {
+      "sample_id": "KB-276",
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "confidence": "HIGH",
+      "authoritative_band": "R1",
+      "candidate_band": "R1",
+      "authoritative_exact_match": true,
+      "candidate_exact_match": true,
+      "candidate_acceptable_match": true
+    }
+  ],
+  "defects": [
+    {
+      "defect_id": "DOCUMENTATION_HIGH_RISK_FILENAME_TOKEN_COLLISION",
+      "status": "OBSERVED_IN_HOLDOUT",
+      "sample_ids": ["KB-274"],
+      "observed_behavior": "A documentation-only path containing the filename token authorization is classified R3 before documentation-path handling can yield R1.",
+      "d1_related": false,
+      "remediation_in_this_artifact": false
+    }
+  ],
+  "limits": [
+    "The frozen holdout contains no independent R4 sample, so this adjudication does not support a blind R4 generalization claim.",
+    "D1 remains a shadow candidate; this artifact does not authorize mutation of authoritative Trust risk projection or any merge."
+  ]
+}
