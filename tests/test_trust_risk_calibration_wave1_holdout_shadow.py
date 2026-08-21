@@ -114,7 +114,7 @@ class TrustRiskCalibrationWave1HoldoutShadowTests(unittest.TestCase):
                     item["frozen_head_sha"],
                 )
 
-    def test_authoritative_predictions_recompute_from_current_code(self) -> None:
+    def test_pre_promotion_authoritative_predictions_recompute_from_legacy_model(self) -> None:
         for item in self.predictions["predictions"]:
             with self.subTest(sample_id=item["sample_id"]):
                 request = {
@@ -125,6 +125,7 @@ class TrustRiskCalibrationWave1HoldoutShadowTests(unittest.TestCase):
                 projection = _risk_projection(
                     request,
                     self.profiles[item["profile_basis"]],
+                    risk_model_version=None,
                 )
                 self.assertEqual(
                     projection["effective_band"],
