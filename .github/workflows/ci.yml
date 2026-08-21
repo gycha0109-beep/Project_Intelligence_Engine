@@ -29,7 +29,10 @@ jobs:
           marker = '        run: |\n'
           script = segment[segment.index(marker) + len(marker):]
           lines = [line[10:] if line.startswith('          ') else line for line in script.splitlines()]
-          Path('/tmp/apply-trust-corroboration.sh').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          script = '\n'.join(lines) + '\n'
+          script = script.replace("schema['properties']['profile']['properties']", "schema['$defs']['profile']['properties']")
+          script = script.replace("schema['properties']['risk']['properties']", "schema['$defs']['risk']['properties']")
+          Path('/tmp/apply-trust-corroboration.sh').write_text(script, encoding='utf-8')
           PY
           bash /tmp/apply-trust-corroboration.sh
       - name: Commit clean implementation
