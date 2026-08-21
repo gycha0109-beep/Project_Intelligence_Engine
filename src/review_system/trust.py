@@ -23,6 +23,10 @@ from .paths import asset
 from .policy_registry import load_policy_registry
 from .profile import resolve_profile_file
 from .reground import load_reground_report
+from .trust_r4_semantics_authority import (
+    build_trust_r4_semantic_evidence,
+    normalize_trust_r4_semantic_evidence,
+)
 from .trust_workflow_authority import (
     build_trust_workflow_evidence,
     normalize_trust_workflow_evidence,
@@ -32,9 +36,11 @@ from .validation import validate_profile_data
 
 TRUST_SCHEMA_VERSION = "1.0"
 TRUST_RISK_MODEL_V1_1 = "1.1"
-TRUST_RISK_MODEL_VERSION = "1.2"
+TRUST_RISK_MODEL_V1_2 = "1.2"
+TRUST_RISK_MODEL_VERSION = "1.3"
 _SUPPORTED_TRUST_RISK_MODEL_VERSIONS = {
     TRUST_RISK_MODEL_V1_1,
+    TRUST_RISK_MODEL_V1_2,
     TRUST_RISK_MODEL_VERSION,
 }
 TRUST_MODE = "REPORT_ONLY"
@@ -455,7 +461,10 @@ def _review_pack_corroboration(
     authorization_paths = non_documentation.get("application.authorization", [])
     rls_paths = non_documentation.get("data.rls", [])
     add_authorization_rls = bool(authorization_paths and rls_paths)
-    if add_authorization_rls and risk_model_version == TRUST_RISK_MODEL_VERSION:
+    if add_authorization_rls and risk_model_version in {
+        TRUST_RISK_MODEL_V1_2,
+        TRUST_RISK_MODEL_VERSION,
+    }:
         shared = set(authorization_paths) & set(rls_paths)
         collision_paths = {
             path for path in shared if _generic_policy_only_dual_selection(path)
@@ -481,6 +490,7 @@ def _risk_projection(
     request: dict[str, Any],
     profile: dict[str, Any],
     workflow_evidence: dict[str, Any] | None = None,
+    r4_semantic_evidence: dict[str, Any] | None = None,
     *,
     risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
 ) -> dict[str, Any]:
@@ -488,6 +498,13 @@ def _risk_projection(
         raise ValueError(f"unsupported Trust risk model version: {risk_model_version}")
     if risk_model_version is None and workflow_evidence is not None:
         raise ValueError("legacy unversioned risk model cannot consume workflow evidence")
+    if risk_model_version is None and r4_semantic_evidence is not None:
+        raise ValueError("legacy unversioned risk model cannot consume R4 semantic evidence")
+    if (
+        r4_semantic_evidence is not None
+        and risk_model_version != TRUST_RISK_MODEL_VERSION
+    ):
+        raise ValueError("R4 semantic evidence requires Trust risk model v1.3")
 
     workflow_by_path: dict[str, dict[str, Any]] = {}
     if workflow_evidence is not None:
@@ -501,6 +518,18 @@ def _risk_projection(
             for item in normalized_workflow["semantics"]["workflows"]
         }
 
+    r4_by_path: dict[str, dict[str, Any]] = {}
+    if r4_semantic_evidence is not None:
+        normalized_r4 = normalize_trust_r4_semantic_evidence(
+            r4_semantic_evidence,
+            source_revision=request["source_revision"],
+            changed_files=request["changed_files"],
+        )
+        r4_by_path = {
+            item["path"]: item
+            for item in normalized_r4["semantics"]["files"]
+        }
+
     path_classifier = (
         _path_classification
         if risk_model_version is None
@@ -510,11 +539,15 @@ def _risk_projection(
     grouped: dict[tuple[str, str], set[str]] = {}
     path_bands: list[str] = []
     for path in request["changed_files"]:
-        semantic = workflow_by_path.get(path)
-        if semantic is None:
-            band, reason_id = path_classifier(path)
+        r4_semantic = r4_by_path.get(path)
+        if r4_semantic is not None and r4_semantic["is_r4_authority"]:
+            band, reason_id = "R4", "SEMANTIC_R4_AUTHORITY"
         else:
-            band, reason_id = _WORKFLOW_RISK[semantic["classification"]]
+            semantic = workflow_by_path.get(path)
+            if semantic is None:
+                band, reason_id = path_classifier(path)
+            else:
+                band, reason_id = _WORKFLOW_RISK[semantic["classification"]]
         path_bands.append(band)
         grouped.setdefault((reason_id, band), set()).add(path)
     protected = sorted(
@@ -608,6 +641,37 @@ def _load_workflow_evidence_sources(
         )
     except (TypeError, ValueError) as exc:
         raise TrustError(f"invalid workflow authority evidence: {exc}") from exc
+
+
+def _load_r4_semantic_evidence_sources(
+    *,
+    request: dict[str, Any],
+    github_source: str | Path | None,
+    workflow_diff: str | Path | None,
+) -> dict[str, Any] | None:
+    if github_source is None and workflow_diff is None:
+        return None
+    if github_source is None or workflow_diff is None:
+        raise TrustError("R4 semantics require both GitHub source and workflow diff")
+
+    source_path = _safe_input_file(github_source, "GitHub source")
+    diff_path = _safe_input_file(workflow_diff, "Workflow diff")
+    source_data = load_data(source_path)
+    if not isinstance(source_data, dict):
+        raise TrustError("GitHub source must contain an object")
+    try:
+        diff_text = diff_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise TrustError("Workflow diff must be UTF-8 text") from exc
+    try:
+        return build_trust_r4_semantic_evidence(
+            github_source=source_data,
+            diff_text=diff_text,
+            source_revision=request["source_revision"],
+            changed_files=request["changed_files"],
+        )
+    except (TypeError, ValueError) as exc:
+        raise TrustError(f"invalid R4 semantic authority evidence: {exc}") from exc
 
 
 def _empty_ledger_evidence() -> dict[str, Any]:
@@ -980,6 +1044,7 @@ def _evidence_projection(
     reground_observations: str | Path | None,
     project_id: str,
     workflow_evidence: dict[str, Any] | None = None,
+    r4_semantic_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     ledger_data, defect_data = _ledger_evidence(ledger, project_id)
     policy_data = _policy_evidence(policy_registry, evaluation_report, project_id)
@@ -996,6 +1061,8 @@ def _evidence_projection(
     }
     if workflow_evidence is not None:
         projection["workflow_diff"] = deepcopy(workflow_evidence)
+    if r4_semantic_evidence is not None:
+        projection["r4_semantics"] = deepcopy(r4_semantic_evidence)
     return {
         "fingerprint_sha256": canonical_json_sha256(projection),
         **projection,
@@ -1281,6 +1348,11 @@ def assess_trust(
         github_source=github_source,
         workflow_diff=workflow_diff,
     ) if _risk_model_version is not None else None
+    r4_semantic_evidence = _load_r4_semantic_evidence_sources(
+        request=request_data,
+        github_source=github_source,
+        workflow_diff=workflow_diff,
+    ) if _risk_model_version == TRUST_RISK_MODEL_VERSION else None
     evidence = _evidence_projection(
         ledger=ledger,
         policy_registry=policy_registry,
@@ -1289,11 +1361,13 @@ def assess_trust(
         reground_observations=reground_observations,
         project_id=profile_data["project_id"],
         workflow_evidence=workflow_evidence,
+        r4_semantic_evidence=r4_semantic_evidence,
     )
     risk = _risk_projection(
         request_data,
         profile_data,
         workflow_evidence,
+        r4_semantic_evidence,
         risk_model_version=_risk_model_version,
     )
     hard_gates = _hard_gate_projection(request_data, risk, evidence)
@@ -1393,12 +1467,27 @@ def verify_trust_report_data(report: Any) -> list[str]:
             if workflow_evidence != normalized_workflow:
                 errors.append("evidence.workflow_diff canonical projection mismatch")
 
+        r4_semantic_evidence = evidence.get("r4_semantics")
+        normalized_r4: dict[str, Any] | None = None
+        if r4_semantic_evidence is not None:
+            if risk_model_version != TRUST_RISK_MODEL_VERSION:
+                errors.append("R4 semantic evidence requires Trust risk model v1.3")
+            normalized_r4 = normalize_trust_r4_semantic_evidence(
+                r4_semantic_evidence,
+                source_revision=normalized_request["source_revision"],
+                changed_files=normalized_request["changed_files"],
+            )
+            if r4_semantic_evidence != normalized_r4:
+                errors.append("evidence.r4_semantics canonical projection mismatch")
+
         fingerprint_payload = {
             key: deepcopy(evidence.get(key))
             for key in ("ledger", "defects", "policy", "reground")
         }
         if normalized_workflow is not None:
             fingerprint_payload["workflow_diff"] = deepcopy(normalized_workflow)
+        if normalized_r4 is not None:
+            fingerprint_payload["r4_semantics"] = deepcopy(normalized_r4)
         expected_fingerprint = canonical_json_sha256(fingerprint_payload)
         if evidence.get("fingerprint_sha256") != expected_fingerprint:
             errors.append("evidence.fingerprint_sha256 mismatch")
@@ -1406,6 +1495,7 @@ def verify_trust_report_data(report: Any) -> list[str]:
             normalized_request,
             profile,
             normalized_workflow,
+            normalized_r4,
             risk_model_version=risk_model_version,
         )
         if report.get("risk") != expected_risk:
