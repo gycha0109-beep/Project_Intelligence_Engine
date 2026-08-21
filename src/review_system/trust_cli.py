@@ -58,8 +58,8 @@ def cmd_assess(args: argparse.Namespace) -> int:
         evaluation_report=args.evaluation_report,
         reground_report=args.reground_report,
         reground_observations=args.reground_observations,
-        github_source=args.github_source,
-        workflow_diff=args.workflow_diff,
+        github_source=getattr(args, "github_source", None),
+        workflow_diff=getattr(args, "workflow_diff", None),
         generated_at=args.generated_at,
     )
     output = write_trust_report(args.output, report)
@@ -79,6 +79,8 @@ def cmd_assess(args: argparse.Namespace) -> int:
 
 def cmd_validate(args: argparse.Namespace) -> int:
     source, report = load_trust_report(args.report)
+    github_source = getattr(args, "github_source", None)
+    workflow_diff = getattr(args, "workflow_diff", None)
     replay_requested = any(value is not None for value in (
         args.request,
         args.profile,
@@ -87,8 +89,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
         args.evaluation_report,
         args.reground_report,
         args.reground_observations,
-        args.github_source,
-        args.workflow_diff,
+        github_source,
+        workflow_diff,
     ))
     if replay_requested:
         if args.request is None or args.profile is None:
@@ -102,8 +104,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
             evaluation_report=args.evaluation_report,
             reground_report=args.reground_report,
             reground_observations=args.reground_observations,
-            github_source=args.github_source,
-            workflow_diff=args.workflow_diff,
+            github_source=github_source,
+            workflow_diff=workflow_diff,
         )
         if errors:
             raise TrustVerificationError(errors)
