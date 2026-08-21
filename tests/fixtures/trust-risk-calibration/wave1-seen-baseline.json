@@ -1,0 +1,598 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "trust-risk-calibration-wave1",
+  "replay_kind": "WAVE1B_SEEN_RISK_BASELINE",
+  "pie_authority": {
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "main_sha": "96b053f63a25465a4e75e58d755a62462b20ee68",
+    "tree_sha": "478e938fafa800d410ca9bf25b45ee03a1557967"
+  },
+  "freeze_dependency": {
+    "commit_sha": "c599f53f12bb9e8218b472752b3a8039f48413fb",
+    "draft_pr": 40
+  },
+  "scope": {
+    "partitions": [
+      "calibration_seen",
+      "seen_validation"
+    ],
+    "sample_count": 23,
+    "frozen_holdout_replayed": false,
+    "external_seen_probe_replayed": false,
+    "projection": "RISK_BAND_ONLY"
+  },
+  "task_class_input_policy": {
+    "documentation": "PR change is documentation-only.",
+    "verifier": "The primary PR product is the verification/gate authority itself.",
+    "policy": "The primary PR product is the normative/governance policy evaluator itself.",
+    "routine_code": "All other product/runtime/harness/migration samples; high-risk semantics must be corroborated by current path/review-pack logic rather than declared upward."
+  },
+  "summary": {
+    "exact_expected_matches": 21,
+    "exact_expected_total": 23,
+    "acceptable_band_matches": 22,
+    "acceptable_band_total": 23,
+    "underclassifications": 0,
+    "overclassifications_vs_expected": 2,
+    "unacceptable_mismatches": [
+      "RW-54"
+    ],
+    "boundary_acceptable_mismatches": [
+      "KB-275"
+    ]
+  },
+  "samples": [
+    {
+      "sample_id": "BM-44",
+      "partition": "calibration_seen",
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/app/projects/[projectId]/evidence/page.tsx",
+        "apps/web/components/app/project-tabs.tsx",
+        "docs/access-policy-tests/phase40-decision-evidence-traceability.md",
+        "docs/decisions/phase40-decision-evidence-traceability.md"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R2",
+      "observed_effective_band": "R2",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "apps/web/app/projects/[projectId]/evidence/page.tsx",
+        "apps/web/components/app/project-tabs.tsx"
+      ]
+    },
+    {
+      "sample_id": "BM-45",
+      "partition": "calibration_seen",
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/app/projects/[projectId]/feedback-actions.ts",
+        "apps/web/app/projects/[projectId]/feedback/outcomes/page.tsx",
+        "apps/web/components/app/project-tabs.tsx",
+        "docs/access-policy-tests/phase41-feedback-outcome-closure.md",
+        "docs/decisions/phase41-feedback-outcome-closure.md"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R2",
+      "observed_effective_band": "R2",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "apps/web/app/projects/[projectId]/feedback-actions.ts",
+        "apps/web/app/projects/[projectId]/feedback/outcomes/page.tsx",
+        "apps/web/components/app/project-tabs.tsx"
+      ]
+    },
+    {
+      "sample_id": "BM-46",
+      "partition": "calibration_seen",
+      "profile_basis": "buildmap",
+      "task_class": "documentation",
+      "changed_files": [
+        "docs/decisions/pie-integration-boundary.md",
+        "docs/handoff/ACTIVE-HANDOFF.md"
+      ],
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "observed_path_floor_band": "R1",
+      "observed_effective_band": "R1",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "docs/decisions/pie-integration-boundary.md",
+        "docs/handoff/ACTIVE-HANDOFF.md"
+      ]
+    },
+    {
+      "sample_id": "BM-65",
+      "partition": "calibration_seen",
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/app/projects/[projectId]/github-integration-actions.ts",
+        "apps/web/lib/notion/api.ts",
+        "apps/web/lib/notion/resource.ts",
+        "docs/access-policy-tests/phase51-p3-integration-activation-readiness-controlled-live-e2e.md",
+        "docs/decisions/phase51-p3-integration-activation-readiness-controlled-live-e2e.md"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R2",
+      "observed_effective_band": "R2",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "apps/web/app/projects/[projectId]/github-integration-actions.ts",
+        "apps/web/lib/notion/api.ts",
+        "apps/web/lib/notion/resource.ts"
+      ]
+    },
+    {
+      "sample_id": "KB-262",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "verifier",
+      "changed_files": [
+        ".github/workflows/v21-9i-exact-main-replay-gate.yml",
+        "evidence/product-decision-axis-non-numeric-shadow-v1/v21-9i-remediated-synthetic-contexts-v1.json",
+        "scripts/product-evidence/verify-v21-9i-exact-main-replay-gate-v1.mjs"
+      ],
+      "expected_band": "R4",
+      "acceptable_bands": ["R4"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R4",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9i-exact-main-replay-gate.yml"
+      ]
+    },
+    {
+      "sample_id": "KB-268",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/v21-9j-controlled-production-probe.yml",
+        ".github/workflows/v21-9j-organic-shadow-evidence-attribution.yml",
+        "app/api/internal/exfoliation-normative-policy-controlled-production-probe/route.js",
+        "docs/evidence/v21-9j-organic-shadow-evidence-attribution-v1.md",
+        "lib/exfoliation-normative-policy-controlled-probe-oidc.js",
+        "lib/exfoliation-normative-policy-production-provenance.js",
+        "lib/exfoliation-normative-policy-production-shadow-observer.js",
+        "lib/exfoliation-normative-policy-runtime-observability.js",
+        "lib/security/analysis-request-guard-core.js",
+        "scripts/product-evidence/verify-v21-9j-organic-shadow-evidence-attribution-v1.mjs"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9j-controlled-production-probe.yml",
+        ".github/workflows/v21-9j-organic-shadow-evidence-attribution.yml",
+        "lib/security/analysis-request-guard-core.js"
+      ]
+    },
+    {
+      "sample_id": "KB-269",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/v21-9j-organic-shadow-evidence-attribution.yml"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R2", "R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9j-organic-shadow-evidence-attribution.yml"
+      ]
+    },
+    {
+      "sample_id": "KB-272",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "policy",
+      "changed_files": [
+        ".github/workflows/v21-9n-enforce-reassessment-sufficiency.yml",
+        "docs/evidence/v21-9n-enforce-reassessment-sufficiency-v1.md",
+        "lib/exfoliation-normative-policy-reassessment-sufficiency.js",
+        "scripts/fixtures/exfoliation-normative-reassessment-sufficiency-fixtures-v1.json",
+        "scripts/product-evidence/verify-v21-9n-enforce-reassessment-sufficiency-v1.mjs"
+      ],
+      "expected_band": "R4",
+      "acceptable_bands": ["R4"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R4",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9n-enforce-reassessment-sufficiency.yml"
+      ]
+    },
+    {
+      "sample_id": "KB-277",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "policy",
+      "changed_files": [
+        ".github/workflows/v21-9o-enforce-reassessment-calibration-methodology.yml",
+        "docs/evidence/v21-9o-enforce-reassessment-calibration-methodology-v1.md",
+        "lib/exfoliation-normative-policy-reassessment-calibration-methodology.js",
+        "scripts/fixtures/exfoliation-normative-reassessment-calibration-methodology-fixtures-v1.json",
+        "scripts/product-evidence/verify-v21-9o-enforce-reassessment-calibration-methodology-v1.mjs"
+      ],
+      "expected_band": "R4",
+      "acceptable_bands": ["R4"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R4",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9o-enforce-reassessment-calibration-methodology.yml"
+      ]
+    },
+    {
+      "sample_id": "KB-279",
+      "partition": "calibration_seen",
+      "profile_basis": "bejewely",
+      "task_class": "policy",
+      "changed_files": [
+        ".github/workflows/v21-9p-enforce-reassessment-normative-acceptance.yml",
+        "docs/evidence/v21-9p-enforce-reassessment-normative-acceptance-v1.md",
+        "lib/exfoliation-normative-policy-reassessment-normative-acceptance.js",
+        "scripts/fixtures/exfoliation-normative-reassessment-normative-acceptance-fixtures-v1.json",
+        "scripts/product-evidence/verify-v21-9p-enforce-reassessment-normative-acceptance-v1.mjs"
+      ],
+      "expected_band": "R4",
+      "acceptable_bands": ["R4"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R4",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9p-enforce-reassessment-normative-acceptance.yml"
+      ]
+    },
+    {
+      "sample_id": "RW-51",
+      "partition": "calibration_seen",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        "src/app/globals.css",
+        "src/app/layout.tsx",
+        "src/app/page.tsx",
+        "src/components/Navbar.tsx",
+        "src/components/SearchForm.tsx",
+        "src/lib/queries/home.ts"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R2",
+      "observed_effective_band": "R2",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "src/app/globals.css",
+        "src/app/layout.tsx",
+        "src/app/page.tsx",
+        "src/components/Navbar.tsx",
+        "src/components/SearchForm.tsx",
+        "src/lib/queries/home.ts"
+      ]
+    },
+    {
+      "sample_id": "RW-54",
+      "partition": "calibration_seen",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "package.json",
+        "scripts/verify-ia-1-contracts.mjs",
+        "src/lib/queries/public.ts",
+        "src/lib/ranking-neighborhood.ts"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": false,
+      "acceptable_band_match": false,
+      "max_path_floor_contributors": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "sample_id": "RW-56",
+      "partition": "calibration_seen",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        "scripts/verify-ui-2c-contracts.mjs",
+        "src/app/items/[itemSlug]/page.tsx"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2"],
+      "observed_path_floor_band": "R2",
+      "observed_effective_band": "R2",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "scripts/verify-ui-2c-contracts.mjs",
+        "src/app/items/[itemSlug]/page.tsx"
+      ]
+    },
+    {
+      "sample_id": "BM-53",
+      "partition": "seen_validation",
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/.env.example",
+        "apps/web/app/api/integrations/github/callback/route.ts",
+        "apps/web/app/api/integrations/github/setup/route.ts",
+        "apps/web/app/api/projects/[projectId]/integrations/github/activity/route.ts",
+        "apps/web/app/projects/[projectId]/github-integration-actions.ts",
+        "apps/web/app/projects/[projectId]/integration-actions.ts",
+        "apps/web/app/projects/[projectId]/integrations/page.tsx",
+        "apps/web/components/buildmap/github-activity-preview.tsx",
+        "apps/web/lib/github/api.ts",
+        "apps/web/lib/github/app.ts",
+        "apps/web/lib/github/repository.ts",
+        "docs/access-policy-tests/phase45-github-app-read-bootstrap.md",
+        "docs/decisions/phase45-github-app-read-bootstrap.md",
+        "docs/runbooks/phase45-github-app-bootstrap.md",
+        "supabase/migrations/20260819002000_buildmap_17_integration_bindings.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "supabase/migrations/20260819002000_buildmap_17_integration_bindings.sql"
+      ]
+    },
+    {
+      "sample_id": "BM-59",
+      "partition": "seen_validation",
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/.env.example",
+        "apps/web/app/api/integrations/notion/callback/route.ts",
+        "apps/web/app/api/projects/[projectId]/integrations/notion/resource/route.ts",
+        "apps/web/app/projects/[projectId]/integration-actions.ts",
+        "apps/web/app/projects/[projectId]/integrations/page.tsx",
+        "apps/web/app/projects/[projectId]/notion-integration-actions.ts",
+        "apps/web/components/buildmap/notion-resource-preview.tsx",
+        "apps/web/lib/notion/api.ts",
+        "apps/web/lib/notion/credential.ts",
+        "apps/web/lib/notion/oauth.ts",
+        "docs/access-policy-tests/phase48-notion-oauth-credential-read-bootstrap.md",
+        "docs/decisions/phase48-notion-oauth-credential-read-bootstrap.md",
+        "docs/runbooks/phase48-notion-oauth-bootstrap.md",
+        "supabase/migrations/20260819043000_buildmap_19_notion_oauth_credentials.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "apps/web/lib/notion/credential.ts",
+        "apps/web/lib/notion/oauth.ts",
+        "docs/access-policy-tests/phase48-notion-oauth-credential-read-bootstrap.md",
+        "docs/decisions/phase48-notion-oauth-credential-read-bootstrap.md",
+        "docs/runbooks/phase48-notion-oauth-bootstrap.md",
+        "supabase/migrations/20260819043000_buildmap_19_notion_oauth_credentials.sql"
+      ]
+    },
+    {
+      "sample_id": "KB-270",
+      "partition": "seen_validation",
+      "profile_basis": "bejewely",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/v21-9l-organic-shadow-evidence-durability.yml",
+        "docs/evidence/v21-9l-organic-shadow-evidence-durability-v1.md",
+        "lib/exfoliation-normative-policy-organic-evidence-context.js",
+        "lib/exfoliation-normative-policy-organic-evidence-store.js",
+        "lib/exfoliation-normative-policy-production-provenance.js",
+        "scripts/product-evidence/verify-v21-9l-organic-shadow-evidence-durability-v1.mjs",
+        "supabase/migrations/20260820093000_v21_9l_organic_shadow_evidence_daily_v1.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/v21-9l-organic-shadow-evidence-durability.yml",
+        "supabase/migrations/20260820093000_v21_9l_organic_shadow_evidence_daily_v1.sql"
+      ]
+    },
+    {
+      "sample_id": "KB-273",
+      "partition": "seen_validation",
+      "profile_basis": "bejewely",
+      "task_class": "documentation",
+      "changed_files": [
+        "docs/evidence/eval-p2-persona-contract-freeze-v1.md"
+      ],
+      "expected_band": "R1",
+      "acceptable_bands": ["R1"],
+      "observed_path_floor_band": "R1",
+      "observed_effective_band": "R1",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "docs/evidence/eval-p2-persona-contract-freeze-v1.md"
+      ]
+    },
+    {
+      "sample_id": "KB-275",
+      "partition": "seen_validation",
+      "profile_basis": "bejewely",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/eval-p3-persona-simulation.yml",
+        "docs/evidence/eval-p3-persona-simulation-poc-v1.md",
+        "scripts/persona-evaluation/eval-p3-contracts.mjs",
+        "scripts/verify-eval-p3-persona-simulation-v1.mjs"
+      ],
+      "expected_band": "R2",
+      "acceptable_bands": ["R2", "R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": false,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/eval-p3-persona-simulation.yml"
+      ]
+    },
+    {
+      "sample_id": "RW-41",
+      "partition": "seen_validation",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "docs/ops-1-production-content-operations.md",
+        "package.json",
+        "scripts/verify-ops-1-contracts.mjs",
+        "src/app/admin/rankings/[id]/preview/PreviewControlPanel.tsx",
+        "src/app/admin/rankings/page.tsx",
+        "src/lib/actions/editorial-quality.ts",
+        "supabase/migrations/20260819010000_ops_1_editorial_quality.sql",
+        "supabase/migrations/20260819010100_ops_1_trigger_return_fix.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/ci.yml",
+        "supabase/migrations/20260819010000_ops_1_editorial_quality.sql",
+        "supabase/migrations/20260819010100_ops_1_trigger_return_fix.sql"
+      ]
+    },
+    {
+      "sample_id": "RW-49",
+      "partition": "seen_validation",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "docs/measure-1-product-usage-discovery-baseline.md",
+        "package.json",
+        "scripts/verify-measure-1-contracts.mjs",
+        "src/app/admin/measure/page.tsx",
+        "src/app/admin/page.tsx",
+        "src/app/api/measure-1/route.ts",
+        "src/app/layout.tsx",
+        "src/components/telemetry/ProductTelemetry.tsx",
+        "src/lib/actions/measure.ts",
+        "supabase/migrations/20260819043000_measure_1_product_usage_discovery.sql",
+        "supabase/migrations/20260819043100_measure_1_retention_maintenance.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/ci.yml",
+        "supabase/migrations/20260819043000_measure_1_product_usage_discovery.sql",
+        "supabase/migrations/20260819043100_measure_1_retention_maintenance.sql"
+      ]
+    },
+    {
+      "sample_id": "RW-58",
+      "partition": "seen_validation",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "package.json",
+        "scripts/verify-public-copy-hygiene-contracts.mjs",
+        "supabase/migrations/20260821020500_ops_1_public_copy_hygiene.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/ci.yml",
+        "supabase/migrations/20260821020500_ops_1_public_copy_hygiene.sql"
+      ]
+    },
+    {
+      "sample_id": "RW-59",
+      "partition": "seen_validation",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        "scripts/verify-public-copy-hygiene-contracts.mjs",
+        "supabase/migrations/20260821022000_ops_1_public_copy_hygiene_boundary.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        "supabase/migrations/20260821022000_ops_1_public_copy_hygiene_boundary.sql"
+      ]
+    },
+    {
+      "sample_id": "RW-60",
+      "partition": "seen_validation",
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "docs/ia-2-ranking-identity-coordinate-architecture.md",
+        "package.json",
+        "scripts/verify-ia-2-contracts.mjs",
+        "src/lib/queries/public.ts",
+        "src/lib/ranking-identity.ts",
+        "supabase/migrations/20260821023200_ia_2_ranking_identity_projection.sql",
+        "supabase/migrations/20260821024000_ia_2_projection_privilege_hardening.sql"
+      ],
+      "expected_band": "R3",
+      "acceptable_bands": ["R3"],
+      "observed_path_floor_band": "R3",
+      "observed_effective_band": "R3",
+      "exact_expected_match": true,
+      "acceptable_band_match": true,
+      "max_path_floor_contributors": [
+        ".github/workflows/ci.yml",
+        "supabase/migrations/20260821023200_ia_2_ranking_identity_projection.sql",
+        "supabase/migrations/20260821024000_ia_2_projection_privilege_hardening.sql"
+      ]
+    }
+  ]
+}
