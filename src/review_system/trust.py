@@ -18,6 +18,7 @@ from .intelligence_config import normalize_path
 from .io import load_data
 from .ledger import LEDGER_SCHEMA_VERSION, verify_ledger
 from .path_globs import expand_trailing_recursive_glob
+from .packs import select_packs_with_reasons
 from .paths import asset
 from .policy_registry import load_policy_registry
 from .profile import resolve_profile_file
@@ -238,7 +239,11 @@ def load_reground_observations(path: str | Path) -> tuple[Path, dict[str, Any]]:
     return source, _normalize_observations_data(load_data(source))
 
 
-def _profile_descriptor(path: str | Path) -> tuple[Path, dict[str, Any]]:
+def _profile_descriptor(
+    path: str | Path,
+    *,
+    include_corroboration: bool = True,
+) -> tuple[Path, dict[str, Any]]:
     source = _safe_input_file(path, "Project Profile")
     profile = resolve_profile_file(source)
     errors = validate_profile_data(profile)
@@ -253,13 +258,19 @@ def _profile_descriptor(path: str | Path) -> tuple[Path, dict[str, Any]]:
             for index, value in enumerate(profile.get("protected_paths", []))
         }
     )
-    return source, {
+    descriptor = {
         "source": source.name,
         "project_id": project["id"].strip(),
         "profile_sha256": canonical_json_sha256(profile),
         "protected_paths": patterns,
     }
-
+    if include_corroboration:
+        review = profile.get("review")
+        packs = review.get("packs", []) if isinstance(review, dict) else []
+        descriptor["configured_review_packs"] = sorted(
+            {value.strip() for value in packs if isinstance(value, str) and value.strip()}
+        )
+    return source, descriptor
 
 def _band_max(*bands: str) -> str:
     return max(bands, key=lambda band: BAND_ORDER[band])
@@ -342,6 +353,64 @@ def _matches_pattern(path: str, pattern: str) -> bool:
     return any(fnmatch.fnmatchcase(path, candidate) for candidate in expand_trailing_recursive_glob(pattern))
 
 
+def _is_documentation_path(path: str) -> bool:
+    lowered = path.lower()
+    return (
+        lowered.startswith("docs/")
+        or "/docs/" in f"/{lowered}"
+        or PurePosixPath(lowered).suffix in {".md", ".rst", ".adoc"}
+    )
+
+
+def _review_pack_corroboration(
+    profile: dict[str, Any],
+    changed_files: list[str],
+) -> dict[str, Any] | None:
+    configured = profile.get("configured_review_packs")
+    if not isinstance(configured, list):
+        return None
+    selection = select_packs_with_reasons(changed_files, configured)
+    non_documentation = {
+        pack: sorted(path for path in paths if not _is_documentation_path(path))
+        for pack, paths in selection.items()
+    }
+    reasons: list[dict[str, Any]] = []
+
+    def add_reason(rule_id: str, paths: list[str]) -> None:
+        if not paths:
+            return
+        reasons.append(
+            {
+                "reason_id": f"REVIEW_PACK_CORROBORATION:{rule_id}",
+                "band": "R3",
+                "paths": sorted(set(paths)),
+            }
+        )
+
+    add_reason(
+        "AUTHENTICATION",
+        non_documentation.get("application.authentication", []),
+    )
+    add_reason(
+        "MIGRATION_SAFETY",
+        [
+            *non_documentation.get("application.migration-safety", []),
+            *non_documentation.get("data.migration-safety", []),
+        ],
+    )
+    authorization_paths = non_documentation.get("application.authorization", [])
+    rls_paths = non_documentation.get("data.rls", [])
+    if authorization_paths and rls_paths:
+        add_reason("AUTHORIZATION_RLS", [*authorization_paths, *rls_paths])
+
+    floor = _band_max("R0", *[item["band"] for item in reasons])
+    return {
+        "floor_band": floor,
+        "selected_review_packs": sorted(selection),
+        "reasons": reasons,
+    }
+
+
 def _risk_projection(request: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
     base_band = TASK_CLASS_BANDS[request["task_class"]]
     grouped: dict[tuple[str, str], set[str]] = {}
@@ -373,14 +442,39 @@ def _risk_projection(request: dict[str, Any], profile: dict[str, Any]) -> dict[s
             )
         ],
     ]
-    return {
+    output = {
         "base_band": base_band,
         "path_floor_band": path_floor,
         "effective_band": _band_max(base_band, path_floor),
         "protected_files": protected,
         "reasons": reasons,
     }
+    corroboration = _review_pack_corroboration(profile, request["changed_files"])
+    if corroboration is None:
+        return output
 
+    corroborated_floor = corroboration["floor_band"]
+    semantic_floor = _band_max(path_floor, corroborated_floor)
+    underdeclared = BAND_ORDER[base_band] < BAND_ORDER[semantic_floor]
+    reasons.extend(corroboration["reasons"])
+    if underdeclared:
+        reasons.append(
+            {
+                "reason_id": "TASK_CLASS_UNDERDECLARED",
+                "band": semantic_floor,
+                "paths": [],
+            }
+        )
+    output.update(
+        {
+            "corroborated_semantic_floor_band": corroborated_floor,
+            "selected_review_packs": corroboration["selected_review_packs"],
+            "task_class_underdeclared": underdeclared,
+            "effective_band": _band_max(base_band, path_floor, corroborated_floor),
+            "reasons": reasons,
+        }
+    )
+    return output
 
 def _empty_ledger_evidence() -> dict[str, Any]:
     return {
@@ -788,6 +882,10 @@ def _hard_gate_projection(
         "security",
     }
     high_risk_path = "HIGH_RISK_PATH" in risk_reason_ids
+    corroborated_high_risk = any(
+        reason_id.startswith("REVIEW_PACK_CORROBORATION:")
+        for reason_id in risk_reason_ids
+    )
     verifier_changed = (
         request["task_class"] == "verifier"
         or "VERIFIER_OR_POLICY_PATH" in risk_reason_ids
@@ -835,7 +933,7 @@ def _hard_gate_projection(
             ["head_match=false"] if not request["head_match"] else [],
         ),
         "AUTHORIZATION_OR_MIGRATION_CHANGE": (
-            high_risk_task or high_risk_path,
+            high_risk_task or high_risk_path or corroborated_high_risk,
             "TASK",
             sorted(
                 {
@@ -843,12 +941,15 @@ def _hard_gate_projection(
                     *[
                         path
                         for item in risk["reasons"]
-                        if item["reason_id"] == "HIGH_RISK_PATH"
+                        if (
+                            item["reason_id"] == "HIGH_RISK_PATH"
+                            or item["reason_id"].startswith("REVIEW_PACK_CORROBORATION:")
+                        )
                         for path in item["paths"]
                     ],
                 }
             )
-            if high_risk_task or high_risk_path
+            if high_risk_task or high_risk_path or corroborated_high_risk
             else [],
         ),
         "VERIFIER_CHANGED": (
@@ -1020,9 +1121,12 @@ def assess_trust(
     reground_report: str | Path | None = None,
     reground_observations: str | Path | None = None,
     generated_at: str | None = None,
+    _include_corroboration: bool = True,
 ) -> dict[str, Any]:
     _, request_data = load_trust_request(request)
-    _, profile_data = _profile_descriptor(profile)
+    _, profile_data = _profile_descriptor(
+        profile, include_corroboration=_include_corroboration
+    )
     evidence = _evidence_projection(
         ledger=ledger,
         policy_registry=policy_registry,
@@ -1088,6 +1192,22 @@ def verify_trust_report_data(report: Any) -> list[str]:
             )
             if profile.get("protected_paths") != normalized_patterns:
                 errors.append("profile.protected_paths canonical projection mismatch")
+            if "configured_review_packs" in profile:
+                configured_packs = profile.get("configured_review_packs")
+                if not isinstance(configured_packs, list):
+                    errors.append("profile.configured_review_packs must be an array")
+                else:
+                    normalized_packs = sorted(
+                        {
+                            value.strip()
+                            for value in configured_packs
+                            if isinstance(value, str) and value.strip()
+                        }
+                    )
+                    if configured_packs != normalized_packs:
+                        errors.append(
+                            "profile.configured_review_packs canonical projection mismatch"
+                        )
         if report.get("project_id") != profile.get("project_id"):
             errors.append("project_id does not match profile.project_id")
         evidence = report.get("evidence")
@@ -1164,6 +1284,9 @@ def verify_trust_report_sources(
             reground_report=reground_report,
             reground_observations=reground_observations,
             generated_at=report["generated_at"],
+            _include_corroboration=(
+                "configured_review_packs" in report.get("profile", {})
+            ),
         )
     except (TrustError, OSError, ValueError) as exc:
         return [f"source replay failed: {exc}"]
