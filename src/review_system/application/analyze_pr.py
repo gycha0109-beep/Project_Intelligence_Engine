@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any
 
 from ..github_connector import GitHubCLI, collect_pull_request, refresh_source_hash
@@ -19,6 +20,10 @@ from ..intelligence_report import pull_request_markdown
 from ..intelligence_state import capture_project_state
 from ..io import dump_json
 from ..validation import validate_profile_file
+from ..workflow_semantics import build_workflow_diff_evidence
+
+
+_EXACT_SHA40 = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -51,6 +56,7 @@ class AnalyzePullRequestResult:
     diff_path: Path | None
     changed_files: tuple[str, ...]
     prospective_candidate_path: Path | None = None
+    workflow_semantics_path: Path | None = None
 
 
 def _resolve_project_path(repository_root: Path, value: str | None, default_relative: str) -> Path:
@@ -233,6 +239,24 @@ def analyze_pull_request(
             diff_file.unlink()
         diff_path = None
 
+    workflow_semantics_file = output_dir / "workflow-semantics.json"
+    workflow_semantics_path: Path | None = None
+    if (
+        diff_text is not None
+        and isinstance(remote_head, str)
+        and _EXACT_SHA40.fullmatch(remote_head) is not None
+    ):
+        workflow_evidence = build_workflow_diff_evidence(
+            source_revision=remote_head,
+            source_evidence_sha256=source["source_sha256"],
+            changed_files=changed_files,
+            diff_text=diff_text,
+        )
+        dump_json(workflow_semantics_file, workflow_evidence)
+        workflow_semantics_path = workflow_semantics_file
+    else:
+        workflow_semantics_file.unlink(missing_ok=True)
+
     candidate = build_github_prospective_capture_candidate(source, profile_path)
     prospective_candidate_path = output_dir / candidate_filename(candidate)
     write_github_prospective_capture_candidate(prospective_candidate_path, candidate)
@@ -250,4 +274,5 @@ def analyze_pull_request(
         diff_path=diff_path,
         changed_files=changed_files,
         prospective_candidate_path=prospective_candidate_path,
+        workflow_semantics_path=workflow_semantics_path,
     )
