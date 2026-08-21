@@ -248,8 +248,8 @@
         "docs/evidence/facelab/face-lab-d2d-x-execution-authorization-20260821-v1.md"
       ],
       "workflow_semantics": [],
-      "authoritative_band_prediction": "R1",
-      "candidate_band_prediction": "R1"
+      "authoritative_band_prediction": "R3",
+      "candidate_band_prediction": "R3"
     },
     {
       "sample_id": "KB-276",
