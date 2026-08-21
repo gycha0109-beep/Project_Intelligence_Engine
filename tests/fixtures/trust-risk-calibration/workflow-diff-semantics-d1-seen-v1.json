@@ -34,7 +34,7 @@
         "WORKFLOW_MUTATING_API_CALL",
         "WORKFLOW_WRITE_PERMISSION"
       ],
-      "expected_patch_sha256": "5e656ccbc4f06ca58eb83f9de5eb40b11cebb5b0fd4c719baf7d621557f95306"
+      "expected_patch_sha256": "89d7c5486b057223d97e054599bacc3a628081ff5bb57e9897a2391db524d7e9"
     },
     {
       "case_id": "KB-275",
