@@ -84,8 +84,8 @@
       "changed_files": ["supabase/migrations/20260822_policy.sql"],
       "expected_current_band": "R3",
       "expected_candidate_band": "R3",
-      "expected_collision": true,
-      "rationale": "Even if generic policy collision is detectable, the independent migration path floor keeps effective risk at R3."
+      "expected_collision": false,
+      "rationale": "Supabase and migration signals place this case outside the generic-policy-only collision and independently retain R3."
     },
     {
       "sample_id": "D2-CONTROL-DOCUMENTATION",
