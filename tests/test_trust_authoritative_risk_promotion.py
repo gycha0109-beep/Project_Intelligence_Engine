@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -284,7 +283,18 @@ class TrustAuthoritativeRiskPromotionTests(unittest.TestCase):
             dump_json(source_path, source)
             diff_path.write_text(diff_text, encoding="utf-8")
 
-            report = fixture.assess(github_source=source_path, workflow_diff=diff_path)
+            report = assess_trust(
+                fixture.request,
+                fixture.profile,
+                ledger=fixture.reground_fixture.ledger,
+                policy_registry=fixture.policy_registry,
+                evaluation_report=fixture.evaluation_report,
+                reground_report=fixture.reground_report,
+                reground_observations=fixture.observations,
+                github_source=source_path,
+                workflow_diff=diff_path,
+                generated_at="2026-07-25T02:00:00Z",
+            )
             self.assertEqual(report["risk_model_version"], TRUST_RISK_MODEL_VERSION)
             self.assertEqual(report["risk"]["effective_band"], "R2")
             self.assertIn("workflow_diff", report["evidence"])
@@ -313,7 +323,11 @@ class TrustAuthoritativeRiskPromotionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             fixture = TrustReadinessFixture(Path(tmp))
             with self.assertRaisesRegex(TrustError, "both GitHub source and workflow diff"):
-                fixture.assess(github_source=fixture.request)
+                assess_trust(
+                    fixture.request,
+                    fixture.profile,
+                    github_source=fixture.request,
+                )
 
     def test_authoritative_wave1_replay_is_34_of_34_acceptable_zero_underclassification(self) -> None:
         seen_evidence: dict[str, dict] = {}
