@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import re
 from pathlib import PurePosixPath
 from typing import Any
+
+from .trust import BAND_ORDER, TRUST_MODE, _risk_projection
 
 
 CONTRACT_VERSION = "TRUST_R4_SEMANTIC_UNDERDETECTION_SHADOW_V1"
@@ -148,4 +151,63 @@ def analyze_r4_semantics(path: str, evidence_text: str) -> dict[str, Any]:
             "live_path": live_path,
             "supporting_path": supporting_path,
         },
+    }
+
+
+def project_r4_semantic_candidate(
+    request: dict[str, Any],
+    profile: dict[str, Any],
+    file_evidence: dict[str, str],
+    *,
+    workflow_evidence: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    current = _risk_projection(request, profile, workflow_evidence)
+    analyses = [
+        analyze_r4_semantics(path, file_evidence[path])
+        for path in request["changed_files"]
+        if path in file_evidence
+    ]
+    r4_paths = sorted(
+        item["path"] for item in analyses if item["is_r4_authority"]
+    )
+    candidate = deepcopy(current)
+    if r4_paths:
+        candidate["path_floor_band"] = "R4"
+        candidate["effective_band"] = "R4"
+        candidate["reasons"] = [
+            deepcopy(item)
+            for item in candidate["reasons"]
+            if item["reason_id"] != "TASK_CLASS_UNDERDECLARED"
+        ]
+        candidate["reasons"].append(
+            {
+                "reason_id": "SEMANTIC_R4_AUTHORITY",
+                "band": "R4",
+                "paths": r4_paths,
+            }
+        )
+        if "task_class_underdeclared" in candidate:
+            candidate["task_class_underdeclared"] = (
+                BAND_ORDER[candidate["base_band"]] < BAND_ORDER["R4"]
+            )
+        if BAND_ORDER[candidate["base_band"]] < BAND_ORDER["R4"]:
+            candidate["reasons"].append(
+                {
+                    "reason_id": "TASK_CLASS_UNDERDECLARED",
+                    "band": "R4",
+                    "paths": [],
+                }
+            )
+
+    return {
+        "contract_version": CONTRACT_VERSION,
+        "mode": TRUST_MODE,
+        "authority": "SHADOW_ONLY",
+        "automation_authorized": False,
+        "pilot_authorized": False,
+        "analyses": analyses,
+        "current_risk": current,
+        "candidate_risk": candidate,
+        "r4_semantic_paths": r4_paths,
+        "band_changed": current["effective_band"] != candidate["effective_band"],
     }
