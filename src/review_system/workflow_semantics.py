@@ -206,7 +206,7 @@ def _git_diff_path(header: str) -> str:
 def split_git_diff_by_path(diff_text: str) -> dict[str, str]:
     if not isinstance(diff_text, str):
         raise TypeError("git diff must be a string")
-    sections: dict[str, str] = {}
+    section_lists: dict[str, list[str]] = {}
     current_path: str | None = None
     current_lines: list[str] = []
 
@@ -215,9 +215,7 @@ def split_git_diff_by_path(diff_text: str) -> dict[str, str]:
         if current_path is None:
             current_lines = []
             return
-        if current_path in sections:
-            raise ValueError(f"git diff contains duplicate file section: {current_path}")
-        sections[current_path] = "".join(current_lines)
+        section_lists.setdefault(current_path, []).append("".join(current_lines))
         current_path = None
         current_lines = []
 
@@ -229,7 +227,10 @@ def split_git_diff_by_path(diff_text: str) -> dict[str, str]:
         elif current_path is not None:
             current_lines.append(line)
     flush()
-    return sections
+    return {
+        path: "".join(sections)
+        for path, sections in section_lists.items()
+    }
 
 
 def build_workflow_diff_evidence(
