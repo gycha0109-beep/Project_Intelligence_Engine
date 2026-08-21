@@ -121,12 +121,13 @@ def project_candidate_risk(
     *,
     workflow_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Project a non-authoritative D1 candidate risk result.
+    """Replay the historical non-authoritative D1 candidate contract.
 
-    Without workflow evidence this delegates exactly to the current Trust risk
-    projection. With exact-bound workflow evidence it replaces only the blanket
-    GitHub Actions path contribution. It does not mutate Trust reports, hard
-    gates, schemas, policy, profiles, automation authority, or pilot authority.
+    Without workflow evidence this uses the pre-promotion unversioned Trust
+    projection so frozen D1 prediction artifacts remain reproducible. With
+    exact-bound workflow evidence it applies only the original D1 workflow
+    semantic replacement. This helper is historical calibration infrastructure,
+    not the authoritative Trust runtime.
     """
 
     if workflow_evidence is None:
@@ -134,7 +135,7 @@ def project_candidate_risk(
             "candidate_contract": CANDIDATE_CONTRACT,
             "workflow_semantics_applied": False,
             "workflow_evidence": None,
-            "risk": _risk_projection(request, profile),
+            "risk": _risk_projection(request, profile, risk_model_version=None),
         }
 
     normalized = normalize_workflow_diff_evidence(
