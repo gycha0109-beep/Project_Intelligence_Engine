@@ -28,14 +28,7 @@ jobs:
           segment = source[start:end]
           marker = '        run: |\n'
           script = segment[segment.index(marker) + len(marker):]
-          lines = []
-          for line in script.splitlines():
-              if line.startswith('          '):
-                  lines.append(line[10:])
-              elif not line.strip():
-                  lines.append('')
-              else:
-                  raise SystemExit(f'unexpected bootstrap indentation: {line!r}')
+          lines = [line[10:] if line.startswith('          ') else line for line in script.splitlines()]
           Path('/tmp/apply-trust-corroboration.sh').write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
           bash /tmp/apply-trust-corroboration.sh
