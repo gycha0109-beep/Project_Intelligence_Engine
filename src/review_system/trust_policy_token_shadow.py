@@ -7,6 +7,7 @@ from .packs import _tokens, select_packs_with_reasons
 from .trust import (
     BAND_ORDER,
     TRUST_MODE,
+    TRUST_RISK_MODEL_V1_1,
     _band_max,
     _is_documentation_path,
     _review_pack_corroboration,
@@ -91,7 +92,11 @@ def _without_generic_policy_collision_floor(
     profile: dict[str, Any],
     changed_files: list[str],
 ) -> dict[str, Any]:
-    corroboration = _review_pack_corroboration(profile, changed_files)
+    corroboration = _review_pack_corroboration(
+        profile,
+        changed_files,
+        risk_model_version=TRUST_RISK_MODEL_V1_1,
+    )
     if corroboration is None:
         return deepcopy(risk)
 
@@ -146,7 +151,12 @@ def project_generic_policy_collision_candidate(
     *,
     workflow_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    current = _risk_projection(request, profile, workflow_evidence)
+    current = _risk_projection(
+        request,
+        profile,
+        workflow_evidence,
+        risk_model_version=TRUST_RISK_MODEL_V1_1,
+    )
     diagnosis = diagnose_generic_policy_collision(profile, request["changed_files"])
     candidate = deepcopy(current)
     if diagnosis["neutralize_authorization_rls"]:
