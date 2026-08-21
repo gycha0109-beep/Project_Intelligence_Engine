@@ -141,7 +141,7 @@ class TrustWorkflowSemanticBridgeTests(unittest.TestCase):
             "R3",
         )
 
-    def test_non_semantic_seen_samples_remain_exactly_current_projection(self) -> None:
+    def test_non_semantic_seen_samples_remain_exactly_pre_promotion_projection(self) -> None:
         for item in self.baseline["samples"]:
             if item["sample_id"] in self.cases:
                 continue
@@ -151,7 +151,7 @@ class TrustWorkflowSemanticBridgeTests(unittest.TestCase):
                     "changed_files": item["changed_files"],
                 }
                 profile = self.profiles[item["profile_basis"]]
-                baseline = _risk_projection(request, profile)
+                baseline = _risk_projection(request, profile, risk_model_version=None)
                 candidate = project_candidate_risk(request, profile)
                 self.assertFalse(candidate["workflow_semantics_applied"])
                 self.assertEqual(candidate["risk"], baseline)
