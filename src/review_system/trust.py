@@ -18,7 +18,7 @@ from .intelligence_config import normalize_path
 from .io import load_data
 from .ledger import LEDGER_SCHEMA_VERSION, verify_ledger
 from .path_globs import expand_trailing_recursive_glob
-from .packs import select_packs_with_reasons
+from .packs import _tokens, select_packs_with_reasons
 from .paths import asset
 from .policy_registry import load_policy_registry
 from .profile import resolve_profile_file
@@ -31,7 +31,12 @@ from .validation import validate_profile_data
 
 
 TRUST_SCHEMA_VERSION = "1.0"
-TRUST_RISK_MODEL_VERSION = "1.1"
+TRUST_RISK_MODEL_V1_1 = "1.1"
+TRUST_RISK_MODEL_VERSION = "1.2"
+_SUPPORTED_TRUST_RISK_MODEL_VERSIONS = {
+    TRUST_RISK_MODEL_V1_1,
+    TRUST_RISK_MODEL_VERSION,
+}
 TRUST_MODE = "REPORT_ONLY"
 BANDS = ("R0", "R1", "R2", "R3", "R4")
 BAND_ORDER = {band: index for index, band in enumerate(BANDS)}
@@ -86,6 +91,21 @@ _WORKFLOW_HIGH_RISK_REASON_IDS = {
     "WORKFLOW_SEMANTICS_UNKNOWN",
 }
 _DOCUMENTATION_PRECEDENCE_REASON = "DOCUMENTATION_HIGH_RISK_TOKEN_NEUTRALIZED"
+_GENERIC_POLICY_TOKENS = {"policy", "policies"}
+_NON_GENERIC_AUTHORITY_TOKENS = {
+    "rls",
+    "supabase",
+    "auth",
+    "authentication",
+    "session",
+    "jwt",
+    "middleware",
+    "controller",
+    "route",
+    "routes",
+    "api",
+    "endpoint",
+}
 _TIMESTAMPS_REQUIRE_TIMEZONE = "timestamp must include a timezone"
 
 
@@ -378,6 +398,15 @@ def _is_documentation_path(path: str) -> bool:
     )
 
 
+def _generic_policy_only_dual_selection(path: str) -> bool:
+    if _is_documentation_path(path):
+        return False
+    tokens = _tokens(path)
+    return bool(tokens & _GENERIC_POLICY_TOKENS) and not bool(
+        tokens & _NON_GENERIC_AUTHORITY_TOKENS
+    )
+
+
 def _authoritative_path_classification(path: str) -> tuple[str, str]:
     band, reason_id = _path_classification(path)
     if band == "R3" and _is_documentation_path(path):
@@ -388,6 +417,8 @@ def _authoritative_path_classification(path: str) -> tuple[str, str]:
 def _review_pack_corroboration(
     profile: dict[str, Any],
     changed_files: list[str],
+    *,
+    risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
 ) -> dict[str, Any] | None:
     configured = profile.get("configured_review_packs")
     if not isinstance(configured, list):
@@ -423,7 +454,19 @@ def _review_pack_corroboration(
     )
     authorization_paths = non_documentation.get("application.authorization", [])
     rls_paths = non_documentation.get("data.rls", [])
-    if authorization_paths and rls_paths:
+    add_authorization_rls = bool(authorization_paths and rls_paths)
+    if add_authorization_rls and risk_model_version == TRUST_RISK_MODEL_VERSION:
+        shared = set(authorization_paths) & set(rls_paths)
+        collision_paths = {
+            path for path in shared if _generic_policy_only_dual_selection(path)
+        }
+        if collision_paths:
+            surviving_authorization = set(authorization_paths) - collision_paths
+            surviving_rls = set(rls_paths) - collision_paths
+            add_authorization_rls = bool(
+                surviving_authorization and surviving_rls
+            )
+    if add_authorization_rls:
         add_reason("AUTHORIZATION_RLS", [*authorization_paths, *rls_paths])
 
     floor = _band_max("R0", *[item["band"] for item in reasons])
@@ -441,7 +484,7 @@ def _risk_projection(
     *,
     risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
 ) -> dict[str, Any]:
-    if risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+    if risk_model_version is not None and risk_model_version not in _SUPPORTED_TRUST_RISK_MODEL_VERSIONS:
         raise ValueError(f"unsupported Trust risk model version: {risk_model_version}")
     if risk_model_version is None and workflow_evidence is not None:
         raise ValueError("legacy unversioned risk model cannot consume workflow evidence")
@@ -504,7 +547,11 @@ def _risk_projection(
         "protected_files": protected,
         "reasons": reasons,
     }
-    corroboration = _review_pack_corroboration(profile, request["changed_files"])
+    corroboration = _review_pack_corroboration(
+        profile,
+        request["changed_files"],
+        risk_model_version=risk_model_version,
+    )
     if corroboration is None:
         return output
 
@@ -1220,7 +1267,7 @@ def assess_trust(
     _include_corroboration: bool = True,
     _risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
 ) -> dict[str, Any]:
-    if _risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+    if _risk_model_version is not None and _risk_model_version not in _SUPPORTED_TRUST_RISK_MODEL_VERSIONS:
         raise TrustError(f"unsupported Trust risk model version: {_risk_model_version}")
     if _risk_model_version is None and (github_source is not None or workflow_diff is not None):
         raise TrustError("legacy unversioned risk model cannot consume workflow evidence")
@@ -1287,7 +1334,7 @@ def verify_trust_report_data(report: Any) -> list[str]:
         return sorted(set(errors))
     try:
         risk_model_version = report.get("risk_model_version")
-        if risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+        if risk_model_version is not None and risk_model_version not in _SUPPORTED_TRUST_RISK_MODEL_VERSIONS:
             errors.append("risk_model_version is unsupported")
         normalized_request = _normalize_request_data(report.get("request"))
         if report.get("request") != normalized_request:
