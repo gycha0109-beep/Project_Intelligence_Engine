@@ -34,6 +34,10 @@ jobs:
           script = '\n'.join(lines) + '\n'
           script = script.replace("schema['properties']['profile']['properties']", "schema['$defs']['profile']['properties']")
           script = script.replace("schema['properties']['risk']['properties']", "schema['$defs']['risk']['properties']")
+          script = script.replace('selection = select_packs_with_reasons(configured, changed_files)', 'selection = select_packs_with_reasons(changed_files, configured)')
+          script = script.replace('selected = set(selection["packs"])\n    reasons = selection["reasons"]', 'reasons = selection\n    selected = set(reasons)')
+          script = script.replace('"selected_review_packs": selection["packs"]', '"selected_review_packs": sorted(selected)')
+          script = script.replace('python -m unittest tests.test_buildmap_task_class_corroboration tests.test_trust_gate tests.test_trust_gate_hardening -v', 'PYTHONPATH=tests python -m unittest test_buildmap_task_class_corroboration test_trust_gate test_trust_gate_hardening -v')
           Path('/tmp/apply-trust-corroboration.sh').write_text(script, encoding='utf-8')
           PY
           bash /tmp/apply-trust-corroboration.sh
