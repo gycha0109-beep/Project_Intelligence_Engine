@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "workflow-diff-semantics-d1-seen-v1",
+  "authority": {
+    "pie_main_sha": "96b053f63a25465a4e75e58d755a62462b20ee68",
+    "wave1_seen_baseline_sha": "02c44376484c7f471307bf6470de8078d9e62492",
+    "holdout_replayed": false
+  },
+  "cases": [
+    {
+      "case_id": "RW-54",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 54,
+      "head_sha": "11a6505d39a3addd119f55dd237081c9a1548f5e",
+      "path": ".github/workflows/ci.yml",
+      "patch_evidence_scope": "FULL_FILE_PATCH",
+      "patch": "@@ -29,6 +29,7 @@ jobs:\n       - run: npm run verify:p2-1\n       - run: npm run verify:p2-2\n       - run: npm run verify:p2-3\n+      - run: npm run verify:ia-1\n       - run: npm run verify:ops-1\n       - run: npm run verify:content-1\n       - run: npm run verify:content-3",
+      "expected_classification": "CI_TEST_WIRING_ONLY",
+      "expected_reason_ids": [
+        "WORKFLOW_TEST_WIRING_ONLY"
+      ],
+      "expected_patch_sha256": "a6c2a0bbc9250252a908da02aacff53c57b512c2430a57d06dec1b678c24303f"
+    },
+    {
+      "case_id": "KB-269",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 269,
+      "head_sha": "966bf7a95c3e13abceba2c9e308c09e95dd6088e",
+      "path": ".github/workflows/v21-9j-organic-shadow-evidence-attribution.yml",
+      "patch_evidence_scope": "FULL_FILE_PATCH",
+      "patch": "@@ -21,6 +21,7 @@ on:\n \n permissions:\n   contents: read\n+  statuses: write\n \n concurrency:\n   group: v21-9j-${{ github.workflow }}-${{ github.ref }}\n@@ -162,3 +163,20 @@ jobs:\n \n       - name: Production build\n         run: npm run build\n+\n+      - name: Publish merged-main exact-SHA CI attestation\n+        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}\n+        env:\n+          GH_TOKEN: ${{ github.token }}\n+          PRIOR_JOB_STATUS: ${{ job.status }}\n+        run: |\n+          set -euo pipefail\n+          state=\"success\"\n+          description=\"V2.1-9J merged-main exact-SHA CI passed\"\n+          if [ \"$PRIOR_JOB_STATUS\" != \"success\" ]; then\n+            state=\"failure\"\n+            description=\"V2.1-9J merged-main exact-SHA CI failed\"\n+          fi\n+          payload=$(printf '{\"state\":\"%s\",\"context\":\"V2.1-9J merged-main exact-SHA CI\",\"description\":\"%s\",\"target_url\":\"%s/%s/actions/runs/%s\"}' \"$state\" \"$description\" \"$GITHUB_SERVER_URL\" \"$GITHUB_REPOSITORY\" \"$GITHUB_RUN_ID\")\n+          curl --fail-with-body --silent --show-error -X POST -H \"Accept: application/vnd.github+json\" -H \"Authorization: Bearer $GH_TOKEN\" -H \"X-GitHub-Api-Version: 2022-11-28\" \"$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA\" -d \"$payload\" >/dev/null\n+          test \"$state\" = \"success\"",
+      "expected_classification": "AUTHORITY_MUTATION",
+      "expected_reason_ids": [
+        "WORKFLOW_MUTATING_API_CALL",
+        "WORKFLOW_WRITE_PERMISSION"
+      ],
+      "expected_patch_sha256": "5e656ccbc4f06ca58eb83f9de5eb40b11cebb5b0fd4c719baf7d621557f95306"
+    },
+    {
+      "case_id": "KB-275",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 275,
+      "head_sha": "c69d9bf1fc9d26a33e9649b617eef4f0ffc1b796",
+      "path": ".github/workflows/eval-p3-persona-simulation.yml",
+      "patch_evidence_scope": "OBSERVED_PATCH_PREFIX_THROUGH_PERMISSIONS",
+      "patch": "@@ -0,0 +1,139 @@\n+name: EVAL-P3 Deterministic Persona Simulation PoC\n+\n+on:\n+  push:\n+    branches:\n+      - eval/p3-deterministic-persona-simulation-poc\n+      - main\n+  pull_request:\n+    paths:\n+      - \".github/workflows/eval-p3-persona-simulation.yml\"\n+      - \"scripts/persona-evaluation/**\"\n+      - \"scripts/verify-eval-p3-persona-simulation-v1.mjs\"\n+      - \"docs/evidence/eval-p3-persona-simulation-poc-v1.md\"\n+      - \"evidence/persona-simulation/eval-p3/**\"\n+  workflow_dispatch:\n+\n+permissions:\n+  contents: read\n+  statuses: write\n",
+      "expected_classification": "AUTHORITY_MUTATION",
+      "expected_reason_ids": [
+        "WORKFLOW_WRITE_PERMISSION"
+      ],
+      "expected_patch_sha256": "632c19c3971618ae52536fc1114603f2c9d4de12b0174ce62fe626a4d632a087"
+    }
+  ]
+}
