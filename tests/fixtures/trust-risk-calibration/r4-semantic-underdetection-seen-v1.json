@@ -24,7 +24,7 @@
       "path": "scripts/product-evidence/verify-v21-9i-exact-main-replay-gate-v1.mjs",
       "human_band": "R4",
       "expected_classification": "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
-      "excerpt": "import assert from \"node:assert/strict\";\nconst summary = { gate: semanticMismatches.length || stopReasons.size ? \"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\" : \"PASS\" };\nif (stopReasons.size > 0) { throw new Error(\"EXACT_MAIN_9I_REPLAY_GATE runtime stop reasons\"); }\nif (semanticMismatches.length > 0) { throw new Error(\"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\"); }\nconsole.log(\"EXACT_MAIN_9I_REPLAY_GATE = PASS\");"
+      "excerpt": "import assert from \"node:assert/strict\";\nassert.equal(fixture.fixture_lineage, \"REMEDIATED_FIXTURE_VERSION\");\nassert.equal(replayCaseCount, 164 * 28);\nconst summary = { gate: semanticMismatches.length || stopReasons.size ? \"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\" : \"PASS\" };\nif (stopReasons.size > 0) { throw new Error(\"EXACT_MAIN_9I_REPLAY_GATE runtime stop reasons\"); }\nif (semanticMismatches.length > 0) { throw new Error(\"BLOCKED_V21_9I_REMEDIATION_REQUIRES_SEMANTIC_RUNTIME_CHANGE\"); }\nconsole.log(\"EXACT_MAIN_9I_REPLAY_GATE = PASS\");"
     },
     {
       "sample_id": "KB-272",
