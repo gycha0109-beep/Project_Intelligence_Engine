@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "trust-risk-calibration-wave1",
+  "artifact_kind": "BLIND_HOLDOUT_PREDICTIONS_ONLY",
+  "prediction_status": "PREDICTIONS_FROZEN_BEFORE_LABEL_OPEN",
+  "authority": {
+    "pie_main_sha": "96b053f63a25465a4e75e58d755a62462b20ee68",
+    "wave1_freeze_sha": "c599f53f12bb9e8218b472752b3a8039f48413fb",
+    "wave1_seen_baseline_sha": "02c44376484c7f471307bf6470de8078d9e62492",
+    "workflow_semantic_contract_sha": "134c56377e007a115e84a101dd9c046ea5294c1d",
+    "candidate_bridge_sha": "5b1fef895a1d92a3abbb3fc0604fce06dfe31224",
+    "shadow_bridge_sha": "be3fdb307f957e87cb5b7ca198a2a554bc87ad47",
+    "labels_opened_for_this_replay": false
+  },
+  "method": {
+    "task_class_rule": "documentation iff every changed path is documentation; otherwise routine_code",
+    "profile_basis": {
+      "BM": "buildmap",
+      "RW": "generic-webapp",
+      "KB": "bejewely"
+    },
+    "workflow_candidate_rule": {
+      "CI_TEST_WIRING_ONLY": "R2 path contribution",
+      "AUTHORITY_MUTATION": "R3 path contribution",
+      "UNKNOWN": "R3 path contribution"
+    },
+    "note": "No human expected_band, acceptable_bands, rationale, or scoring fields are present in this artifact. Workflow source_evidence_sha256 values below are synthetic deterministic fixture bindings, not live GitHub source hashes."
+  },
+  "predictions": [
+    {
+      "sample_id": "BM-47",
+      "repository": "gycha0109-beep/BuildMap",
+      "pull_request": 47,
+      "lifecycle_cluster_id": "BM-P42-CROSS-SURFACE",
+      "frozen_head_sha": "c34d7d13728ea9779dddaa29707a5201adbec81b",
+      "observed_current_head_sha": "c34d7d13728ea9779dddaa29707a5201adbec81b",
+      "head_match": true,
+      "profile_basis": "buildmap",
+      "task_class": "routine_code",
+      "changed_files": [
+        "apps/web/app/projects/[projectId]/decision-actions.ts",
+        "apps/web/app/projects/[projectId]/feedback-actions.ts",
+        "apps/web/app/projects/[projectId]/publication-actions.ts",
+        "docs/access-policy-tests/phase42-p2-e2e-closure-audit.md",
+        "docs/decisions/phase42-p2-e2e-closure-audit.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R2",
+      "candidate_band_prediction": "R2"
+    },
+    {
+      "sample_id": "RW-43",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 43,
+      "lifecycle_cluster_id": "RW-CONTENT1",
+      "frozen_head_sha": "314b3da9a932bc3638bd0d134e5a7f866e23371b",
+      "observed_current_head_sha": "314b3da9a932bc3638bd0d134e5a7f866e23371b",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "docs/content-1-verified-production-seed-batch.md",
+        "package.json",
+        "scripts/verify-content-1-contracts.mjs",
+        "src/app/admin/rankings/[id]/edit/RankingEditorForm.tsx",
+        "src/app/admin/rankings/new/page.tsx",
+        "src/app/rankings/[rankingSlug]/page.tsx",
+        "src/lib/actions/admin.ts",
+        "supabase/migrations/20260819020000_content_1_metric_ranking_type.sql"
+      ],
+      "workflow_semantics": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "source_evidence_sha256": "4343434343434343434343434343434343434343434343434343434343434343",
+          "patch": "@@ -30,6 +30,7 @@ jobs:\n       - run: npm run verify:p2-2\n       - run: npm run verify:p2-3\n       - run: npm run verify:ops-1\n+      - run: npm run verify:content-1\n       - run: npm run verify:ui-1\n       - run: npm run verify:launch-1\n       - run: npm run lint",
+          "classification_prediction": "CI_TEST_WIRING_ONLY"
+        }
+      ],
+      "authoritative_band_prediction": "R3",
+      "candidate_band_prediction": "R3"
+    },
+    {
+      "sample_id": "RW-44",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 44,
+      "lifecycle_cluster_id": "RW-CONTENT1",
+      "frozen_head_sha": "217449ab121b4adc123a3d7631f846e7e969e89d",
+      "observed_current_head_sha": "217449ab121b4adc123a3d7631f846e7e969e89d",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "documentation",
+      "changed_files": [
+        "README.md",
+        "docs/content-1-verified-production-seed-batch.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R1",
+      "candidate_band_prediction": "R1"
+    },
+    {
+      "sample_id": "RW-45",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 45,
+      "lifecycle_cluster_id": "RW-CONTENT2",
+      "frozen_head_sha": "dc55d66be7009e8fbd78815f54255e89cbfa605d",
+      "observed_current_head_sha": "dc55d66be7009e8fbd78815f54255e89cbfa605d",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "documentation",
+      "changed_files": [
+        "README.md",
+        "docs/content-2-production-editorial-expansion.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R1",
+      "candidate_band_prediction": "R1"
+    },
+    {
+      "sample_id": "RW-46",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 46,
+      "lifecycle_cluster_id": "RW-CONTENT3",
+      "frozen_head_sha": "ae39495cebed1457a1acf372017137ed9606ab84",
+      "observed_current_head_sha": "ae39495cebed1457a1acf372017137ed9606ab84",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "docs/content-3-recurring-editorial-revalidation.md",
+        "package.json",
+        "scripts/verify-content-3-contracts.mjs",
+        "src/app/admin/rankings/[id]/revalidation/page.tsx",
+        "src/app/admin/rankings/page.tsx",
+        "src/lib/actions/content-revalidation.ts",
+        "supabase/migrations/20260819030000_content_3_revalidation_cadence.sql",
+        "supabase/migrations/20260819030100_content_3_rpc_permissions.sql",
+        "supabase/migrations/20260819030200_content_3_actor_fk_index.sql"
+      ],
+      "workflow_semantics": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "source_evidence_sha256": "4646464646464646464646464646464646464646464646464646464646464646",
+          "patch": "@@ -31,6 +31,7 @@ jobs:\n       - run: npm run verify:p2-3\n       - run: npm run verify:ops-1\n       - run: npm run verify:content-1\n+      - run: npm run verify:content-3\n       - run: npm run verify:ui-1\n       - run: npm run verify:launch-1\n       - run: npm run lint",
+          "classification_prediction": "CI_TEST_WIRING_ONLY"
+        }
+      ],
+      "authoritative_band_prediction": "R3",
+      "candidate_band_prediction": "R3"
+    },
+    {
+      "sample_id": "RW-47",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 47,
+      "lifecycle_cluster_id": "RW-CONTENT3",
+      "frozen_head_sha": "545b51539a627bc5dc739da66f635d9579834606",
+      "observed_current_head_sha": "545b51539a627bc5dc739da66f635d9579834606",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "documentation",
+      "changed_files": [
+        "README.md",
+        "docs/content-3-recurring-editorial-revalidation.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R1",
+      "candidate_band_prediction": "R1"
+    },
+    {
+      "sample_id": "RW-48",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 48,
+      "lifecycle_cluster_id": "RW-CONTENT4",
+      "frozen_head_sha": "9e5af6ab8edc624658ca51f073dec2206f06d1d3",
+      "observed_current_head_sha": "9e5af6ab8edc624658ca51f073dec2206f06d1d3",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "documentation",
+      "changed_files": [
+        "README.md",
+        "docs/content-4-production-coverage-expansion.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R1",
+      "candidate_band_prediction": "R1"
+    },
+    {
+      "sample_id": "RW-53",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 53,
+      "lifecycle_cluster_id": "RW-UI2B-RANKING-DETAIL",
+      "frozen_head_sha": "47d0fa620f124d971800ffd14a59b99cc64381ce",
+      "observed_current_head_sha": "47d0fa620f124d971800ffd14a59b99cc64381ce",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        "scripts/verify-ui-1-contracts.mjs",
+        "src/app/rankings/[rankingSlug]/layout.tsx",
+        "src/app/rankings/[rankingSlug]/page.tsx"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R2",
+      "candidate_band_prediction": "R2"
+    },
+    {
+      "sample_id": "RW-57",
+      "repository": "gycha0109-beep/ranking",
+      "pull_request": 57,
+      "lifecycle_cluster_id": "RW-UI2D-DISCUSSION",
+      "frozen_head_sha": "8f6c23d1e559e13d723b1dc1e6b3b218683bcd23",
+      "observed_current_head_sha": "8f6c23d1e559e13d723b1dc1e6b3b218683bcd23",
+      "head_match": true,
+      "profile_basis": "generic-webapp",
+      "task_class": "routine_code",
+      "changed_files": [
+        ".github/workflows/ci.yml",
+        "package.json",
+        "scripts/verify-ui-1-contracts.mjs",
+        "scripts/verify-ui-2d-contracts.mjs",
+        "src/app/globals.css",
+        "src/components/comments/CommentReportForm.tsx",
+        "src/components/comments/CommentSection.tsx"
+      ],
+      "workflow_semantics": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "source_evidence_sha256": "5757575757575757575757575757575757575757575757575757575757575757",
+          "patch": "@@ -35,6 +35,7 @@ jobs:\n       - run: npm run verify:content-3\n       - run: npm run verify:ui-1\n       - run: npm run verify:ui-2c\n+      - run: npm run verify:ui-2d\n       - run: npm run verify:launch-1\n       - run: npm run verify:measure-1\n       - run: npm run lint",
+          "classification_prediction": "CI_TEST_WIRING_ONLY"
+        }
+      ],
+      "authoritative_band_prediction": "R3",
+      "candidate_band_prediction": "R2"
+    },
+    {
+      "sample_id": "KB-274",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 274,
+      "lifecycle_cluster_id": "KB-FACELAB-D2DX",
+      "frozen_head_sha": "98c4fbf2dd6d8d271d01b4bb9f79daef83cc3161",
+      "observed_current_head_sha": "98c4fbf2dd6d8d271d01b4bb9f79daef83cc3161",
+      "head_match": true,
+      "profile_basis": "bejewely",
+      "task_class": "documentation",
+      "changed_files": [
+        "docs/evidence/facelab/face-lab-d2d-x-execution-authorization-20260821-v1.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R3",
+      "candidate_band_prediction": "R3"
+    },
+    {
+      "sample_id": "KB-276",
+      "repository": "gycha0109-beep/K_beauty",
+      "pull_request": 276,
+      "lifecycle_cluster_id": "KB-FACELAB-D2DX",
+      "frozen_head_sha": "af5aee2773f3b6a279ec3934f5f70b84b1aea5e6",
+      "observed_current_head_sha": "af5aee2773f3b6a279ec3934f5f70b84b1aea5e6",
+      "head_match": true,
+      "profile_basis": "bejewely",
+      "task_class": "documentation",
+      "changed_files": [
+        "docs/evidence/face-eval-cx1g-d2d-x-reviewer-link-readiness-20260821-v1.md"
+      ],
+      "workflow_semantics": [],
+      "authoritative_band_prediction": "R1",
+      "candidate_band_prediction": "R1"
+    }
+  ]
+}

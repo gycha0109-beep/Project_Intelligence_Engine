@@ -23,10 +23,15 @@ from .paths import asset
 from .policy_registry import load_policy_registry
 from .profile import resolve_profile_file
 from .reground import load_reground_report
+from .trust_workflow_authority import (
+    build_trust_workflow_evidence,
+    normalize_trust_workflow_evidence,
+)
 from .validation import validate_profile_data
 
 
 TRUST_SCHEMA_VERSION = "1.0"
+TRUST_RISK_MODEL_VERSION = "1.1"
 TRUST_MODE = "REPORT_ONLY"
 BANDS = ("R0", "R1", "R2", "R3", "R4")
 BAND_ORDER = {band: index for index, band in enumerate(BANDS)}
@@ -71,6 +76,16 @@ _REVIEW_REQUIREMENT = {
     "R3": "HUMAN_APPROVAL_REQUIRED",
     "R4": "DUAL_INDEPENDENT_REVIEW_REQUIRED",
 }
+_WORKFLOW_RISK = {
+    "CI_TEST_WIRING_ONLY": ("R2", "WORKFLOW_CI_TEST_WIRING_ONLY"),
+    "AUTHORITY_MUTATION": ("R3", "WORKFLOW_AUTHORITY_MUTATION"),
+    "UNKNOWN": ("R3", "WORKFLOW_SEMANTICS_UNKNOWN"),
+}
+_WORKFLOW_HIGH_RISK_REASON_IDS = {
+    "WORKFLOW_AUTHORITY_MUTATION",
+    "WORKFLOW_SEMANTICS_UNKNOWN",
+}
+_DOCUMENTATION_PRECEDENCE_REASON = "DOCUMENTATION_HIGH_RISK_TOKEN_NEUTRALIZED"
 _TIMESTAMPS_REQUIRE_TIMEZONE = "timestamp must include a timezone"
 
 
@@ -272,6 +287,7 @@ def _profile_descriptor(
         )
     return source, descriptor
 
+
 def _band_max(*bands: str) -> str:
     return max(bands, key=lambda band: BAND_ORDER[band])
 
@@ -362,6 +378,13 @@ def _is_documentation_path(path: str) -> bool:
     )
 
 
+def _authoritative_path_classification(path: str) -> tuple[str, str]:
+    band, reason_id = _path_classification(path)
+    if band == "R3" and _is_documentation_path(path):
+        return "R1", _DOCUMENTATION_PRECEDENCE_REASON
+    return band, reason_id
+
+
 def _review_pack_corroboration(
     profile: dict[str, Any],
     changed_files: list[str],
@@ -411,12 +434,44 @@ def _review_pack_corroboration(
     }
 
 
-def _risk_projection(request: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
+def _risk_projection(
+    request: dict[str, Any],
+    profile: dict[str, Any],
+    workflow_evidence: dict[str, Any] | None = None,
+    *,
+    risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
+) -> dict[str, Any]:
+    if risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+        raise ValueError(f"unsupported Trust risk model version: {risk_model_version}")
+    if risk_model_version is None and workflow_evidence is not None:
+        raise ValueError("legacy unversioned risk model cannot consume workflow evidence")
+
+    workflow_by_path: dict[str, dict[str, Any]] = {}
+    if workflow_evidence is not None:
+        normalized_workflow = normalize_trust_workflow_evidence(
+            workflow_evidence,
+            source_revision=request["source_revision"],
+            changed_files=request["changed_files"],
+        )
+        workflow_by_path = {
+            item["path"]: item
+            for item in normalized_workflow["semantics"]["workflows"]
+        }
+
+    path_classifier = (
+        _path_classification
+        if risk_model_version is None
+        else _authoritative_path_classification
+    )
     base_band = TASK_CLASS_BANDS[request["task_class"]]
     grouped: dict[tuple[str, str], set[str]] = {}
     path_bands: list[str] = []
     for path in request["changed_files"]:
-        band, reason_id = _path_classification(path)
+        semantic = workflow_by_path.get(path)
+        if semantic is None:
+            band, reason_id = path_classifier(path)
+        else:
+            band, reason_id = _WORKFLOW_RISK[semantic["classification"]]
         path_bands.append(band)
         grouped.setdefault((reason_id, band), set()).add(path)
     protected = sorted(
@@ -475,6 +530,38 @@ def _risk_projection(request: dict[str, Any], profile: dict[str, Any]) -> dict[s
         }
     )
     return output
+
+
+def _load_workflow_evidence_sources(
+    *,
+    request: dict[str, Any],
+    github_source: str | Path | None,
+    workflow_diff: str | Path | None,
+) -> dict[str, Any] | None:
+    if github_source is None and workflow_diff is None:
+        return None
+    if github_source is None or workflow_diff is None:
+        raise TrustError("workflow semantics require both GitHub source and workflow diff")
+
+    source_path = _safe_input_file(github_source, "GitHub source")
+    diff_path = _safe_input_file(workflow_diff, "Workflow diff")
+    source_data = load_data(source_path)
+    if not isinstance(source_data, dict):
+        raise TrustError("GitHub source must contain an object")
+    try:
+        diff_text = diff_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise TrustError("Workflow diff must be UTF-8 text") from exc
+    try:
+        return build_trust_workflow_evidence(
+            github_source=source_data,
+            diff_text=diff_text,
+            source_revision=request["source_revision"],
+            changed_files=request["changed_files"],
+        )
+    except (TypeError, ValueError) as exc:
+        raise TrustError(f"invalid workflow authority evidence: {exc}") from exc
+
 
 def _empty_ledger_evidence() -> dict[str, Any]:
     return {
@@ -845,6 +932,7 @@ def _evidence_projection(
     reground_report: str | Path | None,
     reground_observations: str | Path | None,
     project_id: str,
+    workflow_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     ledger_data, defect_data = _ledger_evidence(ledger, project_id)
     policy_data = _policy_evidence(policy_registry, evaluation_report, project_id)
@@ -859,6 +947,8 @@ def _evidence_projection(
         "policy": policy_data,
         "reground": reground_data,
     }
+    if workflow_evidence is not None:
+        projection["workflow_diff"] = deepcopy(workflow_evidence)
     return {
         "fingerprint_sha256": canonical_json_sha256(projection),
         **projection,
@@ -881,7 +971,8 @@ def _hard_gate_projection(
         "deployment",
         "security",
     }
-    high_risk_path = "HIGH_RISK_PATH" in risk_reason_ids
+    high_risk_reason_ids = {"HIGH_RISK_PATH", *_WORKFLOW_HIGH_RISK_REASON_IDS}
+    high_risk_path = bool(risk_reason_ids & high_risk_reason_ids)
     corroborated_high_risk = any(
         reason_id.startswith("REVIEW_PACK_CORROBORATION:")
         for reason_id in risk_reason_ids
@@ -942,7 +1033,7 @@ def _hard_gate_projection(
                         path
                         for item in risk["reasons"]
                         if (
-                            item["reason_id"] == "HIGH_RISK_PATH"
+                            item["reason_id"] in high_risk_reason_ids
                             or item["reason_id"].startswith("REVIEW_PACK_CORROBORATION:")
                         )
                         for path in item["paths"]
@@ -1078,7 +1169,7 @@ def _task_advisory(
 
 
 def _snapshot_payload(report: dict[str, Any]) -> dict[str, Any]:
-    return {
+    payload = {
         "schema_version": report.get("schema_version"),
         "project_id": report.get("project_id"),
         "mode": report.get("mode"),
@@ -1092,6 +1183,9 @@ def _snapshot_payload(report: dict[str, Any]) -> dict[str, Any]:
         "readiness": deepcopy(report.get("readiness")),
         "task_advisory": deepcopy(report.get("task_advisory")),
     }
+    if "risk_model_version" in report:
+        payload["risk_model_version"] = report.get("risk_model_version")
+    return payload
 
 
 def _report_payload(report: dict[str, Any]) -> dict[str, Any]:
@@ -1120,13 +1214,26 @@ def assess_trust(
     evaluation_report: str | Path | None = None,
     reground_report: str | Path | None = None,
     reground_observations: str | Path | None = None,
+    github_source: str | Path | None = None,
+    workflow_diff: str | Path | None = None,
     generated_at: str | None = None,
     _include_corroboration: bool = True,
+    _risk_model_version: str | None = TRUST_RISK_MODEL_VERSION,
 ) -> dict[str, Any]:
+    if _risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+        raise TrustError(f"unsupported Trust risk model version: {_risk_model_version}")
+    if _risk_model_version is None and (github_source is not None or workflow_diff is not None):
+        raise TrustError("legacy unversioned risk model cannot consume workflow evidence")
+
     _, request_data = load_trust_request(request)
     _, profile_data = _profile_descriptor(
         profile, include_corroboration=_include_corroboration
     )
+    workflow_evidence = _load_workflow_evidence_sources(
+        request=request_data,
+        github_source=github_source,
+        workflow_diff=workflow_diff,
+    ) if _risk_model_version is not None else None
     evidence = _evidence_projection(
         ledger=ledger,
         policy_registry=policy_registry,
@@ -1134,8 +1241,14 @@ def assess_trust(
         reground_report=reground_report,
         reground_observations=reground_observations,
         project_id=profile_data["project_id"],
+        workflow_evidence=workflow_evidence,
     )
-    risk = _risk_projection(request_data, profile_data)
+    risk = _risk_projection(
+        request_data,
+        profile_data,
+        workflow_evidence,
+        risk_model_version=_risk_model_version,
+    )
     hard_gates = _hard_gate_projection(request_data, risk, evidence)
     readiness = _readiness_projection(request_data, evidence)
     advisory = _task_advisory(risk, hard_gates)
@@ -1157,6 +1270,8 @@ def assess_trust(
         "snapshot_sha256": "",
         "report_sha256": "",
     }
+    if _risk_model_version is not None:
+        report["risk_model_version"] = _risk_model_version
     report["snapshot_sha256"] = canonical_json_sha256(_snapshot_payload(report))
     report["report_id"] = _expected_report_id(report, report["snapshot_sha256"])
     report["report_sha256"] = canonical_json_sha256(_report_payload(report))
@@ -1171,6 +1286,9 @@ def verify_trust_report_data(report: Any) -> list[str]:
     if not isinstance(report, dict):
         return sorted(set(errors))
     try:
+        risk_model_version = report.get("risk_model_version")
+        if risk_model_version not in {None, TRUST_RISK_MODEL_VERSION}:
+            errors.append("risk_model_version is unsupported")
         normalized_request = _normalize_request_data(report.get("request"))
         if report.get("request") != normalized_request:
             errors.append("request canonical projection mismatch")
@@ -1214,14 +1332,35 @@ def verify_trust_report_data(report: Any) -> list[str]:
         if not isinstance(evidence, dict):
             errors.append("evidence must be an object")
             evidence = {}
+
+        workflow_evidence = evidence.get("workflow_diff")
+        normalized_workflow: dict[str, Any] | None = None
+        if workflow_evidence is not None:
+            if risk_model_version is None:
+                errors.append("legacy unversioned report must not contain workflow evidence")
+            normalized_workflow = normalize_trust_workflow_evidence(
+                workflow_evidence,
+                source_revision=normalized_request["source_revision"],
+                changed_files=normalized_request["changed_files"],
+            )
+            if workflow_evidence != normalized_workflow:
+                errors.append("evidence.workflow_diff canonical projection mismatch")
+
         fingerprint_payload = {
             key: deepcopy(evidence.get(key))
             for key in ("ledger", "defects", "policy", "reground")
         }
+        if normalized_workflow is not None:
+            fingerprint_payload["workflow_diff"] = deepcopy(normalized_workflow)
         expected_fingerprint = canonical_json_sha256(fingerprint_payload)
         if evidence.get("fingerprint_sha256") != expected_fingerprint:
             errors.append("evidence.fingerprint_sha256 mismatch")
-        expected_risk = _risk_projection(normalized_request, profile)
+        expected_risk = _risk_projection(
+            normalized_request,
+            profile,
+            normalized_workflow,
+            risk_model_version=risk_model_version,
+        )
         if report.get("risk") != expected_risk:
             errors.append("risk projection mismatch")
         expected_hard_gates = _hard_gate_projection(
@@ -1270,10 +1409,23 @@ def verify_trust_report_sources(
     evaluation_report: str | Path | None = None,
     reground_report: str | Path | None = None,
     reground_observations: str | Path | None = None,
+    github_source: str | Path | None = None,
+    workflow_diff: str | Path | None = None,
 ) -> list[str]:
     errors = verify_trust_report_data(report)
     if errors:
         return errors
+
+    risk_model_version = report.get("risk_model_version")
+    report_has_workflow = isinstance(report.get("evidence"), dict) and (
+        report["evidence"].get("workflow_diff") is not None
+    )
+    supplied_workflow = github_source is not None or workflow_diff is not None
+    if report_has_workflow and (github_source is None or workflow_diff is None):
+        return ["source replay requires both GitHub source and workflow diff"]
+    if not report_has_workflow and supplied_workflow:
+        return ["source replay workflow sources were not part of the report"]
+
     try:
         replay = assess_trust(
             request,
@@ -1283,10 +1435,13 @@ def verify_trust_report_sources(
             evaluation_report=evaluation_report,
             reground_report=reground_report,
             reground_observations=reground_observations,
+            github_source=github_source,
+            workflow_diff=workflow_diff,
             generated_at=report["generated_at"],
             _include_corroboration=(
                 "configured_review_packs" in report.get("profile", {})
             ),
+            _risk_model_version=risk_model_version,
         )
     except (TrustError, OSError, ValueError) as exc:
         return [f"source replay failed: {exc}"]
