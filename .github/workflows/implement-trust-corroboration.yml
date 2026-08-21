@@ -1,0 +1,125 @@
+name: Implement trust task-class corroboration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/implement-trust-corroboration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply bounded corroboration patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          trust_path = Path('src/review_system/trust.py')
+          text = trust_path.read_text(encoding='utf-8')
+          old_import = 'from .paths import asset\n'
+          if old_import not in text:
+              raise SystemExit('trust import anchor missing')
+          text = text.replace(old_import, 'from .packs import select_packs_with_reasons\nfrom .paths import asset\n', 1)
+
+          old_profile = '''def _profile_descriptor(path: str | Path) -> tuple[Path, dict[str, Any]]:\n    source = _safe_input_file(path, "Project Profile")\n    profile = resolve_profile_file(source)\n    errors = validate_profile_data(profile)\n    if errors:\n        raise TrustError("invalid Project Profile: " + "; ".join(errors))\n    project = profile.get("project")\n    if not isinstance(project, dict) or not isinstance(project.get("id"), str) or not project["id"].strip():\n        raise TrustError("Project Profile project.id is required")\n    patterns = sorted(\n        {\n            _normalize_glob(value, f"protected_paths[{index}]")\n            for index, value in enumerate(profile.get("protected_paths", []))\n        }\n    )\n    return source, {\n        "source": source.name,\n        "project_id": project["id"].strip(),\n        "profile_sha256": canonical_json_sha256(profile),\n        "protected_paths": patterns,\n    }\n'''
+          new_profile = '''def _profile_descriptor(\n    path: str | Path,\n    *,\n    include_corroboration: bool = True,\n) -> tuple[Path, dict[str, Any]]:\n    source = _safe_input_file(path, "Project Profile")\n    profile = resolve_profile_file(source)\n    errors = validate_profile_data(profile)\n    if errors:\n        raise TrustError("invalid Project Profile: " + "; ".join(errors))\n    project = profile.get("project")\n    if not isinstance(project, dict) or not isinstance(project.get("id"), str) or not project["id"].strip():\n        raise TrustError("Project Profile project.id is required")\n    patterns = sorted(\n        {\n            _normalize_glob(value, f"protected_paths[{index}]")\n            for index, value in enumerate(profile.get("protected_paths", []))\n        }\n    )\n    descriptor = {\n        "source": source.name,\n        "project_id": project["id"].strip(),\n        "profile_sha256": canonical_json_sha256(profile),\n        "protected_paths": patterns,\n    }\n    if include_corroboration:\n        review = profile.get("review")\n        packs = review.get("packs", []) if isinstance(review, dict) else []\n        descriptor["configured_review_packs"] = sorted(\n            {value.strip() for value in packs if isinstance(value, str) and value.strip()}\n        )\n    return source, descriptor\n'''
+          if old_profile not in text:
+              raise SystemExit('profile descriptor anchor missing')
+          text = text.replace(old_profile, new_profile, 1)
+
+          risk_start = text.index('def _risk_projection(')
+          risk_end = text.index('\n\ndef _empty_ledger_evidence', risk_start)
+          new_risk = '''def _is_documentation_path(path: str) -> bool:\n    lowered = path.lower()\n    return lowered.startswith("docs/") or PurePosixPath(lowered).suffix in {".md", ".rst", ".adoc"}\n\n\ndef _review_pack_corroboration(\n    profile: dict[str, Any],\n    changed_files: list[str],\n) -> dict[str, Any] | None:\n    configured = profile.get("configured_review_packs")\n    if not isinstance(configured, list):\n        return None\n    selection = select_packs_with_reasons(configured, changed_files)\n    selected = set(selection["packs"])\n    reasons = selection["reasons"]\n    corroboration_reasons: list[dict[str, Any]] = []\n\n    def add_reason(rule_id: str, paths: list[str]) -> None:\n        corroboration_reasons.append({"reason_id": f"REVIEW_PACK_CORROBORATION:{rule_id}", "band": "R3", "paths": sorted(set(paths))})\n\n    authn_paths = [path for path in reasons.get("application.authentication", []) if not _is_documentation_path(path)]\n    if "application.authentication" in selected and authn_paths:\n        add_reason("AUTHENTICATION", authn_paths)\n\n    migration_paths = [path for path in reasons.get("data.migration-safety", []) if not _is_documentation_path(path)]\n    if "data.migration-safety" in selected and migration_paths:\n        add_reason("MIGRATION_SAFETY", migration_paths)\n\n    authorization_paths = [path for path in reasons.get("application.authorization", []) if not _is_documentation_path(path)]\n    if {"application.authorization", "data.rls"}.issubset(selected) and authorization_paths:\n        add_reason("AUTHORIZATION_RLS", authorization_paths + reasons.get("data.rls", []))\n\n    floor = _band_max("R0", *[item["band"] for item in corroboration_reasons])\n    return {"floor_band": floor, "selected_review_packs": selection["packs"], "reasons": corroboration_reasons}\n\n\ndef _risk_projection(request: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:\n    base_band = TASK_CLASS_BANDS[request["task_class"]]\n    grouped: dict[tuple[str, str], set[str]] = {}\n    path_bands: list[str] = []\n    for path in request["changed_files"]:\n        band, reason_id = _path_classification(path)\n        path_bands.append(band)\n        grouped.setdefault((reason_id, band), set()).add(path)\n    protected = sorted(path for path in request["changed_files"] if any(_matches_pattern(path, pattern) for pattern in profile["protected_paths"]))\n    if protected:\n        path_bands.append("R3")\n        grouped.setdefault(("PROFILE_PROTECTED_PATH", "R3"), set()).update(protected)\n    path_floor = _band_max(*path_bands)\n    reasons = [{"reason_id": f"TASK_CLASS:{request['task_class']}", "band": base_band, "paths": []}, *[{"reason_id": reason_id, "band": band, "paths": sorted(paths)} for (reason_id, band), paths in sorted(grouped.items(), key=lambda item: (BAND_ORDER[item[0][1]], item[0][0]))]]\n    output = {"base_band": base_band, "path_floor_band": path_floor, "effective_band": _band_max(base_band, path_floor), "protected_files": protected, "reasons": reasons}\n    corroboration = _review_pack_corroboration(profile, request["changed_files"])\n    if corroboration is None:\n        return output\n    corroborated_floor = corroboration["floor_band"]\n    effective = _band_max(base_band, path_floor, corroborated_floor)\n    semantic_floor = _band_max(path_floor, corroborated_floor)\n    underdeclared = BAND_ORDER[base_band] < BAND_ORDER[semantic_floor]\n    reasons.extend(corroboration["reasons"])\n    if underdeclared:\n        reasons.append({"reason_id": "TASK_CLASS_UNDERDECLARED", "band": semantic_floor, "paths": []})\n    output.update({"corroborated_semantic_floor_band": corroborated_floor, "selected_review_packs": corroboration["selected_review_packs"], "task_class_underdeclared": underdeclared, "effective_band": effective, "reasons": reasons})\n    return output\n'''
+          text = text[:risk_start] + new_risk + text[risk_end:]
+
+          old_high = '    high_risk_path = "HIGH_RISK_PATH" in risk_reason_ids\n    verifier_changed = (\n'
+          if old_high not in text:
+              raise SystemExit('hard gate anchor missing')
+          text = text.replace(old_high, '    high_risk_path = "HIGH_RISK_PATH" in risk_reason_ids\n    corroborated_high_risk = any(reason_id.startswith("REVIEW_PACK_CORROBORATION:") for reason_id in risk_reason_ids)\n    verifier_changed = (\n', 1)
+
+          old_gate = '''        "AUTHORIZATION_OR_MIGRATION_CHANGE": (\n            high_risk_task or high_risk_path,\n            "TASK",\n            sorted(\n                {\n                    request["task_class"],\n                    *[\n                        path\n                        for item in risk["reasons"]\n                        if item["reason_id"] == "HIGH_RISK_PATH"\n                        for path in item["paths"]\n                    ],\n                }\n            )\n            if high_risk_task or high_risk_path\n            else [],\n        ),\n'''
+          new_gate = '''        "AUTHORIZATION_OR_MIGRATION_CHANGE": (\n            high_risk_task or high_risk_path or corroborated_high_risk,\n            "TASK",\n            sorted(\n                {\n                    request["task_class"],\n                    *[\n                        path\n                        for item in risk["reasons"]\n                        if item["reason_id"] == "HIGH_RISK_PATH"\n                        or item["reason_id"].startswith("REVIEW_PACK_CORROBORATION:")\n                        for path in item["paths"]\n                    ],\n                }\n            )\n            if high_risk_task or high_risk_path or corroborated_high_risk\n            else [],\n        ),\n'''
+          if old_gate not in text:
+              raise SystemExit('authorization gate anchor missing')
+          text = text.replace(old_gate, new_gate, 1)
+
+          old_assess = '    generated_at: str | None = None,\n) -> dict[str, Any]:\n    _, request_data = load_trust_request(request)\n    _, profile_data = _profile_descriptor(profile)\n'
+          new_assess = '    generated_at: str | None = None,\n    _include_corroboration: bool = True,\n) -> dict[str, Any]:\n    _, request_data = load_trust_request(request)\n    _, profile_data = _profile_descriptor(profile, include_corroboration=_include_corroboration)\n'
+          if old_assess not in text:
+              raise SystemExit('assess anchor missing')
+          text = text.replace(old_assess, new_assess, 1)
+
+          old_replay = '            reground_observations=reground_observations,\n            generated_at=report["generated_at"],\n        )\n'
+          new_replay = '            reground_observations=reground_observations,\n            generated_at=report["generated_at"],\n            _include_corroboration=("configured_review_packs" in report.get("profile", {})),\n        )\n'
+          if old_replay not in text:
+              raise SystemExit('source replay anchor missing')
+          text = text.replace(old_replay, new_replay, 1)
+          trust_path.write_text(text, encoding='utf-8')
+
+          for schema_path in [Path('schemas/trust-report.schema.json'), Path('src/review_system/assets/schemas/trust-report.schema.json')]:
+              schema = json.loads(schema_path.read_text(encoding='utf-8'))
+              schema['properties']['profile']['properties']['configured_review_packs'] = {'type':'array','items':{'type':'string','minLength':1},'uniqueItems':True}
+              risk_props = schema['properties']['risk']['properties']
+              risk_props['corroborated_semantic_floor_band'] = {'$ref':'#/$defs/riskBand'}
+              risk_props['selected_review_packs'] = {'type':'array','items':{'type':'string','minLength':1},'uniqueItems':True}
+              risk_props['task_class_underdeclared'] = {'type':'boolean'}
+              schema_path.write_text(json.dumps(schema, indent=2) + '\n', encoding='utf-8')
+
+          Path('tests/test_buildmap_task_class_corroboration.py').write_text(r'''from copy import deepcopy
+from pathlib import Path
+import tempfile
+import unittest
+from review_system.identity import canonical_json_sha256
+from review_system.io import dump_json
+from review_system.trust import assess_trust, verify_trust_report_data, verify_trust_report_sources
+ROOT=Path(__file__).resolve().parents[1]
+PROFILE=ROOT/'profiles'/'examples'/'buildmap.yml'
+PR65=["apps/web/app/projects/[projectId]/github-integration-actions.ts","apps/web/lib/notion/api.ts","apps/web/lib/notion/resource.ts","docs/access-policy-tests/phase51-p3-integration-activation-readiness-controlled-live-e2e.md","docs/decisions/phase51-p3-integration-activation-readiness-controlled-live-e2e.md"]
+PR66=["docs/handoff/ACTIVE-HANDOFF.md"]
+PR67=[".github/workflows/app-ci.yml","apps/web/.env.example","apps/web/app/api/integrations/figma/callback/route.ts","apps/web/app/api/projects/[projectId]/integrations/figma/context/route.ts","apps/web/app/projects/[projectId]/figma-capture-actions.ts","apps/web/app/projects/[projectId]/figma-integration-actions.ts","apps/web/app/projects/[projectId]/integration-actions.ts","apps/web/app/projects/[projectId]/integrations/layout.tsx","apps/web/components/buildmap/figma-context-preview.tsx","apps/web/components/buildmap/figma-integration-notice.tsx","apps/web/components/buildmap/figma-integration-section.tsx","apps/web/lib/figma/api.ts","apps/web/lib/figma/credential.ts","apps/web/lib/figma/oauth.ts","apps/web/lib/figma/provenance.ts","apps/web/lib/figma/read.ts","apps/web/lib/figma/resource.ts","apps/web/package.json","apps/web/scripts/phase52-figma-contract.mjs","docs/access-policy-tests/phase52-figma-integration-foundation.md","docs/decisions/phase52-figma-integration-foundation.md","supabase/migrations/20260820190000_buildmap_21_figma_oauth_credentials.sql"]
+def policy(): return {"policy_id":"buildmap-corroboration-regression-v1","policy_version":"1.0.0","min_ledger_runs":1,"min_ledger_decisions":1,"min_defects":1,"min_closed_defects":0,"min_reground_observations":1,"min_reground_coverage":1.0,"min_reground_precision":1.0,"min_reground_recall":1.0,"max_reground_false_positive_rate":0.0,"require_active_policy":True,"require_pass_evaluation":True,"require_holdout":True,"require_repeatability":True,"require_zero_protected_negative_regressions":True}
+def write_request(path,task_class,files,revision): dump_json(path,{"schema_version":"1.0","task_id":"buildmap-corroboration-regression","source_revision":"git:"+revision,"task_class":task_class,"changed_files":files,"required_scenarios":[],"completed_scenarios":[],"repository_match":True,"head_match":True,"rollback_evidence":False,"replay_evidence":False,"readiness_policy":policy()})
+def rehash(report):
+    snapshot={k:deepcopy(report.get(k)) for k in ["schema_version","project_id","mode","automation_authorized","maximum_automation_band","request","profile","risk","hard_gates","evidence","readiness","task_advisory"]}; report["snapshot_sha256"]=canonical_json_sha256(snapshot); r=report["request"]; report["report_id"]="trust-"+canonical_json_sha256({"project_id":report["project_id"],"task_id":r["task_id"],"source_revision":r["source_revision"],"snapshot_sha256":report["snapshot_sha256"]})[:32]; payload=deepcopy(report); payload.pop("report_sha256",None); report["report_sha256"]=canonical_json_sha256(payload)
+class Tests(unittest.TestCase):
+    def assess(self,files,task_class,revision):
+        tmp=tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup); req=Path(tmp.name)/'request.json'; write_request(req,task_class,files,revision); return req,assess_trust(req,PROFILE,generated_at='2026-08-21T00:00:00Z')
+    def test_pr66_stays_r1(self):
+        req,r=self.assess(PR66,'documentation','c67bf02ca406a31d844360e071ade25a94b5e211'); self.assertEqual('R1',r['risk']['effective_band']); self.assertEqual('R0',r['risk']['corroborated_semantic_floor_band']); self.assertFalse(r['risk']['task_class_underdeclared']); self.assertEqual([],verify_trust_report_sources(r,request=req,profile=PROFILE))
+    def test_pr65_corroborates_to_r3(self):
+        req,r=self.assess(PR65,'routine_code','3d36bd7f64fd770c52f749836043b29390b05f77'); self.assertEqual('R2',r['risk']['path_floor_band']); self.assertEqual('R3',r['risk']['corroborated_semantic_floor_band']); self.assertEqual('R3',r['risk']['effective_band']); self.assertTrue(r['risk']['task_class_underdeclared']); ids={x['reason_id'] for x in r['risk']['reasons']}; self.assertIn('REVIEW_PACK_CORROBORATION:AUTHORIZATION_RLS',ids); self.assertIn('TASK_CLASS_UNDERDECLARED',ids); self.assertIn('AUTHORIZATION_OR_MIGRATION_CHANGE',r['task_advisory']['triggered_hard_gates']); self.assertEqual([],verify_trust_report_sources(r,request=req,profile=PROFILE))
+    def test_pr67_remains_r3(self):
+        req,r=self.assess(PR67,'routine_code','e7920f9436b293e8e40ca0be1d2eeb2697a58ea1'); self.assertEqual('R3',r['risk']['path_floor_band']); self.assertEqual('R3',r['risk']['corroborated_semantic_floor_band']); self.assertEqual('R3',r['risk']['effective_band']); self.assertIn('data.migration-safety',r['risk']['selected_review_packs']); self.assertEqual([],verify_trust_report_sources(r,request=req,profile=PROFILE))
+    def test_legacy_report_still_replays(self):
+        req,r=self.assess(PR66,'documentation','c67bf02ca406a31d844360e071ade25a94b5e211'); legacy=deepcopy(r); legacy['profile'].pop('configured_review_packs',None); [legacy['risk'].pop(k,None) for k in ['corroborated_semantic_floor_band','selected_review_packs','task_class_underdeclared']]; rehash(legacy); self.assertEqual([],verify_trust_report_data(legacy)); self.assertEqual([],verify_trust_report_sources(legacy,request=req,profile=PROFILE))
+if __name__=='__main__': unittest.main()
+''',encoding='utf-8')
+          PY
+          python scripts/sync_package_assets.py
+          python -m unittest tests.test_buildmap_task_class_corroboration tests.test_trust_gate tests.test_trust_gate_hardening -v
+      - name: Commit implementation without bootstrap workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/implement-trust-corroboration.yml
+          git add -- src/review_system/trust.py schemas/trust-report.schema.json src/review_system/assets/schemas/trust-report.schema.json tests/test_buildmap_task_class_corroboration.py
+          git diff --cached --check
+          git commit -m "fix(trust): corroborate declared task class"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
