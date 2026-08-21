@@ -105,9 +105,9 @@ class TrustDocumentationPrecedenceShadowTests(unittest.TestCase):
             ),
             "src/auth/security.py": ("R3", "HIGH_RISK_PATH"),
             "supabase/migrations/202608210001.sql": ("R3", "HIGH_RISK_PATH"),
-            ".github/workflows/ci.yml": ("R3", "WORKFLOW_CHANGE"),
-            "docs/policies/access-control.md": ("R4", "VERIFIER_POLICY_IMPLEMENTATION"),
-            "src/review_system/trust.py": ("R4", "VERIFIER_POLICY_IMPLEMENTATION"),
+            ".github/workflows/ci.yml": ("R3", "HIGH_RISK_PATH"),
+            "docs/policies/access-control.md": ("R4", "VERIFIER_OR_POLICY_PATH"),
+            "src/review_system/trust.py": ("R4", "VERIFIER_OR_POLICY_PATH"),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
