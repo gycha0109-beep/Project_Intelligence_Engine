@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "artifact_kind": "D2_SYNTHETIC_DISCRIMINATOR_MATRIX",
+  "defect_id": "GENERIC_POLICY_TOKEN_ACCESS_CONTROL_COLLISION",
+  "candidate_contract": "TRUST_GENERIC_POLICY_TOKEN_COLLISION_D2_SHADOW_V1",
+  "authority": {
+    "pie_main_sha": "30b05828e1b3227e9f721cd00c65a2d3a96ef33f",
+    "wave1_label_blob_sha": "0e132fb18bfb3d1f841bbc1649632b60f3fe85ae",
+    "wave1_is_regression_only": true
+  },
+  "scope": {
+    "synthetic_only": true,
+    "human_holdout_claim": false,
+    "authoritative_runtime_change": false,
+    "rule": "Neutralize AUTHORIZATION_RLS corroboration only when the dual pack selection is created by policy/policies generic tokens without rls/supabase/auth/API-boundary tokens."
+  },
+  "cases": [
+    {
+      "sample_id": "D2-GENERIC-CANDIDATE-POLICY",
+      "task_class": "routine_code",
+      "changed_files": ["src/recommendation/candidate-policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R2",
+      "expected_collision": true,
+      "rationale": "Recommendation-domain CandidatePolicy naming is not by itself RLS or authorization-control-plane authority."
+    },
+    {
+      "sample_id": "D2-GENERIC-RANKING-POLICY",
+      "task_class": "routine_code",
+      "changed_files": ["src/ranking/ranking-policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R2",
+      "expected_collision": true,
+      "rationale": "Ordinary ranking policy code is promoted only because policy selects both data.rls and application.authorization."
+    },
+    {
+      "sample_id": "D2-GENERIC-ACCESS-CONTROL-POLICY",
+      "task_class": "routine_code",
+      "changed_files": ["src/domain/access-control-policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R2",
+      "expected_collision": true,
+      "rationale": "The generic policy token alone cannot prove both RLS and authorization authority; stronger path or token evidence remains required."
+    },
+    {
+      "sample_id": "D2-CONTROL-RLS",
+      "task_class": "routine_code",
+      "changed_files": ["src/rls/policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R3",
+      "expected_collision": false,
+      "rationale": "Explicit rls token is a non-generic authority signal and must retain R3 corroboration."
+    },
+    {
+      "sample_id": "D2-CONTROL-SUPABASE",
+      "task_class": "routine_code",
+      "changed_files": ["src/supabase/policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R3",
+      "expected_collision": false,
+      "rationale": "Explicit supabase token is outside the generic-policy-only correction."
+    },
+    {
+      "sample_id": "D2-CONTROL-AUTH",
+      "task_class": "routine_code",
+      "changed_files": ["src/auth/policy.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R3",
+      "expected_collision": false,
+      "rationale": "Explicit auth path remains R3 independent of generic policy naming."
+    },
+    {
+      "sample_id": "D2-CONTROL-INDEPENDENT-AUTH-RLS",
+      "task_class": "routine_code",
+      "changed_files": ["src/api/access.ts", "src/rls/check.ts"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R3",
+      "expected_collision": false,
+      "rationale": "Independent API authorization and RLS signals retain the corroborated R3 floor."
+    },
+    {
+      "sample_id": "D2-CONTROL-MIGRATION",
+      "task_class": "routine_code",
+      "changed_files": ["supabase/migrations/20260822_policy.sql"],
+      "expected_current_band": "R3",
+      "expected_candidate_band": "R3",
+      "expected_collision": false,
+      "rationale": "Supabase and migration signals place this case outside the generic-policy-only collision and independently retain R3."
+    },
+    {
+      "sample_id": "D2-CONTROL-DOCUMENTATION",
+      "task_class": "documentation",
+      "changed_files": ["docs/candidate-policy.md"],
+      "expected_current_band": "R1",
+      "expected_candidate_band": "R1",
+      "expected_collision": false,
+      "rationale": "Documentation is filtered from review-pack corroboration."
+    },
+    {
+      "sample_id": "D2-CONTROL-R4",
+      "task_class": "policy",
+      "changed_files": ["src/review_system/policy_registry.py"],
+      "expected_current_band": "R4",
+      "expected_candidate_band": "R4",
+      "expected_collision": true,
+      "rationale": "Verifier/policy authority remains R4 regardless of generic token collision diagnosis."
+    }
+  ]
+}
