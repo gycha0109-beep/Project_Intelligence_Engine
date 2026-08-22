@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "contract_version": "TRUST_CONTROLLED_NON_PRODUCTION_EXECUTION_CALIBRATION_V1",
   "calibration_id": "PEB3-CONTROLLED-NONPROD-20260822",
-  "generated_at": "2026-08-22T05:48:00Z",
+  "generated_at": "2026-08-22T05:50:30Z",
   "mode": "CONTROLLED_NON_PRODUCTION_CALIBRATION",
   "project_id": "PIE",
   "source_main_sha": "5b5af6fd7f54365dadf5cf233c044507bf349fdf",
@@ -14,9 +14,9 @@
     "provider": "GITHUB",
     "repository": "gycha0109-beep/Project_Intelligence_Engine",
     "resource_type": "PULL_REQUEST",
-    "resource_id": "60",
+    "resource_id": "61",
     "environment": "NON_PRODUCTION_CALIBRATION",
-    "head_sha": "4306529568cb1357fdd34d5f2223c487c34e33c0",
+    "head_sha": "39ba94c0b847017f1f9f8e315fdbb198c15b65b9",
     "initial_state": "DRAFT"
   },
   "capability": {
@@ -49,7 +49,7 @@
     "postcondition_readback": {
       "state": "open",
       "draft": true,
-      "head_sha": "4306529568cb1357fdd34d5f2223c487c34e33c0"
+      "head_sha": "39ba94c0b847017f1f9f8e315fdbb198c15b65b9"
     },
     "postcondition_verified": false,
     "final_target_state_restored": true,
@@ -66,6 +66,6 @@
   ],
   "status": "BLOCKED",
   "next_step": "ESTABLISH_TARGET_SCOPED_NON_PRODUCTION_CREDENTIAL",
-  "evidence_snapshot_sha256": "e9f6860f501e4730a1e3f6db759ed1c4a01b43b367a30e22494ecb2458c86099",
-  "report_sha256": "7b69e1fce9c9b0ebae68ece430f385935431752234cc51195f83d71f24aef17f"
+  "evidence_snapshot_sha256": "e8dbf6e10a51101c5044504dd06a9ae63ef57ef8ee39ad016690ca80a81bf9f2",
+  "report_sha256": "3b8b818d7f06a7409f73672e51391b07ced32bec74dfc19474b16fbd871a58cb"
 }
