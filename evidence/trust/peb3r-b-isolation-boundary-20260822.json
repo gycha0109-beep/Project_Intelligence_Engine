@@ -1,8 +1,8 @@
 {
   "contract_version": "TRUST_PEB3R_ISOLATION_BOUNDARY_V1",
   "mode": "REPORT_ONLY",
-  "generated_at": "2026-08-22T08:35:00Z",
-  "source_main_sha": "63121861d70b6df82801e85c7963775526826aa5",
+  "generated_at": "2026-08-22T09:18:00Z",
+  "source_main_sha": "64b13fcd5c7380b75ab99d736f674ddfaeccd636",
   "production_execution_authorized": false,
   "automation_authorized": false,
   "pilot_authorized": false,
@@ -44,6 +44,9 @@
     "provider": "GITHUB",
     "repository": "gycha0109-beep/pie-peb3-calibration",
     "resource_type": "PULL_REQUEST",
+    "implementation_ready": true,
+    "implementation_ref": "src/review_system/trust_execution_governed_github_pr_adapter.py",
+    "live_target_binding_proven": false,
     "exact_pr_binding": false,
     "exact_head_binding": false,
     "exact_precondition_binding": false,
@@ -64,9 +67,12 @@
     "token_permission_set_readback": false
   },
   "observed_connector_capability": {
+    "dedicated_repository_search_result": "NOT_FOUND",
     "repository_creation_action_available": false,
     "installation_scope_update_action_available": false,
-    "installation_token_mint_action_available": false
+    "installation_token_mint_action_available": false,
+    "authenticated_browser_automation_available": false,
+    "authenticated_gh_cli_available": false
   },
   "expected_assessment": {
     "status": "BLOCKED",
