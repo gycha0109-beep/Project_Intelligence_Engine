@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "TRUST_CONTROLLED_NON_PRODUCTION_EXECUTION_CALIBRATION_V1",
+  "calibration_id": "PEB3-CONTROLLED-NONPROD-20260822",
+  "generated_at": "2026-08-22T05:48:00Z",
+  "mode": "CONTROLLED_NON_PRODUCTION_CALIBRATION",
+  "project_id": "PIE",
+  "source_main_sha": "5b5af6fd7f54365dadf5cf233c044507bf349fdf",
+  "production_execution_authorized": false,
+  "non_production_execution_authorized": true,
+  "automation_authorized": false,
+  "pilot_authorized": false,
+  "target": {
+    "provider": "GITHUB",
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "resource_type": "PULL_REQUEST",
+    "resource_id": "60",
+    "environment": "NON_PRODUCTION_CALIBRATION",
+    "head_sha": "4306529568cb1357fdd34d5f2223c487c34e33c0",
+    "initial_state": "DRAFT"
+  },
+  "capability": {
+    "class": "GITHUB_PR_MUTATION",
+    "operation": "MARK_READY_FOR_REVIEW",
+    "rollback_operation": "CONVERT_TO_DRAFT"
+  },
+  "authorization": {
+    "required": true,
+    "basis": "EXPLICIT_HUMAN_BOUNDARY_AUTHORIZATION",
+    "authorization_id": "human-peb3-20260822-continue",
+    "authorization_ref": "conversation:2026-08-22:user-continue-after-peb3-boundary"
+  },
+  "pre_dispatch": {
+    "source_head_exact": true,
+    "target_precondition_exact": true,
+    "kill_switch_clear": true,
+    "rollback_ready": true
+  },
+  "dispatch": {
+    "attempted": false,
+    "suppressed": true,
+    "provider_response": null,
+    "postcondition_readback": null,
+    "postcondition_verified": false
+  },
+  "rollback": {
+    "attempted": false,
+    "provider_response": null,
+    "postcondition_readback": {
+      "state": "open",
+      "draft": true,
+      "head_sha": "4306529568cb1357fdd34d5f2223c487c34e33c0"
+    },
+    "postcondition_verified": false,
+    "final_target_state_restored": true,
+    "restoration_mode": "NO_DISPATCH_STATE_PRESERVED"
+  },
+  "credential_scope": {
+    "transport": "CONNECTED_GITHUB_ACCOUNT",
+    "target_scoped": false,
+    "proven": false,
+    "evidence_ref": null
+  },
+  "blockers": [
+    "TARGET_SCOPED_CREDENTIAL_NOT_PROVEN"
+  ],
+  "status": "BLOCKED",
+  "next_step": "ESTABLISH_TARGET_SCOPED_NON_PRODUCTION_CREDENTIAL",
+  "evidence_snapshot_sha256": "e9f6860f501e4730a1e3f6db759ed1c4a01b43b367a30e22494ecb2458c86099",
+  "report_sha256": "7b69e1fce9c9b0ebae68ece430f385935431752234cc51195f83d71f24aef17f"
+}
