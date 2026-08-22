@@ -6,6 +6,7 @@ import unittest
 
 from review_system.trust import (
     TRUST_RISK_MODEL_V1_3,
+    TRUST_RISK_MODEL_V1_4,
     TRUST_RISK_MODEL_VERSION,
     _profile_descriptor,
 )
@@ -37,7 +38,8 @@ class TrustR4VerifierRoleRemediationShadowTests(unittest.TestCase):
 
     def test_contract_is_shadow_only_on_v13_authority(self) -> None:
         self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_V1_4, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.5")
         self.assertEqual(self.fixture["contract_version"], CONTRACT_VERSION)
         self.assertEqual(self.fixture["defect_id"], "EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_GAP")
         ceiling = self.fixture["authority_ceiling"]

@@ -265,7 +265,7 @@ class TrustR4VerifierRoleAuthoritativePromotionTests(unittest.TestCase):
             v14_report = assess_trust(
                 fixture.request,
                 fixture.profile,
-                _risk_model_version=TRUST_RISK_MODEL_VERSION,
+                _risk_model_version=TRUST_RISK_MODEL_V1_4,
                 **common,
             )
             self.assertEqual(v14_report["risk_model_version"], "1.4")

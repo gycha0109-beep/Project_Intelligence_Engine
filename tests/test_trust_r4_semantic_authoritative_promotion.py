@@ -143,7 +143,7 @@ class TrustR4SemanticAuthoritativePromotionTests(unittest.TestCase):
             "task_class": "routine_code",
             "changed_files": [case["path"]],
         }
-        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3 or v1.4"):
+        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3, v1.4 or v1.5"):
             _risk_projection(
                 request,
                 self.profile,
@@ -244,7 +244,7 @@ class TrustR4SemanticAuthoritativePromotionTests(unittest.TestCase):
                 workflow_diff=diff_path,
                 generated_at="2026-08-22T00:00:00Z",
             )
-            self.assertEqual(report["risk_model_version"], "1.4")
+            self.assertEqual(report["risk_model_version"], "1.5")
             self.assertEqual(report["risk"]["effective_band"], "R4")
             self.assertIn("workflow_diff", report["evidence"])
             self.assertIn("r4_semantics", report["evidence"])
