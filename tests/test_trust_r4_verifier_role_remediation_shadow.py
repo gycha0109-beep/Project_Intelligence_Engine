@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 import unittest
 
-from review_system.trust import TRUST_RISK_MODEL_VERSION, _profile_descriptor
+from review_system.trust import (
+    TRUST_RISK_MODEL_V1_3,
+    TRUST_RISK_MODEL_VERSION,
+    _profile_descriptor,
+)
 from review_system.trust_r4_verifier_role_shadow import (
     CONTRACT_VERSION,
     analyze_r4_verifier_role_candidate,
@@ -32,7 +36,8 @@ class TrustR4VerifierRoleRemediationShadowTests(unittest.TestCase):
         cls.cases = {item["case_id"]: item for item in cls.fixture["cases"]}
 
     def test_contract_is_shadow_only_on_v13_authority(self) -> None:
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.3")
+        self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
         self.assertEqual(self.fixture["contract_version"], CONTRACT_VERSION)
         self.assertEqual(self.fixture["defect_id"], "EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_GAP")
         ceiling = self.fixture["authority_ceiling"]
