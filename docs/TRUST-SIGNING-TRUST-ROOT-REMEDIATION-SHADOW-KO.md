@@ -14,6 +14,7 @@
 - authoritative remediation: **NOT AUTHORIZED**
 - Stage10K HUMAN_DECISION: **NO**
 - blind holdout/generalization claim: **NO**
+- shadow calibration result: **PASS**
 
 ## 1. Purpose
 
@@ -66,7 +67,7 @@ R3
 
 The candidate cannot lower an already-R3/R4 result and does not create an R4 claim.
 
-## 4. Real positive anchor
+## 4. Real positive anchor result
 
 MasterV PR #3 changed the updater public signing authority consistently across native updater code and updater-aware release configuration.
 
@@ -80,9 +81,21 @@ signature verification trust-root mutation
 = R3
 ```
 
-The shadow test first confirms current v1.4 still projects the representative runtime/config paths as R2, then checks the bounded candidate projection moves them to R3.
+Exact calibration result:
 
-## 5. Negative controls
+```text
+src-tauri/src/updater.rs
+current v1.4 = R2
+candidate    = R3
+
+src-tauri/tauri.windows-independent-updater-release.conf.json
+current v1.4 = R2
+candidate    = R3
+```
+
+This confirms the original R3 underclassification still exists on current v1.4 and the bounded candidate corrects it without producing R4.
+
+## 5. Negative and genericity controls
 
 The calibration includes:
 
@@ -92,11 +105,76 @@ The calibration includes:
 - ordinary application crypto public key with no release/signature-verification authority
 - example/development updater configuration
 
-These must not trigger the candidate.
+All remained non-promoted.
 
-A synthetic generic positive using `trustRootPublicKey` in an artifact-signature production configuration demonstrates that the rule does not depend on MasterV, Tauri, or repository identity. This is only a genericity control, not independent real-world evidence.
+A synthetic generic positive using `trustRootPublicKey` in an artifact-signature production configuration triggers R3, demonstrating that the rule does not depend on MasterV, Tauri, or repository identity. This is only a genericity control, not independent real-world evidence.
 
-## 6. Forbidden remediation
+Observed result:
+
+```text
+same-PR supporting contract = NO PROMOTION
+documentation control       = NO PROMOTION
+test-only key control       = NO PROMOTION
+ordinary crypto control     = NO PROMOTION
+example/dev updater control = NO PROMOTION
+generic synthetic positive  = R3 CANDIDATE
+existing R3 control         = remains R3
+R4 promotion                = NONE
+```
+
+## 6. Initial CI failure and correction
+
+Initial shadow head:
+
+```text
+02b907551557296fdecba659c552018146979079
+```
+
+CI:
+
+```text
+#1268
+run = 32548435530
+result = FAILED at full unittest
+```
+
+Source diagnosis found a parser asymmetry in the shadow-only trust-root assignment matcher: JSON-style quoting was explicitly accepted for `"pubkey"`, but the generic `"trustRootPublicKey"` form used by the repository-neutral synthetic positive did not accept surrounding quotes.
+
+This was not a policy-band relaxation and did not change the positive/negative evidence boundary. The assignment matcher was normalized so all recognized trust-root key names allow optional JSON/YAML-style quoting.
+
+Correction commit:
+
+```text
+3d6f542a2ce6159e21c50e3619da41dd72378f82
+```
+
+No fixture expectation, policy target, real positive label, negative-control label, or authoritative Trust behavior was changed.
+
+## 7. Successful calibration CI
+
+CI after the parser normalization:
+
+```text
+CI #1275
+run = 32548803887
+head = 3d6f542a2ce6159e21c50e3619da41dd72378f82
+
+Python 3.11 = SUCCESS
+Python 3.13 = SUCCESS
+Python 3.14 = SUCCESS
+full unittest = SUCCESS
+asset sync = SUCCESS
+Journey Connect profile = SUCCESS
+BEJEWELY profile = SUCCESS
+BuildMap profile = SUCCESS
+generic-webapp profile = SUCCESS
+findings validation = SUCCESS
+wheel build = SUCCESS
+```
+
+A final exact-head CI is required after this result-freeze document commit.
+
+## 8. Forbidden remediation
 
 This calibration explicitly rejects:
 
@@ -110,9 +188,9 @@ all crypto changes -> R3
 all config changes -> R3
 ```
 
-## 7. Acceptance gate
+## 9. Acceptance result
 
-The shadow calibration may be marked PASS only if exact-head CI confirms:
+The calibrated invariant is:
 
 ```text
 current Trust = v1.4
@@ -123,18 +201,17 @@ docs/test/example/ordinary-crypto negatives: no promotion
 generic synthetic trust-root mutation: candidate R3
 candidate never upgrades to R4
 candidate never downgrades existing R3
-all CI matrices = SUCCESS
 ```
 
-Until exact-head CI succeeds:
+Subject to final exact-head CI after this documentation freeze:
 
 ```text
-SIGNING_TRUST_ROOT_SHADOW_CALIBRATION = VALIDATION_PENDING
+SIGNING_TRUST_ROOT_SHADOW_CALIBRATION = PASS
 AUTHORITATIVE_REMEDIATION = NOT_AUTHORIZED
 MERGE = NOT_AUTHORIZED
 ```
 
-## 8. Non-actions
+## 10. Non-actions
 
 This stage does not:
 
