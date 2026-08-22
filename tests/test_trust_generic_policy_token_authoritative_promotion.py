@@ -8,6 +8,7 @@ import unittest
 from review_system.trust import (
     BAND_ORDER,
     TRUST_RISK_MODEL_V1_1,
+    TRUST_RISK_MODEL_V1_2,
     TRUST_RISK_MODEL_VERSION,
     _hard_gate_projection,
     _profile_descriptor,
@@ -76,8 +77,10 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
 
     def test_risk_model_versions_are_explicit_and_distinct(self) -> None:
         self.assertEqual(TRUST_RISK_MODEL_V1_1, "1.1")
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.2")
-        self.assertNotEqual(TRUST_RISK_MODEL_V1_1, TRUST_RISK_MODEL_VERSION)
+        self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.3")
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_1, TRUST_RISK_MODEL_V1_2)
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_2, TRUST_RISK_MODEL_VERSION)
 
     def test_v12_matches_frozen_shadow_candidate_for_d2_matrix(self) -> None:
         profile = self.profiles["generic-webapp"]
@@ -96,7 +99,7 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
                 v12 = _risk_projection(
                     request,
                     profile,
-                    risk_model_version=TRUST_RISK_MODEL_VERSION,
+                    risk_model_version=TRUST_RISK_MODEL_V1_2,
                 )
                 self.assertEqual(v11, shadow["current_risk"])
                 self.assertEqual(v12, shadow["candidate_risk"])
@@ -123,7 +126,7 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
             v12 = _risk_projection(
                 request,
                 profile,
-                risk_model_version=TRUST_RISK_MODEL_VERSION,
+                risk_model_version=TRUST_RISK_MODEL_V1_2,
             )
             v11_reasons = {item["reason_id"] for item in v11["reasons"]}
             v12_reasons = {item["reason_id"] for item in v12["reasons"]}
@@ -179,7 +182,7 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
         generic_v12 = _risk_projection(
             generic_request,
             profile,
-            risk_model_version=TRUST_RISK_MODEL_VERSION,
+            risk_model_version=TRUST_RISK_MODEL_V1_2,
         )
         gate_v11 = next(
             item
@@ -246,7 +249,7 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
                 request,
                 self.profiles[item["profile_basis"]],
                 evidence,
-                risk_model_version=TRUST_RISK_MODEL_VERSION,
+                risk_model_version=TRUST_RISK_MODEL_V1_2,
             )["effective_band"]
             observed += 1
             acceptable += int(v12 in item["acceptable_bands"])
@@ -273,7 +276,7 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
                 request,
                 self.profiles[item["profile_basis"]],
                 evidence,
-                risk_model_version=TRUST_RISK_MODEL_VERSION,
+                risk_model_version=TRUST_RISK_MODEL_V1_2,
             )["effective_band"]
             observed += 1
             acceptable += int(v12 in expected["acceptable_bands"])
