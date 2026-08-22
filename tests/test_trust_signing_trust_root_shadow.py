@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import unittest
 
-from review_system.trust import TRUST_RISK_MODEL_VERSION, _profile_descriptor
+from review_system.trust import TRUST_RISK_MODEL_V1_4, TRUST_RISK_MODEL_VERSION, _profile_descriptor
 from review_system import trust_signing_trust_root_shadow as shadow_module
 from review_system.trust_signing_trust_root_shadow import (
     CONTRACT_VERSION,
@@ -49,7 +49,8 @@ class TrustSigningTrustRootShadowTests(unittest.TestCase):
         )
 
     def test_contract_is_shadow_only_on_current_v14_authority(self) -> None:
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_V1_4, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.5")
         self.assertEqual(self.fixture["contract_version"], CONTRACT_VERSION)
         self.assertEqual(self.fixture["defect_id"], "SIGNING_TRUST_ROOT_AUTHORITY_GAP")
         self.assertEqual(self.fixture["target_band"], "R3")

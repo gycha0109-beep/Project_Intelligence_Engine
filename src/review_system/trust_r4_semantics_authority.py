@@ -27,13 +27,13 @@ _R4_AUTHORITY_CLASSES = {
     "NORMATIVE_DECISION_AUTHORITY",
     "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
 }
-_SUPPORTED_RISK_MODELS = {"1.3", "1.4"}
+_SUPPORTED_RISK_MODELS = {"1.3", "1.4", "1.5"}
 
 
 def _contract_for_risk_model(risk_model_version: str) -> str:
     if risk_model_version == "1.3":
         return CONTRACT_VERSION_V1_3
-    if risk_model_version == "1.4":
+    if risk_model_version in {"1.4", "1.5"}:
         return CONTRACT_VERSION_V1_4
     raise ValueError(f"R4 semantic evidence does not support Trust risk model {risk_model_version}")
 

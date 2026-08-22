@@ -8,6 +8,7 @@ import unittest
 from review_system.io import dump_json
 from review_system.trust import (
     TRUST_RISK_MODEL_V1_3,
+    TRUST_RISK_MODEL_V1_4,
     TRUST_RISK_MODEL_VERSION,
     _profile_descriptor,
     _risk_projection,
@@ -96,10 +97,12 @@ class TrustR4VerifierRoleAuthoritativePromotionTests(unittest.TestCase):
             risk_model_version=risk_model_version,
         )
 
-    def test_current_model_is_v14_and_v13_remains_explicit(self) -> None:
+    def test_current_model_is_v15_and_v14_v13_remain_explicit(self) -> None:
         self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
-        self.assertNotEqual(TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION)
+        self.assertEqual(TRUST_RISK_MODEL_V1_4, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.5")
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_V1_4)
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_4, TRUST_RISK_MODEL_VERSION)
 
     def test_mv7_live_acceptance_verifier_promotes_only_in_v14(self) -> None:
         case = self.verifier_by_id["MV-7-LIVE-PUBLISHED-UPDATER-ACCEPTANCE-VERIFIER"]
