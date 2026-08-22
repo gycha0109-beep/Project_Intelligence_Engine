@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from .github.source import validate_pull_request_source
 from .identity import canonical_json_sha256, normalize_source_revision
 from .intelligence_config import normalize_path
-from .trust_signing_trust_root_shadow import analyze_signing_trust_root_candidate
+from .trust_signing_trust_root_semantics import analyze_signing_trust_root_semantics
 from .workflow_semantics import split_git_diff_by_path
 
 
@@ -80,7 +80,7 @@ def _normalize_analysis(value: Any) -> dict[str, Any]:
 
 
 def _analyze_authoritative_signing_trust_root(path: str, patch: str) -> dict[str, Any]:
-    candidate = analyze_signing_trust_root_candidate(path, patch)
+    candidate = analyze_signing_trust_root_semantics(path, patch)
     authority = bool(candidate["candidate_triggered"])
     return {
         "contract_version": CONTRACT_VERSION,
