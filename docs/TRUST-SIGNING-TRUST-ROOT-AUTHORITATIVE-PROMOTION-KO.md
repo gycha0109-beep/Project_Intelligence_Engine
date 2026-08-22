@@ -1,6 +1,6 @@
 # Signing Trust-Root R3 Authoritative Promotion
 
-> Status: **IN PROGRESS — exact-head CI pending**
+> Status: **PASS — final documentation exact-head verification follows this commit**
 >
 > This document records the bounded promotion of the already-calibrated signing trust-root R3 discriminator. It does not authorize PR merge, automation, pilot execution, Stage10K human decision, blind generalization, or Production Execution Boundary remediation.
 
@@ -15,6 +15,8 @@ Shadow merge main = f8a04a2f0565df2449f58be0a43c42675876d806
 Authoritative promotion PR = #57
 Base main = f8a04a2f0565df2449f58be0a43c42675876d806
 Trust target = v1.5
+Pre-closeout promotion HEAD = 7f589a53bb378d51142cfc2fb92b6dba2272331a
+Pre-closeout CI = #1306 / 32550287641 / SUCCESS
 ```
 
 PR #56 landed only the calibrated shadow dependency. PR #57 is a separately versioned authoritative promotion and remains Draft / Open / Unmerged until a later explicit merge authorization.
@@ -78,11 +80,11 @@ Known positive MasterV PR #3 remains one observed signing-key rotation event wit
 ```text
 src-tauri/src/updater.rs
 v1.4 = R2
-v1.5 candidate = R3
+v1.5 = R3
 
 src-tauri/tauri.windows-independent-updater-release.conf.json
 v1.4 = R2
-v1.5 candidate = R3
+v1.5 = R3
 ```
 
 Controls remain non-promoted:
@@ -107,7 +109,7 @@ SEMANTIC_R3_SIGNING_TRUST_ROOT_AUTHORITY
 
 That reason is included in the existing high-risk hard-gate set. Therefore a source-bound R3 signing trust-root mutation receives the existing human-approval treatment instead of merely changing the descriptive band.
 
-## 7. CI remediation history
+## 7. Verification and remediation history
 
 Initial authoritative wiring exposed a circular import:
 
@@ -124,6 +126,22 @@ A later full-suite diagnostic reached 605 tests and found four stale v1.4 expect
 
 Temporary diagnostic workflows, diagnostic output, and temporary CI modifications were removed after diagnosis.
 
+Normal user-authored pre-closeout HEAD `7f589a53bb378d51142cfc2fb92b6dba2272331a` then passed CI #1306 across Python 3.11, 3.13, and 3.14. Each matrix job passed:
+
+```text
+asset sync          = PASS
+full unittest       = PASS
+urs version         = PASS
+journey-connect     = PASS
+bejewely            = PASS
+buildmap            = PASS
+generic-webapp      = PASS
+findings validation = PASS
+wheel build         = PASS
+```
+
+The commit containing this frozen result document is the final exact-head candidate and must itself pass the same CI before external closure is reported.
+
 ## 8. Explicit non-actions
 
 ```text
@@ -137,6 +155,20 @@ blind generalization              = NO
 PR57_MERGE                        = NOT_AUTHORIZED
 ```
 
-## 9. Closure status
+## 9. Promotion result
 
-This document is provisional until a normal user-authored promotion HEAD and the final documentation HEAD both pass exact-head CI across Python 3.11, 3.13, and 3.14 with the full validation chain.
+```text
+SIGNING_TRUST_ROOT_AUTHORITY_GAP
+= AUTHORITATIVE REMEDIATION PROMOTED
+
+SIGNING_TRUST_ROOT_AUTHORITATIVE_PROMOTION
+= PASS
+
+TRUST
+= v1.5
+
+PR57_MERGE
+= NOT_AUTHORIZED
+```
+
+The result above is valid for promotion closure only after the frozen-document HEAD receives exact-head CI success. Merge remains a separate approval boundary.
