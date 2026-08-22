@@ -1,0 +1,82 @@
+{
+  "contract_version": "TRUST_SIGNING_TRUST_ROOT_AUTHORITY_SHADOW_V1",
+  "defect_id": "SIGNING_TRUST_ROOT_AUTHORITY_GAP",
+  "authority_main": "6b853758991dc5169cc9d3a754fca70f7a17e17f",
+  "trust_risk_model": "1.4",
+  "target_band": "R3",
+  "authority_ceiling": {
+    "shadow_only": true,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "authoritative_remediation_authorized": false,
+    "blind_holdout_claim": false
+  },
+  "evidence_notes": {
+    "mv3": "Wave1 seen anchor; not new or blinded evidence.",
+    "synthetic_controls": "Calibration controls only; not real-world prevalence evidence.",
+    "generalization": "No claim that all signing, key, crypto, updater, or release changes are R3."
+  },
+  "cases": [
+    {
+      "case_id": "MV-3-RUST-UPDATER-TRUST-ROOT",
+      "evidence_status": "WAVE1_SEEN_REAL_POSITIVE",
+      "path": "src-tauri/src/updater.rs",
+      "excerpt": "pub(crate) const UPDATE_PUBLIC_KEY: &str = \"dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3MkMzNDk0ODg2NDUxM0UKUldRK1VXU0lsRFFzMTZHQUFZc3Z3eUxpcnN5bnE2QzRkalVtZDJDTFE4cGFCRFo1ejVCdFQ4QzAK\";\npub(crate) const UPDATE_TARGET: &str = \"windows-x86_64\";",
+      "policy_expected_band": "R3",
+      "expected_current_band": "R2",
+      "expected_candidate_triggered": true
+    },
+    {
+      "case_id": "MV-3-TAURI-UPDATER-CONFIG-TRUST-ROOT",
+      "evidence_status": "WAVE1_SEEN_REAL_POSITIVE_SAME_EVENT",
+      "path": "src-tauri/tauri.windows-independent-updater-release.conf.json",
+      "excerpt": "{\n  \"plugins\": {\n    \"updater\": {\n      \"pubkey\": \"dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3MkMzNDk0ODg2NDUxM0UKUldRK1VXU0lsRFFzMTZHQUFZc3Z3eUxpcnN5bnE2QzRkalVtZDJDTFE4cGFCRFo1ejVCdFQ4QzAK\",\n      \"endpoints\": [\"https://example.invalid/releases/latest/download/latest.json\"]\n    }\n  }\n}",
+      "policy_expected_band": "R3",
+      "expected_current_band": "R2",
+      "expected_candidate_triggered": true
+    },
+    {
+      "case_id": "MV-3-SUPPORTING-CONTRACT-NEGATIVE",
+      "evidence_status": "REAL_SAME_PR_NEGATIVE",
+      "path": "scripts/desktop-rel-1-contract.mjs",
+      "excerpt": "const productionUpdaterKeyId = \"D72C34948864513E\";\nconst publicKeyMatch = updater.match(/UPDATE_PUBLIC_KEY/);\nassert.equal(publicKeyLines[0], `untrusted comment: minisign public key: ${productionUpdaterKeyId}`, \"production updater key ID mismatch\");",
+      "expected_candidate_triggered": false
+    },
+    {
+      "case_id": "NEG-DOCUMENTATION-SIGNING-TRUST-ROOT",
+      "evidence_status": "SYNTHETIC_NEGATIVE",
+      "path": "docs/release-signing.md",
+      "excerpt": "Production release signature verification uses UPDATE_PUBLIC_KEY = NEW_KEY. Rotate the updater trust root before stable publication.",
+      "expected_candidate_triggered": false
+    },
+    {
+      "case_id": "NEG-TEST-SIGNATURE-PUBLIC-KEY",
+      "evidence_status": "SYNTHETIC_NEGATIVE",
+      "path": "tests/test_release_signature.py",
+      "excerpt": "VERIFICATION_KEY = \"fixture-public-key\"\nassert verify_release_signature(sample, VERIFICATION_KEY)",
+      "expected_candidate_triggered": false
+    },
+    {
+      "case_id": "NEG-ORDINARY-CRYPTO-PUBLIC-KEY",
+      "evidence_status": "SYNTHETIC_NEGATIVE",
+      "path": "src/crypto/keyring.py",
+      "excerpt": "PUBLIC_KEY = \"client-message-encryption-key\"\ndef encrypt_message(payload):\n    return encrypt(payload, PUBLIC_KEY)",
+      "expected_candidate_triggered": false
+    },
+    {
+      "case_id": "NEG-EXAMPLE-UPDATER-CONFIG",
+      "evidence_status": "SYNTHETIC_NEGATIVE",
+      "path": "examples/dev-updater.json",
+      "excerpt": "{\"updater\": {\"pubkey\": \"example-public-key\", \"channel\": \"development\"}}",
+      "expected_candidate_triggered": false
+    },
+    {
+      "case_id": "GENERIC-SYNTHETIC-PRODUCTION-TRUST-ROOT-POSITIVE",
+      "evidence_status": "SYNTHETIC_POSITIVE_GENERICITY_CONTROL",
+      "path": "config/artifact-signature.json",
+      "excerpt": "{\n  \"production\": true,\n  \"artifactSignatureVerification\": {\n    \"trustRootPublicKey\": \"new-release-verification-key\"\n  }\n}",
+      "policy_expected_band": "R3",
+      "expected_candidate_triggered": true
+    }
+  ]
+}
