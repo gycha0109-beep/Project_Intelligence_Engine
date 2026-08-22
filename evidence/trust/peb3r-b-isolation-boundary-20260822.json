@@ -1,0 +1,83 @@
+{
+  "contract_version": "TRUST_PEB3R_ISOLATION_BOUNDARY_V1",
+  "mode": "REPORT_ONLY",
+  "generated_at": "2026-08-22T08:35:00Z",
+  "source_main_sha": "63121861d70b6df82801e85c7963775526826aa5",
+  "production_execution_authorized": false,
+  "automation_authorized": false,
+  "pilot_authorized": false,
+  "dedicated_repository": {
+    "exists": false,
+    "full_name": "gycha0109-beep/pie-peb3-calibration",
+    "calibration_only": true,
+    "production_deployment": false,
+    "production_secrets": false,
+    "business_source_authority": false
+  },
+  "credential": {
+    "mechanism": "CONNECTED_GITHUB_ACCOUNT",
+    "installation_id": 81654749,
+    "installation_identity_proven": true,
+    "selected_repository_scope_proven": false,
+    "repository_set": [
+      "gycha0109-beep/K_beauty",
+      "gycha0109-beep/ranking",
+      "gycha0109-beep/thought-drawer",
+      "gycha0109-beep/material-evidence-consistency-guard",
+      "gycha0109-beep/Channel-Sync-Reconciliation-Guard",
+      "gycha0109-beep/smart-purchase-assistant",
+      "gycha0109-beep/BuildMap",
+      "gycha0109-beep/AnnoyingRadar",
+      "gycha0109-beep/journey-connect-backend",
+      "gycha0109-beep/Project_Intelligence_Engine",
+      "gycha0109-beep/Bejewely_business_planning",
+      "gycha0109-beep/MasterV",
+      "gycha0109-beep/Saju"
+    ],
+    "token_repository_set_proven": false,
+    "token_permission_set_proven": false,
+    "bounded_validity_proven": false,
+    "pie_repository_write_authority": true,
+    "production_repository_write_authority": null
+  },
+  "adapter": {
+    "provider": "GITHUB",
+    "repository": "gycha0109-beep/pie-peb3-calibration",
+    "resource_type": "PULL_REQUEST",
+    "exact_pr_binding": false,
+    "exact_head_binding": false,
+    "exact_precondition_binding": false,
+    "allowed_operations": [],
+    "arbitrary_command_surface": false,
+    "arbitrary_api_surface": false,
+    "merge_surface": false,
+    "close_surface": false,
+    "file_write_surface": false,
+    "branch_write_surface": false,
+    "workflow_write_surface": false,
+    "secret_write_surface": false,
+    "repository_settings_surface": false
+  },
+  "provider_evidence": {
+    "repository_metadata_readback": false,
+    "installation_repository_set_readback": true,
+    "token_permission_set_readback": false
+  },
+  "observed_connector_capability": {
+    "repository_creation_action_available": false,
+    "installation_scope_update_action_available": false,
+    "installation_token_mint_action_available": false
+  },
+  "expected_assessment": {
+    "status": "BLOCKED",
+    "blockers": [
+      "DEDICATED_NONPRODUCTION_REPOSITORY_NOT_ESTABLISHED",
+      "SELECTED_REPOSITORY_GITHUB_APP_SCOPE_NOT_PROVEN",
+      "SHORT_LIVED_TOKEN_SCOPE_NOT_PROVEN",
+      "GOVERNED_ADAPTER_BINDING_NOT_READY",
+      "AUTHORITATIVE_PROVIDER_SCOPE_EVIDENCE_INCOMPLETE"
+    ],
+    "next_step": "ESTABLISH_EXTERNAL_ADMIN_RESOURCE_AND_CREDENTIAL_BOUNDARY",
+    "formal_dispatch_permitted": false
+  }
+}
