@@ -8,6 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.13", "3.14"]
     steps:
@@ -20,7 +21,7 @@ jobs:
       - name: Full unittest
         shell: bash
         run: |
-          if [ "${{ matrix.python-version }}" != "3.11" ]; then
+          if [ "${{ matrix.python-version }}" != "3.14" ]; then
             python -m unittest discover -s tests -v
             exit $?
           fi
