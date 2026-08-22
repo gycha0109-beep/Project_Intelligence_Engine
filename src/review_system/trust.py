@@ -24,6 +24,7 @@ from .policy_registry import load_policy_registry
 from .profile import resolve_profile_file
 from .reground import load_reground_report
 from .trust_signing_trust_root_authority import (
+    REASON_ID as SIGNING_TRUST_ROOT_REASON_ID,
     build_trust_signing_trust_root_evidence,
     normalize_trust_signing_trust_root_evidence,
 )
@@ -578,7 +579,7 @@ def _risk_projection(
             signing_by_path.get(path) is not None
             and signing_by_path[path]["is_signing_trust_root_authority"]
         ):
-            band, reason_id = "R3", "SEMANTIC_R3_SIGNING_TRUST_ROOT_AUTHORITY"
+            band, reason_id = "R3", SIGNING_TRUST_ROOT_REASON_ID
         else:
             semantic = workflow_by_path.get(path)
             if semantic is None:
@@ -1158,7 +1159,11 @@ def _hard_gate_projection(
         "deployment",
         "security",
     }
-    high_risk_reason_ids = {"HIGH_RISK_PATH", *_WORKFLOW_HIGH_RISK_REASON_IDS}
+    high_risk_reason_ids = {
+        "HIGH_RISK_PATH",
+        SIGNING_TRUST_ROOT_REASON_ID,
+        *_WORKFLOW_HIGH_RISK_REASON_IDS,
+    }
     high_risk_path = bool(risk_reason_ids & high_risk_reason_ids)
     corroborated_high_risk = any(
         reason_id.startswith("REVIEW_PACK_CORROBORATION:")

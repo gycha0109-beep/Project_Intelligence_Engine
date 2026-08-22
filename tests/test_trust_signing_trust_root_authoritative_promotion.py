@@ -272,6 +272,9 @@ class TrustSigningTrustRootAuthoritativePromotionTests(unittest.TestCase):
                 CONTRACT_VERSION,
             )
             self.assertEqual(v15["risk"]["effective_band"], "R3")
+            hard_gates = {item["gate_id"]: item for item in v15["hard_gates"]}
+            self.assertTrue(hard_gates["AUTHORIZATION_OR_MIGRATION_CHANGE"]["triggered"])
+            self.assertIn(path, hard_gates["AUTHORIZATION_OR_MIGRATION_CHANGE"]["details"])
             self.assertEqual([], verify_trust_report_data(v15))
             self.assertEqual(
                 [],
