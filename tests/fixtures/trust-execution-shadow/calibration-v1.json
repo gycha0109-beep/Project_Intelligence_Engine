@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "TRUST_PRODUCTION_EXECUTION_SHADOW_V1",
+  "observed_current_adapter": {
+    "adapter_id": "github-cli-generic",
+    "capability_classes": ["GITHUB_PR_MUTATION"],
+    "arbitrary_command_surface": true,
+    "target_binding_supported": false,
+    "effect_receipt_supported": false,
+    "postcondition_verifier_supported": false,
+    "rollback_supported": false,
+    "external_side_effects_enabled": true,
+    "expected_status": "NOT_ELIGIBLE_FOR_GOVERNED_EXECUTION_ADAPTER",
+    "expected_blockers": [
+      "ARBITRARY_COMMAND_SURFACE_FORBIDDEN",
+      "EFFECT_RECEIPT_REQUIRED",
+      "EXACT_TARGET_BINDING_REQUIRED",
+      "POSTCONDITION_VERIFIER_REQUIRED",
+      "ROLLBACK_CAPABILITY_REQUIRED",
+      "SHADOW_ADAPTER_MUST_DISABLE_EXTERNAL_SIDE_EFFECTS"
+    ]
+  },
+  "synthetic_explicit_adapter": {
+    "adapter_id": "synthetic-explicit-deployment-adapter",
+    "capability_classes": ["DEPLOYMENT_PROMOTION"],
+    "arbitrary_command_surface": false,
+    "target_binding_supported": true,
+    "effect_receipt_supported": true,
+    "postcondition_verifier_supported": true,
+    "rollback_supported": true,
+    "external_side_effects_enabled": false,
+    "expected_status": "ELIGIBLE_FOR_CONTROLLED_NON_PRODUCTION_IMPLEMENTATION_REVIEW",
+    "expected_blockers": []
+  },
+  "negative_matrix": [
+    {"id": "SOURCE_DRIFT", "expected_blocker": "EXACT_SOURCE_REVISION"},
+    {"id": "TARGET_DRIFT", "expected_blocker": "EXACT_TARGET_PRECONDITION"},
+    {"id": "SYNTHETIC_AUTHORIZATION_ABSENT", "expected_blocker": "SYNTHETIC_AUTHORIZATION_PRESENT"},
+    {"id": "KILL_SWITCH_ACTIVE", "expected_blocker": "KILL_SWITCH_CLEAR"},
+    {"id": "ROLLBACK_EVIDENCE_UNAVAILABLE", "expected_blocker": "ROLLBACK_EVIDENCE_AVAILABLE"},
+    {"id": "REQUESTED_CAPABILITY_UNSUPPORTED", "expected_blocker": "REQUESTED_CAPABILITY_SUPPORTED"}
+  ],
+  "terminal_positive": {
+    "status": "SHADOW_CALIBRATION_PASS",
+    "trace": ["PREPARED", "SHADOW_AUTHORIZED", "PRECONDITIONS_VERIFIED", "DISPATCH_SUPPRESSED"],
+    "next_step": "CONTROLLED_NON_PRODUCTION_EXECUTION_REQUIRED",
+    "dispatch_attempted": false,
+    "external_effect_observed": false
+  }
+}
