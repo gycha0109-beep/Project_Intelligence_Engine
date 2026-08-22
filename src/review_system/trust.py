@@ -37,10 +37,12 @@ from .validation import validate_profile_data
 TRUST_SCHEMA_VERSION = "1.0"
 TRUST_RISK_MODEL_V1_1 = "1.1"
 TRUST_RISK_MODEL_V1_2 = "1.2"
-TRUST_RISK_MODEL_VERSION = "1.3"
+TRUST_RISK_MODEL_V1_3 = "1.3"
+TRUST_RISK_MODEL_VERSION = "1.4"
 _SUPPORTED_TRUST_RISK_MODEL_VERSIONS = {
     TRUST_RISK_MODEL_V1_1,
     TRUST_RISK_MODEL_V1_2,
+    TRUST_RISK_MODEL_V1_3,
     TRUST_RISK_MODEL_VERSION,
 }
 TRUST_MODE = "REPORT_ONLY"
@@ -463,6 +465,7 @@ def _review_pack_corroboration(
     add_authorization_rls = bool(authorization_paths and rls_paths)
     if add_authorization_rls and risk_model_version in {
         TRUST_RISK_MODEL_V1_2,
+        TRUST_RISK_MODEL_V1_3,
         TRUST_RISK_MODEL_VERSION,
     }:
         shared = set(authorization_paths) & set(rls_paths)
@@ -502,9 +505,9 @@ def _risk_projection(
         raise ValueError("legacy unversioned risk model cannot consume R4 semantic evidence")
     if (
         r4_semantic_evidence is not None
-        and risk_model_version != TRUST_RISK_MODEL_VERSION
+        and risk_model_version not in {TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION}
     ):
-        raise ValueError("R4 semantic evidence requires Trust risk model v1.3")
+        raise ValueError("R4 semantic evidence requires Trust risk model v1.3 or v1.4")
 
     workflow_by_path: dict[str, dict[str, Any]] = {}
     if workflow_evidence is not None:
@@ -524,6 +527,7 @@ def _risk_projection(
             r4_semantic_evidence,
             source_revision=request["source_revision"],
             changed_files=request["changed_files"],
+            risk_model_version=risk_model_version,
         )
         r4_by_path = {
             item["path"]: item
@@ -648,6 +652,7 @@ def _load_r4_semantic_evidence_sources(
     request: dict[str, Any],
     github_source: str | Path | None,
     workflow_diff: str | Path | None,
+    risk_model_version: str,
 ) -> dict[str, Any] | None:
     if github_source is None and workflow_diff is None:
         return None
@@ -669,6 +674,7 @@ def _load_r4_semantic_evidence_sources(
             diff_text=diff_text,
             source_revision=request["source_revision"],
             changed_files=request["changed_files"],
+            risk_model_version=risk_model_version,
         )
     except (TypeError, ValueError) as exc:
         raise TrustError(f"invalid R4 semantic authority evidence: {exc}") from exc
@@ -1352,7 +1358,8 @@ def assess_trust(
         request=request_data,
         github_source=github_source,
         workflow_diff=workflow_diff,
-    ) if _risk_model_version == TRUST_RISK_MODEL_VERSION else None
+        risk_model_version=_risk_model_version,
+    ) if _risk_model_version in {TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION} else None
     evidence = _evidence_projection(
         ledger=ledger,
         policy_registry=policy_registry,
@@ -1470,12 +1477,13 @@ def verify_trust_report_data(report: Any) -> list[str]:
         r4_semantic_evidence = evidence.get("r4_semantics")
         normalized_r4: dict[str, Any] | None = None
         if r4_semantic_evidence is not None:
-            if risk_model_version != TRUST_RISK_MODEL_VERSION:
-                errors.append("R4 semantic evidence requires Trust risk model v1.3")
+            if risk_model_version not in {TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION}:
+                errors.append("R4 semantic evidence requires Trust risk model v1.3 or v1.4")
             normalized_r4 = normalize_trust_r4_semantic_evidence(
                 r4_semantic_evidence,
                 source_revision=normalized_request["source_revision"],
                 changed_files=normalized_request["changed_files"],
+                risk_model_version=risk_model_version,
             )
             if r4_semantic_evidence != normalized_r4:
                 errors.append("evidence.r4_semantics canonical projection mismatch")

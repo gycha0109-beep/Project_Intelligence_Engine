@@ -11,7 +11,9 @@ from .intelligence_config import normalize_path
 from .workflow_semantics import split_git_diff_by_path
 
 
-CONTRACT_VERSION = "TRUST_R4_SEMANTIC_UNDERDETECTION_SHADOW_V1"
+CONTRACT_VERSION_V1_3 = "TRUST_R4_SEMANTIC_UNDERDETECTION_SHADOW_V1"
+CONTRACT_VERSION_V1_4 = "TRUST_R4_EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_AUTHORITY_V1"
+CONTRACT_VERSION = CONTRACT_VERSION_V1_4
 CLASSIFICATIONS = (
     "NORMATIVE_DECISION_AUTHORITY",
     "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
@@ -25,6 +27,15 @@ _R4_AUTHORITY_CLASSES = {
     "NORMATIVE_DECISION_AUTHORITY",
     "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
 }
+_SUPPORTED_RISK_MODELS = {"1.3", "1.4"}
+
+
+def _contract_for_risk_model(risk_model_version: str) -> str:
+    if risk_model_version == "1.3":
+        return CONTRACT_VERSION_V1_3
+    if risk_model_version == "1.4":
+        return CONTRACT_VERSION_V1_4
+    raise ValueError(f"R4 semantic evidence does not support Trust risk model {risk_model_version}")
 
 
 def _normalize_changed_files(paths: Iterable[str]) -> list[str]:
@@ -47,7 +58,7 @@ def _normalize_sha256(value: Any, field: str) -> str:
     return text
 
 
-def _normalize_analysis(value: Any) -> dict[str, Any]:
+def _normalize_analysis(value: Any, *, contract_version: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError("R4 semantic file evidence must be an object")
     required = {
@@ -61,7 +72,7 @@ def _normalize_analysis(value: Any) -> dict[str, Any]:
     }
     if set(value) != required:
         raise ValueError("R4 semantic file evidence fields do not match the v1 contract")
-    if value.get("contract_version") != CONTRACT_VERSION:
+    if value.get("contract_version") != contract_version:
         raise ValueError("R4 semantic contract_version mismatch")
     path = normalize_path(value.get("path"))
     classification = value.get("classification")
@@ -83,7 +94,7 @@ def _normalize_analysis(value: Any) -> dict[str, Any]:
     if not isinstance(signals, dict):
         raise ValueError("R4 semantic signals must be an object")
     return {
-        "contract_version": CONTRACT_VERSION,
+        "contract_version": contract_version,
         "path": path,
         "classification": classification,
         "is_r4_authority": is_r4_authority,
@@ -93,13 +104,47 @@ def _normalize_analysis(value: Any) -> dict[str, Any]:
     }
 
 
+def _analyze_authoritative_r4_semantics(
+    path: str,
+    patch: str,
+    *,
+    risk_model_version: str,
+) -> dict[str, Any]:
+    # Lazy imports avoid trust -> authority -> shadow -> trust import cycles while
+    # preserving the frozen v1.3 analyzer and the separately calibrated v1.4
+    # verifier-role discriminator as their single implementations.
+    from .trust_r4_semantics_shadow import analyze_r4_semantics
+
+    current = analyze_r4_semantics(path, patch)
+    if risk_model_version == "1.3":
+        return {
+            **current,
+            "contract_version": CONTRACT_VERSION_V1_3,
+        }
+
+    from .trust_r4_verifier_role_shadow import analyze_r4_verifier_role_candidate
+
+    candidate_result = analyze_r4_verifier_role_candidate(path, patch)
+    candidate = deepcopy(candidate_result["candidate"])
+    signals = deepcopy(candidate["signals"])
+    signals["verifier_role_candidate"] = deepcopy(candidate_result["candidate_signals"])
+    signals["verifier_role_promoted"] = bool(candidate_result["candidate_triggered"])
+    return {
+        **candidate,
+        "contract_version": CONTRACT_VERSION_V1_4,
+        "signals": signals,
+    }
+
+
 def build_trust_r4_semantic_evidence(
     *,
     github_source: dict[str, Any],
     diff_text: str,
     source_revision: str,
     changed_files: Iterable[str],
+    risk_model_version: str = "1.4",
 ) -> dict[str, Any]:
+    contract_version = _contract_for_risk_model(risk_model_version)
     errors = validate_pull_request_source(github_source)
     if errors:
         raise ValueError("invalid GitHub source: " + "; ".join(errors))
@@ -138,14 +183,14 @@ def build_trust_r4_semantic_evidence(
             "R4 semantic diff is missing changed file sections: " + ", ".join(missing)
         )
 
-    # Lazy import avoids trust -> authority -> shadow -> trust import cycles while
-    # preserving the exact shadow-calibrated analyzer as the single implementation.
-    from .trust_r4_semantics_shadow import analyze_r4_semantics
-
     analyses: list[dict[str, Any]] = []
     for path in files:
         patch = sections[path]
-        analysis = analyze_r4_semantics(path, patch)
+        analysis = _analyze_authoritative_r4_semantics(
+            path,
+            patch,
+            risk_model_version=risk_model_version,
+        )
         analyses.append(
             {
                 **analysis,
@@ -154,7 +199,7 @@ def build_trust_r4_semantic_evidence(
         )
 
     semantics = {
-        "contract_version": CONTRACT_VERSION,
+        "contract_version": contract_version,
         "source_revision": revision,
         "source_evidence_sha256": github_source["source_sha256"],
         "diff_sha256": diff_sha256,
@@ -180,7 +225,9 @@ def normalize_trust_r4_semantic_evidence(
     *,
     source_revision: str,
     changed_files: Iterable[str],
+    risk_model_version: str = "1.4",
 ) -> dict[str, Any]:
+    contract_version = _contract_for_risk_model(risk_model_version)
     if not isinstance(value, dict):
         raise ValueError("Trust R4 semantic evidence must be an object")
     required = {
@@ -221,7 +268,7 @@ def normalize_trust_r4_semantic_evidence(
     }
     if set(semantics_value) != expected_semantic_fields:
         raise ValueError("Trust R4 semantic semantics fields do not match the v1 contract")
-    if semantics_value.get("contract_version") != CONTRACT_VERSION:
+    if semantics_value.get("contract_version") != contract_version:
         raise ValueError("Trust R4 semantic contract_version mismatch")
     if normalize_source_revision(semantics_value.get("source_revision")) != revision:
         raise ValueError("Trust R4 semantic source revision does not match Trust request")
@@ -240,7 +287,10 @@ def normalize_trust_r4_semantic_evidence(
     raw_analyses = semantics_value.get("files")
     if not isinstance(raw_analyses, list):
         raise ValueError("Trust R4 semantic files must be an array")
-    analyses = [_normalize_analysis(item) for item in raw_analyses]
+    analyses = [
+        _normalize_analysis(item, contract_version=contract_version)
+        for item in raw_analyses
+    ]
     paths = [item["path"] for item in analyses]
     if paths != sorted(paths) or len(paths) != len(set(paths)):
         raise ValueError("Trust R4 semantic file evidence paths must be sorted and unique")
@@ -248,7 +298,7 @@ def normalize_trust_r4_semantic_evidence(
         raise ValueError("Trust R4 semantic file evidence does not cover changed files exactly")
 
     semantics = {
-        "contract_version": CONTRACT_VERSION,
+        "contract_version": contract_version,
         "source_revision": revision,
         "source_evidence_sha256": source_hash,
         "diff_sha256": diff_hash,
