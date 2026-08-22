@@ -9,6 +9,7 @@ from review_system.io import dump_json
 from review_system.trust import (
     TRUST_RISK_MODEL_V1_2,
     TRUST_RISK_MODEL_V1_3,
+    TRUST_RISK_MODEL_V1_4,
     TRUST_RISK_MODEL_VERSION,
     _profile_descriptor,
     _risk_projection,
@@ -70,8 +71,9 @@ class TrustR4SemanticAuthoritativePromotionTests(unittest.TestCase):
         )
         return diff_text, source, evidence
 
-    def test_current_risk_model_is_v14_and_v13_is_frozen(self) -> None:
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
+    def test_current_risk_model_is_v15_and_prior_versions_are_frozen(self) -> None:
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.5")
+        self.assertEqual(TRUST_RISK_MODEL_V1_4, "1.4")
         self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")
         self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")
 
@@ -141,7 +143,7 @@ class TrustR4SemanticAuthoritativePromotionTests(unittest.TestCase):
             "task_class": "routine_code",
             "changed_files": [case["path"]],
         }
-        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3 or v1.4"):
+        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3, v1.4 or v1.5"):
             _risk_projection(
                 request,
                 self.profile,
@@ -242,7 +244,7 @@ class TrustR4SemanticAuthoritativePromotionTests(unittest.TestCase):
                 workflow_diff=diff_path,
                 generated_at="2026-08-22T00:00:00Z",
             )
-            self.assertEqual(report["risk_model_version"], "1.4")
+            self.assertEqual(report["risk_model_version"], "1.5")
             self.assertEqual(report["risk"]["effective_band"], "R4")
             self.assertIn("workflow_diff", report["evidence"])
             self.assertIn("r4_semantics", report["evidence"])

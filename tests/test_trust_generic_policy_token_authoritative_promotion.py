@@ -10,6 +10,7 @@ from review_system.trust import (
     TRUST_RISK_MODEL_V1_1,
     TRUST_RISK_MODEL_V1_2,
     TRUST_RISK_MODEL_V1_3,
+    TRUST_RISK_MODEL_V1_4,
     TRUST_RISK_MODEL_VERSION,
     _hard_gate_projection,
     _profile_descriptor,
@@ -80,10 +81,12 @@ class TrustGenericPolicyTokenAuthoritativePromotionTests(unittest.TestCase):
         self.assertEqual(TRUST_RISK_MODEL_V1_1, "1.1")
         self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")
         self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")
-        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_V1_4, "1.4")
+        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.5")
         self.assertNotEqual(TRUST_RISK_MODEL_V1_1, TRUST_RISK_MODEL_V1_2)
         self.assertNotEqual(TRUST_RISK_MODEL_V1_2, TRUST_RISK_MODEL_V1_3)
-        self.assertNotEqual(TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION)
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_V1_4)
+        self.assertNotEqual(TRUST_RISK_MODEL_V1_4, TRUST_RISK_MODEL_VERSION)
 
     def test_v12_matches_frozen_shadow_candidate_for_d2_matrix(self) -> None:
         profile = self.profiles["generic-webapp"]
