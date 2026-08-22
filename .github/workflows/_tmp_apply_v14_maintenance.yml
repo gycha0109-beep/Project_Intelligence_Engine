@@ -1,0 +1,67 @@
+name: Temporary Trust v1.4 maintenance helper
+
+on:
+  pull_request:
+    branches:
+      - test/trust-r4-verifier-role-remediation-shadow
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'feat/trust-r4-verifier-role-authority'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/trust-r4-verifier-role-authority
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Apply exact schema and historical-test maintenance
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: exact patch mismatch count={count}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          for path in (
+              'schemas/trust-report.schema.json',
+              'src/review_system/assets/schemas/trust-report.schema.json',
+          ):
+              replace_once(path, '"risk_model_version":{"enum":["1.1","1.2","1.3"]}', '"risk_model_version":{"enum":["1.1","1.2","1.3","1.4"]}')
+
+          path = 'tests/test_trust_generic_policy_token_authoritative_promotion.py'
+          replace_once(path,
+              '    TRUST_RISK_MODEL_V1_2,\n    TRUST_RISK_MODEL_VERSION,',
+              '    TRUST_RISK_MODEL_V1_2,\n    TRUST_RISK_MODEL_V1_3,\n    TRUST_RISK_MODEL_VERSION,')
+          replace_once(path,
+              '        self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")\n        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.3")\n        self.assertNotEqual(TRUST_RISK_MODEL_V1_1, TRUST_RISK_MODEL_V1_2)\n        self.assertNotEqual(TRUST_RISK_MODEL_V1_2, TRUST_RISK_MODEL_VERSION)',
+              '        self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")\n        self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")\n        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")\n        self.assertNotEqual(TRUST_RISK_MODEL_V1_1, TRUST_RISK_MODEL_V1_2)\n        self.assertNotEqual(TRUST_RISK_MODEL_V1_2, TRUST_RISK_MODEL_V1_3)\n        self.assertNotEqual(TRUST_RISK_MODEL_V1_3, TRUST_RISK_MODEL_VERSION)')
+
+          path = 'tests/test_trust_r4_semantic_authoritative_promotion.py'
+          replace_once(path,
+              '    TRUST_RISK_MODEL_V1_2,\n    TRUST_RISK_MODEL_VERSION,',
+              '    TRUST_RISK_MODEL_V1_2,\n    TRUST_RISK_MODEL_V1_3,\n    TRUST_RISK_MODEL_VERSION,')
+          replace_once(path,
+              '    def test_current_risk_model_is_v13(self) -> None:\n        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.3")\n        self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")',
+              '    def test_current_risk_model_is_v14_and_v13_is_frozen(self) -> None:\n        self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")\n        self.assertEqual(TRUST_RISK_MODEL_V1_3, "1.3")\n        self.assertEqual(TRUST_RISK_MODEL_V1_2, "1.2")')
+          replace_once(path,
+              '        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3"):',
+              '        with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3 or v1.4"):')
+          replace_once(path,
+              '            self.assertEqual(report["risk_model_version"], "1.3")',
+              '            self.assertEqual(report["risk_model_version"], "1.4")')
+      - name: Commit maintenance patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add schemas/trust-report.schema.json src/review_system/assets/schemas/trust-report.schema.json tests/test_trust_generic_policy_token_authoritative_promotion.py tests/test_trust_r4_semantic_authoritative_promotion.py
+          git diff --cached --quiet && exit 0
+          git commit -m "test(trust): preserve historical versions through v1.4"
+          git push origin HEAD:feat/trust-r4-verifier-role-authority
