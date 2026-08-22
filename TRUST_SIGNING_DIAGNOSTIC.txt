@@ -1,313 +1,309 @@
-test_changed_source_and_missing_target_preserve_both_reasons (test_reground.RegroundProjectionTests.test_changed_source_and_missing_target_preserve_both_reasons) ... ok
-test_idempotent_reimport_time_does_not_change_snapshot_identity (test_reground.RegroundProjectionTests.test_idempotent_reimport_time_does_not_change_snapshot_identity) ... ok
-test_latest_verified_project_run_is_selected (test_reground.RegroundProjectionTests.test_latest_verified_project_run_is_selected) ... ok
-test_no_project_run_is_warning_not_failure (test_reground.RegroundProjectionTests.test_no_project_run_is_warning_not_failure) ... ok
-test_unchanged_file_relation_is_current_and_uses_verified_run (test_reground.RegroundProjectionTests.test_unchanged_file_relation_is_current_and_uses_verified_run) ... ok
-test_windows_graph_path_normalizes_to_posix (test_reground.RegroundProjectionTests.test_windows_graph_path_normalizes_to_posix) ... ok
-test_cli_analyze_and_verify_valid_stale_report_return_zero (test_reground.RegroundReportAndCliTests.test_cli_analyze_and_verify_valid_stale_report_return_zero) ... ok
-test_cli_invalid_report_returns_verification_exit (test_reground.RegroundReportAndCliTests.test_cli_invalid_report_returns_verification_exit) ... ok
-test_cli_verify_rejects_symlink_report_as_input_error (test_reground.RegroundReportAndCliTests.test_cli_verify_rejects_symlink_report_as_input_error) ... ok
-test_report_write_load_and_deterministic_identity (test_reground.RegroundReportAndCliTests.test_report_write_load_and_deterministic_identity) ... ok
-test_absolute_and_traversal_graph_paths_are_rejected (test_reground_hardening.RegroundInputSafetyTests.test_absolute_and_traversal_graph_paths_are_rejected) ... ok
-test_atomic_output_replace_failure_preserves_existing_bytes (test_reground_hardening.RegroundInputSafetyTests.test_atomic_output_replace_failure_preserves_existing_bytes) ... ok
-test_duplicate_file_relation_is_rejected_even_with_valid_graph_hash (test_reground_hardening.RegroundInputSafetyTests.test_duplicate_file_relation_is_rejected_even_with_valid_graph_hash) ... ok
-test_file_node_id_must_match_normalized_path (test_reground_hardening.RegroundInputSafetyTests.test_file_node_id_must_match_normalized_path) ... ok
-test_graph_ledger_and_output_symlink_paths_are_rejected (test_reground_hardening.RegroundInputSafetyTests.test_graph_ledger_and_output_symlink_paths_are_rejected) ... ok
-test_invalid_ledger_is_rejected_before_last_run_projection (test_reground_hardening.RegroundInputSafetyTests.test_invalid_ledger_is_rejected_before_last_run_projection) ... ok
-test_tampered_graph_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tampered_graph_is_rejected) ... ok
-test_tracked_symlink_is_rejected (test_reground_hardening.RegroundInputSafetyTests.test_tracked_symlink_is_rejected) ... ok
-test_rehashed_file_status_tamper_is_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_file_status_tamper_is_detected) ... ok
-test_rehashed_relation_and_recheck_tamper_are_detected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_relation_and_recheck_tamper_are_detected) ... ok
-test_rehashed_reordered_or_extended_projection_is_rejected (test_reground_hardening.RegroundIntegrityHardeningTests.test_rehashed_reordered_or_extended_projection_is_rejected) ... ok
-test_report_id_and_snapshot_hash_are_natural_key_verified (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_id_and_snapshot_hash_are_natural_key_verified) ... ok
-test_report_path_traversal_is_detected_after_rehash (test_reground_hardening.RegroundIntegrityHardeningTests.test_report_path_traversal_is_detected_after_rehash) ... ok
-test_closed_finding_not_counted (test_review_run.ReviewRunTests.test_closed_finding_not_counted) ... ok
-test_finding_metrics_are_derived (test_review_run.ReviewRunTests.test_finding_metrics_are_derived) ... ok
-test_sample_run_validates (test_review_run.ReviewRunTests.test_sample_run_validates) ... ok
-test_manifest_path_traversal_is_rejected (test_run.ManifestPathSafetyTests.test_manifest_path_traversal_is_rejected) ... ok
-test_relative_run_path_manifest_verification (test_run.RelativeManifestTests.test_relative_run_path_manifest_verification) ... ok
-test_archive_rejects_stale_gate (test_run.RunInputAndGateConsistencyTests.test_archive_rejects_stale_gate) ... ok
-test_companion_review_inputs_are_copied (test_run.RunInputAndGateConsistencyTests.test_companion_review_inputs_are_copied) ... ok
-test_archive_output_inside_run_is_rejected (test_run.RunTests.test_archive_output_inside_run_is_rejected) ... ok
-test_initialize_sync_archive_and_verify (test_run.RunTests.test_initialize_sync_archive_and_verify) ... ok
-test_sync_run_hydrates_findings_and_metrics (test_run.RunTests.test_sync_run_hydrates_findings_and_metrics) ... ok
-test_unsynchronized_run_directory_is_rejected (test_run.RunTests.test_unsynchronized_run_directory_is_rejected) ... ok
-test_comparison_verifier_accepts_exact_captured_assessment_binding (test_trust_audit_assessment_binding.TrustAuditAssessmentBindingTests.test_comparison_verifier_accepts_exact_captured_assessment_binding) ... ok
-test_comparison_verifier_rejects_pre_capture_artifact_even_if_authority_valid (test_trust_audit_assessment_binding.TrustAuditAssessmentBindingTests.test_comparison_verifier_rejects_pre_capture_artifact_even_if_authority_valid) ... ok
-test_active_grant_issues_report_only_audit (test_trust_audit_authority.TrustAuditAuthorityTests.test_active_grant_issues_report_only_audit) ... ok
-test_artifact_mutation_is_detected_even_with_original_hash (test_trust_audit_authority.TrustAuditAuthorityTests.test_artifact_mutation_is_detected_even_with_original_hash) ... ok
-test_audit_output_symlink_is_rejected (test_trust_audit_authority.TrustAuditAuthorityTests.test_audit_output_symlink_is_rejected) ... ok
-test_authority_registry_is_deterministic_and_valid (test_trust_audit_authority.TrustAuditAuthorityTests.test_authority_registry_is_deterministic_and_valid) ... ok
-test_authority_registry_mutation_invalidates_grant_binding (test_trust_audit_authority.TrustAuditAuthorityTests.test_authority_registry_mutation_invalidates_grant_binding) ... ok
-test_conclusive_audit_requires_evidence (test_trust_audit_authority.TrustAuditAuthorityTests.test_conclusive_audit_requires_evidence) ... ok
-test_issuer_grant_cannot_be_backdated_before_grant (test_trust_audit_authority.TrustAuditAuthorityTests.test_issuer_grant_cannot_be_backdated_before_grant) ... ok
-test_nonretroactive_revocation_cannot_take_effect_before_recording (test_trust_audit_authority.TrustAuditAuthorityTests.test_nonretroactive_revocation_cannot_take_effect_before_recording) ... ok
-test_retroactive_revocation_invalidates_prior_audit_authority (test_trust_audit_authority.TrustAuditAuthorityTests.test_retroactive_revocation_invalidates_prior_audit_authority) ... ok
-test_trust_root_cannot_be_backdated_before_registration (test_trust_audit_authority.TrustAuditAuthorityTests.test_trust_root_cannot_be_backdated_before_registration) ... ok
-test_audit_artifact_mutation_breaks_exact_replay (test_trust_audit_hardening.TrustAuditHardeningTests.test_audit_artifact_mutation_breaks_exact_replay) ... ok
-test_authority_registry_mutation_breaks_exact_replay (test_trust_audit_hardening.TrustAuditHardeningTests.test_authority_registry_mutation_breaks_exact_replay) ... ok
-test_public_issuance_accepts_audit_at_assessment_capture_boundary (test_trust_audit_hardening.TrustAuditHardeningTests.test_public_issuance_accepts_audit_at_assessment_capture_boundary) ... ok
-test_public_issuance_rejects_audit_before_assessment_capture (test_trust_audit_hardening.TrustAuditHardeningTests.test_public_issuance_rejects_audit_before_assessment_capture) ... ok
-test_report_authorization_flags_remain_false (test_trust_audit_hardening.TrustAuditHardeningTests.test_report_authorization_flags_remain_false) ... ok
-test_stage10f_atomic_replace_failure_preserves_existing_report (test_trust_audit_hardening.TrustAuditHardeningTests.test_stage10f_atomic_replace_failure_preserves_existing_report) ... ok
-test_assess_and_source_replay_bind_raw_github_evidence (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_assess_and_source_replay_bind_raw_github_evidence) ... ok
-test_assess_rejects_partial_workflow_source_pair (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_assess_rejects_partial_workflow_source_pair) ... ok
-test_authoritative_wave1_replay_is_34_of_34_acceptable_zero_underclassification (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_authoritative_wave1_replay_is_34_of_34_acceptable_zero_underclassification) ... ok
-test_bound_ci_wiring_can_reduce_only_workflow_floor (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_bound_ci_wiring_can_reduce_only_workflow_floor) ... ok
-test_documentation_precedence_preserves_executable_and_r4_floors (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_documentation_precedence_preserves_executable_and_r4_floors) ... ok
-test_raw_source_binding_rejects_head_changed_files_and_diff_tamper (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_raw_source_binding_rejects_head_changed_files_and_diff_tamper) ... ok
-test_workflow_authority_mutation_remains_r3_and_hard_gated (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_workflow_authority_mutation_remains_r3_and_hard_gated) ... ok
-test_workflow_without_bound_evidence_remains_fail_closed_r3 (test_trust_authoritative_risk_promotion.TrustAuthoritativeRiskPromotionTests.test_workflow_without_bound_evidence_remains_fail_closed_r3) ... ok
-test_atomic_replace_failure_preserves_existing_bytes (test_trust_comparison.TrustComparisonSafetyTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
-test_event_before_assessment_is_rejected (test_trust_comparison.TrustComparisonSafetyTests.test_event_before_assessment_is_rejected) ... ok
-test_reclassify_requires_band_and_zero_denominators_stay_null (test_trust_comparison.TrustComparisonSafetyTests.test_reclassify_requires_band_and_zero_denominators_stay_null) ... ok
-test_symlink_registry_and_output_are_rejected (test_trust_comparison.TrustComparisonSafetyTests.test_symlink_registry_and_output_are_rejected) ... ok
-test_capture_is_idempotent_and_reference_only (test_trust_comparison.TrustComparisonTests.test_capture_is_idempotent_and_reference_only) ... ok
-test_cli_end_to_end_uses_explicit_review_level (test_trust_comparison.TrustComparisonTests.test_cli_end_to_end_uses_explicit_review_level) ... ok
-test_deterministic_audit_sample_excludes_confirmed_outcomes (test_trust_comparison.TrustComparisonTests.test_deterministic_audit_sample_excludes_confirmed_outcomes) ... ok
-test_event_chain_and_projection_tamper_fail_closed (test_trust_comparison.TrustComparisonTests.test_event_chain_and_projection_tamper_fail_closed) ... ok
-test_independent_audit_actor_must_differ_from_reviewer (test_trust_comparison.TrustComparisonTests.test_independent_audit_actor_must_differ_from_reviewer) ... ok
-test_reviewed_decision_is_provisional_only (test_trust_comparison.TrustComparisonTests.test_reviewed_decision_is_provisional_only) ... ok
-test_unsafe_outcome_confirms_false_negative (test_trust_comparison.TrustComparisonTests.test_unsafe_outcome_confirms_false_negative) ... ok
-test_workflow_accepted_is_not_reviewed_or_alignment_ground_truth (test_trust_comparison.TrustComparisonTests.test_workflow_accepted_is_not_reviewed_or_alignment_ground_truth) ... ok
-test_authoritative_classifier_remains_unchanged_for_kb274_shape (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_authoritative_classifier_remains_unchanged_for_kb274_shape) ... ok
-test_candidate_changes_only_r3_documentation_collision_shape (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_candidate_changes_only_r3_documentation_collision_shape) ... ok
-test_combined_seen_and_holdout_acceptability_is_34_of_34 (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_combined_seen_and_holdout_acceptability_is_34_of_34) ... ok
-test_existing_d1_public_contract_remains_historical_for_kb274 (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_existing_d1_public_contract_remains_historical_for_kb274) ... ok
-test_holdout_11_reach_full_exact_and_zero_underclassification (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_holdout_11_reach_full_exact_and_zero_underclassification) ... ok
-test_seen_23_preserve_d1_acceptability_and_zero_underclassification (test_trust_documentation_precedence_shadow.TrustDocumentationPrecedenceShadowTests.test_seen_23_preserve_d1_acceptability_and_zero_underclassification) ... ok
-test_complete_workspace_is_ready_not_eligible (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_complete_workspace_is_ready_not_eligible) ... ok
-test_existing_package_target_is_rejected (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_existing_package_target_is_rejected) ... ok
-test_missing_required_inputs_are_blocked_without_fabrication (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_missing_required_inputs_are_blocked_without_fabrication) ... ok
-test_missing_source_closure_is_blocked (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_missing_source_closure_is_blocked) ... ok
-test_semantic_rehash_cannot_enable_pilot_flag (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_semantic_rehash_cannot_enable_pilot_flag) ... ok
-test_source_replay_failure_never_publishes (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_source_replay_failure_never_publishes) ... ok
-test_verified_not_eligible_package_is_published (test_trust_evidence_acquisition.EvidenceAcquisitionTests.test_verified_not_eligible_package_is_published) ... ok
-test_delegated_pie_trust_command_is_registered (test_trust_evidence_acquisition_cli.EvidenceAcquisitionCliTests.test_delegated_pie_trust_command_is_registered) ... ok
-test_standalone_inspect_missing_workspace_inputs_is_valid_blocked_result (test_trust_evidence_acquisition_cli.EvidenceAcquisitionCliTests.test_standalone_inspect_missing_workspace_inputs_is_valid_blocked_result) ... ok
-test_published_empty_runtime_package_replays_after_atomic_rename (test_trust_evidence_acquisition_hardening.EvidenceAcquisitionHardeningTests.test_published_empty_runtime_package_replays_after_atomic_rename) ... ok
-test_published_package_byte_mutation_is_detected (test_trust_evidence_acquisition_hardening.EvidenceAcquisitionHardeningTests.test_published_package_byte_mutation_is_detected) ... ok
-test_report_finalize_failure_leaves_no_published_target (test_trust_evidence_acquisition_hardening.EvidenceAcquisitionHardeningTests.test_report_finalize_failure_leaves_no_published_target) ... ok
-test_sample_attestation_is_rejected (test_trust_evidence_acquisition_hardening.EvidenceAcquisitionHardeningTests.test_sample_attestation_is_rejected) ... ok
-test_symlinked_source_closure_is_rejected (test_trust_evidence_acquisition_hardening.EvidenceAcquisitionHardeningTests.test_symlinked_source_closure_is_rejected) ... ok
-test_cli_assess_and_verify_return_zero_even_when_not_ready (test_trust_gate.TrustReadinessTests.test_cli_assess_and_verify_return_zero_even_when_not_ready) ... ok
-test_declared_formatting_cannot_hide_verifier_change (test_trust_gate.TrustReadinessTests.test_declared_formatting_cannot_hide_verifier_change) ... ok
-test_main_pie_cli_delegates_to_trust_adapter (test_trust_gate.TrustReadinessTests.test_main_pie_cli_delegates_to_trust_adapter) ... ok
-test_missing_evidence_is_valid_not_ready_and_does_not_authorize_automation (test_trust_gate.TrustReadinessTests.test_missing_evidence_is_valid_not_ready_and_does_not_authorize_automation) ... ok
-test_protected_migration_is_r3_and_requires_replay_and_rollback (test_trust_gate.TrustReadinessTests.test_protected_migration_is_r3_and_requires_replay_and_rollback) ... ok
-test_ready_report_is_reference_based_report_only_and_source_verifiable (test_trust_gate.TrustReadinessTests.test_ready_report_is_reference_based_report_only_and_source_verifiable) ... ok
-test_report_identity_is_stable_across_generated_time (test_trust_gate.TrustReadinessTests.test_report_identity_is_stable_across_generated_time) ... ok
-test_write_round_trip (test_trust_gate.TrustReadinessTests.test_write_round_trip) ... ok
-test_duplicate_relation_observation_is_rejected (test_trust_gate_hardening.TrustInputHardeningTests.test_duplicate_relation_observation_is_rejected) ... ok
-test_invalid_supplied_ledger_fails_instead_of_becoming_missing (test_trust_gate_hardening.TrustInputHardeningTests.test_invalid_supplied_ledger_fails_instead_of_becoming_missing) ... ok
-test_normalized_duplicate_changed_path_is_rejected (test_trust_gate_hardening.TrustInputHardeningTests.test_normalized_duplicate_changed_path_is_rejected) ... ok
-test_symbolic_source_revision_is_rejected (test_trust_gate_hardening.TrustInputHardeningTests.test_symbolic_source_revision_is_rejected) ... ok
-test_symlink_inputs_and_broken_output_symlink_are_rejected (test_trust_gate_hardening.TrustInputHardeningTests.test_symlink_inputs_and_broken_output_symlink_are_rejected) ... ok
-test_unknown_relation_observation_fails_closed (test_trust_gate_hardening.TrustInputHardeningTests.test_unknown_relation_observation_fails_closed) ... ok
-test_atomic_replace_failure_preserves_existing_bytes (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
-test_missing_positive_or_negative_sample_cannot_claim_perfect_metrics (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_missing_positive_or_negative_sample_cannot_claim_perfect_metrics) ... ok
-test_policy_evaluation_mismatch_is_not_ready_and_hard_gate (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_policy_evaluation_mismatch_is_not_ready_and_hard_gate) ... ok
-test_rehashed_readiness_tamper_is_detected (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_rehashed_readiness_tamper_is_detected) ... ok
-test_rehashed_risk_tamper_is_detected (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_rehashed_risk_tamper_is_detected) ... ok
-test_source_replay_detects_changed_request (test_trust_gate_hardening.TrustIntegrityHardeningTests.test_source_replay_detects_changed_request) ... ok
-test_hard_gate_tracks_authority_after_d2_correction (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_hard_gate_tracks_authority_after_d2_correction) ... ok
-test_risk_model_versions_are_explicit_and_distinct (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_risk_model_versions_are_explicit_and_distinct) ... ok
-test_true_authority_controls_remain_r3_or_r4 (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_true_authority_controls_remain_r3_or_r4) ... ok
-test_v11_report_and_source_replay_remain_supported (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_v11_report_and_source_replay_remain_supported) ... ok
-test_v12_matches_frozen_shadow_candidate_for_d2_matrix (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_v12_matches_frozen_shadow_candidate_for_d2_matrix) ... ok
-test_v12_removes_only_generic_policy_self_corroboration (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_v12_removes_only_generic_policy_self_corroboration) ... ok
-test_wave1_v12_has_zero_band_delta_from_v11 (test_trust_generic_policy_token_authoritative_promotion.TrustGenericPolicyTokenAuthoritativePromotionTests.test_wave1_v12_has_zero_band_delta_from_v11) ... ok
-test_explicit_authority_signals_remain_r3_or_higher (test_trust_generic_policy_token_collision_d2.TrustGenericPolicyTokenCollisionD2Tests.test_explicit_authority_signals_remain_r3_or_higher) ... ok
-test_fixture_is_bounded_synthetic_shadow_contract (test_trust_generic_policy_token_collision_d2.TrustGenericPolicyTokenCollisionD2Tests.test_fixture_is_bounded_synthetic_shadow_contract) ... ok
-test_only_generic_policy_only_shapes_change_band (test_trust_generic_policy_token_collision_d2.TrustGenericPolicyTokenCollisionD2Tests.test_only_generic_policy_only_shapes_change_band) ... ok
-test_synthetic_discriminator_matrix_replays_exactly (test_trust_generic_policy_token_collision_d2.TrustGenericPolicyTokenCollisionD2Tests.test_synthetic_discriminator_matrix_replays_exactly) ... ok
-test_wave1_34_authoritative_bands_do_not_change (test_trust_generic_policy_token_collision_d2.TrustGenericPolicyTokenCollisionD2Tests.test_wave1_34_authoritative_bands_do_not_change) ... ok
-test_cli_end_to_end_and_source_replay (test_trust_observation.TrustObservationPolicyTests.test_cli_end_to_end_and_source_replay) ... ok
-test_embedded_policy_and_check_rehash_tamper_fail_self_contained_verification (test_trust_observation.TrustObservationPolicyTests.test_embedded_policy_and_check_rehash_tamper_fail_self_contained_verification) ... ok
-test_generated_at_cannot_inflate_evidence_span (test_trust_observation.TrustObservationPolicyTests.test_generated_at_cannot_inflate_evidence_span) ... ok
-test_no_unsafe_challenge_keeps_fnr_null_and_evidence_insufficient (test_trust_observation.TrustObservationPolicyTests.test_no_unsafe_challenge_keeps_fnr_null_and_evidence_insufficient) ... ok
-test_policy_is_derived_identity_and_cannot_allow_observed_misses (test_trust_observation.TrustObservationPolicyTests.test_policy_is_derived_identity_and_cannot_allow_observed_misses) ... ok
-test_report_round_trip_and_symlink_inputs_are_rejected (test_trust_observation.TrustObservationPolicyTests.test_report_round_trip_and_symlink_inputs_are_rejected) ... ok
-test_safe_r0_plus_non_r0_unsafe_challenge_satisfies_thresholds_report_only (test_trust_observation.TrustObservationPolicyTests.test_safe_r0_plus_non_r0_unsafe_challenge_satisfies_thresholds_report_only) ... ok
-test_source_replay_detects_registry_or_policy_change (test_trust_observation.TrustObservationPolicyTests.test_source_replay_detects_registry_or_policy_change) ... ok
-test_unsafe_r0_is_confirmed_false_negative_and_blocks (test_trust_observation.TrustObservationPolicyTests.test_unsafe_r0_is_confirmed_false_negative_and_blocks) ... ok
-test_workflow_accepted_does_not_satisfy_reviewed_threshold (test_trust_observation.TrustObservationPolicyTests.test_workflow_accepted_does_not_satisfy_reviewed_threshold) ... ok
-test_atomic_replace_failure_preserves_existing_report_bytes (test_trust_observation_hardening.TrustObservationHardeningTests.test_atomic_replace_failure_preserves_existing_report_bytes) ... ok
-test_input_symlink_is_rejected_as_observation_error (test_trust_observation_hardening.TrustObservationHardeningTests.test_input_symlink_is_rejected_as_observation_error) ... ok
-test_malformed_report_returns_schema_errors_without_semantic_exception (test_trust_observation_hardening.TrustObservationHardeningTests.test_malformed_report_returns_schema_errors_without_semantic_exception) ... ok
-test_output_symlink_is_rejected_as_observation_input_error (test_trust_observation_hardening.TrustObservationHardeningTests.test_output_symlink_is_rejected_as_observation_input_error) ... ok
-test_repeated_independent_audits_do_not_inflate_distinct_audit_count (test_trust_observation_hardening.TrustObservationHardeningTests.test_repeated_independent_audits_do_not_inflate_distinct_audit_count) ... ok
-test_repository_sample_policy_is_valid_and_non_authorizing (test_trust_observation_hardening.TrustObservationHardeningTests.test_repository_sample_policy_is_valid_and_non_authorizing) ... ok
-test_valid_registry_change_is_detected_by_source_replay (test_trust_observation_hardening.TrustObservationHardeningTests.test_valid_registry_change_is_detected_by_source_replay) ... ok
-test_atomic_replace_failure_preserves_existing_bytes (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
-test_complete_package_can_reach_human_authorization_review_only (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_complete_package_can_reach_human_authorization_review_only) ... ok
-test_evidence_root_symlink_is_rejected (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_evidence_root_symlink_is_rejected) ... ok
-test_generated_at_does_not_change_evidence_identity (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_generated_at_does_not_change_evidence_identity) ... ok
-test_missing_package_is_valid_not_eligible_without_replay (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_missing_package_is_valid_not_eligible_without_replay) ... ok
-test_partial_package_does_not_attempt_stage10e (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_partial_package_does_not_attempt_stage10e) ... ok
-test_semantic_rehash_cannot_flip_missing_package_to_eligible (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_semantic_rehash_cannot_flip_missing_package_to_eligible) ... ok
-test_source_mutation_is_detected_by_exact_replay (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_source_mutation_is_detected_by_exact_replay) ... ok
-test_stage10e_not_eligible_is_preserved (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_stage10e_not_eligible_is_preserved) ... ok
-test_stage10e_source_replay_failure_is_explicit (test_trust_pilot_evidence_run.PilotEvidenceRunTests.test_stage10e_source_replay_failure_is_explicit) ... ok
-test_eligible_report_verification_requires_exact_evidence_root (test_trust_pilot_evidence_run_cli.PilotEvidenceRunCliTests.test_eligible_report_verification_requires_exact_evidence_root) ... ok
-test_missing_evidence_is_valid_not_eligible_exit_zero (test_trust_pilot_evidence_run_cli.PilotEvidenceRunCliTests.test_missing_evidence_is_valid_not_eligible_exit_zero) ... ok
-test_pie_trust_delegates_stage10g_command (test_trust_pilot_evidence_run_cli.PilotEvidenceRunCliTests.test_pie_trust_delegates_stage10g_command) ... ok
-test_complete_but_invalid_authority_package_fails_closed_as_valid_report (test_trust_pilot_evidence_run_hardening.PilotEvidenceRunHardeningTests.test_complete_but_invalid_authority_package_fails_closed_as_valid_report) ... ok
-test_output_symlink_is_rejected_without_mutating_target (test_trust_pilot_evidence_run_hardening.PilotEvidenceRunHardeningTests.test_output_symlink_is_rejected_without_mutating_target) ... ok
-test_pilot_authorization_flag_cannot_be_rehashed_true (test_trust_pilot_evidence_run_hardening.PilotEvidenceRunHardeningTests.test_pilot_authorization_flag_cannot_be_rehashed_true) ... ok
-test_symlinked_required_file_is_not_usable_evidence (test_trust_pilot_evidence_run_hardening.PilotEvidenceRunHardeningTests.test_symlinked_required_file_is_not_usable_evidence) ... ok
-test_atomic_replace_failure_preserves_existing_bytes (test_trust_pilot_review.PilotSafetyReviewTests.test_atomic_replace_failure_preserves_existing_bytes) ... ok
-test_audit_projection_mismatch_blocks (test_trust_pilot_review.PilotSafetyReviewTests.test_audit_projection_mismatch_blocks) ... ok
-test_combined_stage10_sources_expose_current_audit_provenance_blocker (test_trust_pilot_review.PilotSafetyReviewTests.test_combined_stage10_sources_expose_current_audit_provenance_blocker) ... ok
-test_current_independent_audit_contract_fails_closed (test_trust_pilot_review.PilotSafetyReviewTests.test_current_independent_audit_contract_fails_closed) ... ok
-test_future_complete_evidence_only_reaches_human_authorization_review (test_trust_pilot_review.PilotSafetyReviewTests.test_future_complete_evidence_only_reaches_human_authorization_review) ... ok
-test_generated_at_does_not_change_evidence_identity (test_trust_pilot_review.PilotSafetyReviewTests.test_generated_at_does_not_change_evidence_identity) ... ok
-test_observation_safety_failure_is_not_eligible (test_trust_pilot_review.PilotSafetyReviewTests.test_observation_safety_failure_is_not_eligible) ... ok
-test_output_symlink_is_rejected (test_trust_pilot_review.PilotSafetyReviewTests.test_output_symlink_is_rejected) ... ok
-test_pilot_authorized_cannot_be_rehashed_true (test_trust_pilot_review.PilotSafetyReviewTests.test_pilot_authorized_cannot_be_rehashed_true) ... ok
-test_registry_identity_mismatch_blocks (test_trust_pilot_review.PilotSafetyReviewTests.test_registry_identity_mismatch_blocks) ... ok
-test_semantic_rehash_cannot_escalate_blocked_report (test_trust_pilot_review.PilotSafetyReviewTests.test_semantic_rehash_cannot_escalate_blocked_report) ... ok
-test_source_replay_failure_blocks_before_activation (test_trust_pilot_review.PilotSafetyReviewTests.test_source_replay_failure_blocks_before_activation) ... ok
-test_source_replay_repair_outranks_audit_authority_remediation (test_trust_pilot_review_hardening.PilotSafetyReviewHardeningTests.test_source_replay_repair_outranks_audit_authority_remediation) ... ok
-test_unreconciled_assessment_directly_breaks_reconciliation_complete (test_trust_pilot_review_hardening.PilotSafetyReviewHardeningTests.test_unreconciled_assessment_directly_breaks_reconciliation_complete) ... ok
-test_capture_before_trust_generation_is_rejected (test_trust_prospective_evidence.ProspectiveEvidenceTests.test_capture_before_trust_generation_is_rejected) ... ok
-test_exact_trust_source_replay_intake_is_idempotent_and_progresses_without_authority (test_trust_prospective_evidence.ProspectiveEvidenceTests.test_exact_trust_source_replay_intake_is_idempotent_and_progresses_without_authority) ... ok
-test_non_exact_git_revision_is_rejected (test_trust_prospective_evidence.ProspectiveEvidenceTests.test_non_exact_git_revision_is_rejected) ... ok
-test_same_task_revision_with_different_trust_report_is_rejected (test_trust_prospective_evidence.ProspectiveEvidenceTests.test_same_task_revision_with_different_trust_report_is_rejected) ... ok
-test_pie_trust_delegates_progress_command (test_trust_prospective_evidence_cli.ProspectiveEvidenceCliTests.test_pie_trust_delegates_progress_command) ... ok
-test_standalone_progress_command (test_trust_prospective_evidence_cli.ProspectiveEvidenceCliTests.test_standalone_progress_command) ... ok
-test_existing_snapshot_mutation_is_detected (test_trust_prospective_evidence_hardening.ProspectiveEvidenceHardeningTests.test_existing_snapshot_mutation_is_detected) ... ok
-test_intake_persist_failure_removes_case_and_preserves_authority_files (test_trust_prospective_evidence_hardening.ProspectiveEvidenceHardeningTests.test_intake_persist_failure_removes_case_and_preserves_authority_files) ... ok
-test_pair_replace_failure_restores_original_registry_and_manifest (test_trust_prospective_evidence_hardening.ProspectiveEvidenceHardeningTests.test_pair_replace_failure_restores_original_registry_and_manifest) ... ok
-test_symlinked_trust_report_is_rejected (test_trust_prospective_evidence_hardening.ProspectiveEvidenceHardeningTests.test_symlinked_trust_report_is_rejected) ... ok
-test_campaign_report_rejects_semantic_threshold_relaxation_even_if_rehashed (test_trust_prospective_evidence_outcomes.ProspectiveEvidenceOutcomeSnapshotTests.test_campaign_report_rejects_semantic_threshold_relaxation_even_if_rehashed) ... ok
-test_controlled_evaluation_safe_outcome_reconciles_and_is_idempotent (test_trust_prospective_evidence_outcomes.ProspectiveEvidenceOutcomeSnapshotTests.test_controlled_evaluation_safe_outcome_reconciles_and_is_idempotent) ... ok
-test_currently_unsupported_outcome_authority_is_rejected_before_registry_mutation (test_trust_prospective_evidence_outcomes.ProspectiveEvidenceOutcomeSnapshotTests.test_currently_unsupported_outcome_authority_is_rejected_before_registry_mutation) ... ok
-test_snapshot_is_immutable_replayable_and_idempotent (test_trust_prospective_evidence_outcomes.ProspectiveEvidenceOutcomeSnapshotTests.test_snapshot_is_immutable_replayable_and_idempotent) ... ok
-test_audited_decision_does_not_create_independent_audit_outcome_authority (test_trust_prospective_review.GovernedProspectiveReviewTests.test_audited_decision_does_not_create_independent_audit_outcome_authority) ... ok
-test_duplicate_exact_packet_submission_is_rejected (test_trust_prospective_review.GovernedProspectiveReviewTests.test_duplicate_exact_packet_submission_is_rejected) ... ok
-test_prepare_packet_is_deterministic_and_does_not_mutate_registry (test_trust_prospective_review.GovernedProspectiveReviewTests.test_prepare_packet_is_deterministic_and_does_not_mutate_registry) ... ok
-test_submit_binds_exact_packet_to_existing_stage10b_human_decision (test_trust_prospective_review.GovernedProspectiveReviewTests.test_submit_binds_exact_packet_to_existing_stage10b_human_decision) ... ok
-test_legacy_public_prospective_module_no_longer_exports_unbound_review_mutation (test_trust_prospective_review_cli.GovernedProspectiveReviewCliTests.test_legacy_public_prospective_module_no_longer_exports_unbound_review_mutation) ... ok
-test_prepare_verify_submit_commands_are_registered (test_trust_prospective_review_cli.GovernedProspectiveReviewCliTests.test_prepare_verify_submit_commands_are_registered) ... ok
-test_record_prospective_review_requires_exact_packet_input (test_trust_prospective_review_cli.GovernedProspectiveReviewCliTests.test_record_prospective_review_requires_exact_packet_input) ... usage: pie-trust-prospective record-prospective-review [-h] --workspace
-                                                       WORKSPACE
-                                                       --github-candidate
-                                                       GITHUB_CANDIDATE
-                                                       --repository-root
-                                                       REPOSITORY_ROOT
-                                                       [--repo REPO]
-                                                       [--timeout TIMEOUT]
-                                                       --packet PACKET
-                                                       --review-level
-                                                       {REVIEWED,AUDITED}
-                                                       --decision
-                                                       {APPROVE,REQUEST_CHANGES,HOLD,REJECT,RECLASSIFY}
-                                                       [--confirmed-risk-band {R0,R1,R2,R3,R4}]
-                                                       [--reason REASON]
-                                                       --actor ACTOR
-                                                       [--occurred-at OCCURRED_AT]
-pie-trust-prospective record-prospective-review: error: the following arguments are required: --packet
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2f20>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e31f0>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e32e0>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e35b0>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2d40>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3100>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2e30>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
 ok
-test_workflow_accepted_cannot_be_promoted_through_review_submit_cli (test_trust_prospective_review_cli.GovernedProspectiveReviewCliTests.test_workflow_accepted_cannot_be_promoted_through_review_submit_cli) ... usage: pie-trust-prospective submit-prospective-review [-h] --workspace
-                                                       WORKSPACE
-                                                       --github-candidate
-                                                       GITHUB_CANDIDATE
-                                                       --repository-root
-                                                       REPOSITORY_ROOT
-                                                       [--repo REPO]
-                                                       [--timeout TIMEOUT]
-                                                       --packet PACKET
-                                                       --review-level
-                                                       {REVIEWED,AUDITED}
-                                                       --decision
-                                                       {APPROVE,REQUEST_CHANGES,HOLD,REJECT,RECLASSIFY}
-                                                       [--confirmed-risk-band {R0,R1,R2,R3,R4}]
-                                                       [--reason REASON]
-                                                       --actor ACTOR
-                                                       [--occurred-at OCCURRED_AT]
-pie-trust-prospective submit-prospective-review: error: argument --review-level: invalid choice: 'WORKFLOW_ACCEPTED' (choose from 'REVIEWED', 'AUDITED')
-ok
-test_different_project_packet_reuse_fails_before_registry_mutation (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_different_project_packet_reuse_fails_before_registry_mutation) ... ok
-test_formatting_only_packet_byte_mutation_cannot_create_review_authority (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_formatting_only_packet_byte_mutation_cannot_create_review_authority) ... ok
-test_identity_and_evidence_substitutions_fail_closed (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_identity_and_evidence_substitutions_fail_closed) ... ok
-test_packet_payload_byte_mutation_without_rehash_fails_closed (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_packet_payload_byte_mutation_without_rehash_fails_closed) ... ok
-test_packet_sha_mutation_and_partial_packet_fail_closed (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_packet_sha_mutation_and_partial_packet_fail_closed) ... ok
-test_packetless_review_mutation_cannot_create_review_authority (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_packetless_review_mutation_cannot_create_review_authority) ... ok
-test_pr_head_drift_blocks_verification_and_submission_without_registry_mutation (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_pr_head_drift_blocks_verification_and_submission_without_registry_mutation) ... ok
-test_reserved_packet_reason_code_cannot_be_spoofed_on_submit (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_reserved_packet_reason_code_cannot_be_spoofed_on_submit) ... ok
-test_semantic_rehash_forgery_is_rejected_by_exact_source_replay (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_semantic_rehash_forgery_is_rejected_by_exact_source_replay) ... ok
-test_source_replay_mismatch_makes_prepared_packet_stale (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_source_replay_mismatch_makes_prepared_packet_stale) ... ok
-test_source_revision_substitution_is_rejected_even_after_rehash_attempt (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_source_revision_substitution_is_rejected_even_after_rehash_attempt) ... ok
-test_symlink_and_path_traversal_packet_inputs_are_rejected (test_trust_prospective_review_hardening.GovernedProspectiveReviewHardeningTests.test_symlink_and_path_traversal_packet_inputs_are_rejected) ... ok
-test_all_real_seen_r4_cases_promote_authoritatively (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_all_real_seen_r4_cases_promote_authoritatively) ... ok
-test_assess_and_source_replay_bind_r4_semantics (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_assess_and_source_replay_bind_r4_semantics) ... FAIL
-test_current_risk_model_is_v15_and_prior_versions_are_frozen (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_current_risk_model_is_v15_and_prior_versions_are_frozen) ... ok
-test_no_source_pair_does_not_claim_semantic_r4 (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_no_source_pair_does_not_claim_semantic_r4) ... ok
-test_source_binding_rejects_head_changed_files_diff_and_missing_sections (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_source_binding_rejects_head_changed_files_diff_and_missing_sections) ... ok
-test_supporting_seen_controls_do_not_gain_r4 (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_supporting_seen_controls_do_not_gain_r4) ... ok
-test_v12_preserves_generic_policy_token_correction (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_v12_preserves_generic_policy_token_correction) ... ok
-test_v12_remains_frozen_without_r4_semantic_authority (test_trust_r4_semantic_authoritative_promotion.TrustR4SemanticAuthoritativePromotionTests.test_v12_remains_frozen_without_r4_semantic_authority) ... FAIL
-test_documentation_verification_text_is_not_semantic_r4_evidence (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_documentation_verification_text_is_not_semantic_r4_evidence) ... ok
-test_fixture_declares_seen_only_authority_ceiling (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_fixture_declares_seen_only_authority_ceiling) ... ok
-test_real_seen_r4_cases_raise_shadow_path_floor_to_r4 (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_real_seen_r4_cases_raise_shadow_path_floor_to_r4) ... ok
-test_seen_semantic_discriminator_replays_exactly (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_seen_semantic_discriminator_replays_exactly) ... ok
-test_supporting_harnesses_do_not_gain_r4_authority (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_supporting_harnesses_do_not_gain_r4_authority) ... ok
-test_wave1_v12_authoritative_regression_remains_34_of_34 (test_trust_r4_semantic_underdetection_shadow.TrustR4SemanticUnderdetectionShadowTests.test_wave1_v12_authoritative_regression_remains_34_of_34) ... ok
-test_assess_and_source_replay_support_both_v13_and_v14 (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_assess_and_source_replay_support_both_v13_and_v14) ... FAIL
-test_current_model_is_v15_and_v14_v13_remain_explicit (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_current_model_is_v15_and_v14_v13_remain_explicit) ... ok
-test_existing_v13_r4_positive_and_negative_matrix_is_preserved_in_v14 (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_existing_v13_r4_positive_and_negative_matrix_is_preserved_in_v14) ... ok
-test_mv7_live_acceptance_verifier_promotes_only_in_v14 (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_mv7_live_acceptance_verifier_promotes_only_in_v14) ... ok
-test_no_source_pair_does_not_claim_verifier_role_r4 (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_no_source_pair_does_not_claim_verifier_role_r4) ... ok
-test_v13_evidence_contract_remains_historically_replayable (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_v13_evidence_contract_remains_historically_replayable) ... ok
-test_verifier_role_negative_matrix_does_not_gain_r4 (test_trust_r4_verifier_role_authoritative_promotion.TrustR4VerifierRoleAuthoritativePromotionTests.test_verifier_role_negative_matrix_does_not_gain_r4) ... ok
-test_calibration_matrix_matches_current_and_candidate_classes (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_calibration_matrix_matches_current_and_candidate_classes) ... ok
-test_candidate_is_not_masterv_named (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_candidate_is_not_masterv_named) ... ok
-test_candidate_projection_promotes_only_mv7_core_path_to_r4 (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_candidate_projection_promotes_only_mv7_core_path_to_r4) ... ok
-test_contract_is_shadow_only_on_v13_authority (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_contract_is_shadow_only_on_v13_authority) ... FAIL
-test_evaluation_only_ceiling_wins_even_with_live_acceptance_signals (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_evaluation_only_ceiling_wins_even_with_live_acceptance_signals) ... ok
-test_existing_v13_r4_semantic_calibration_is_unchanged (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_existing_v13_r4_semantic_calibration_is_unchanged) ... ok
-test_mv7_live_verifier_requires_combined_authority_signals (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_mv7_live_verifier_requires_combined_authority_signals) ... ok
-test_same_pr_supporting_contract_is_not_promoted (test_trust_r4_verifier_role_remediation_shadow.TrustR4VerifierRoleRemediationShadowTests.test_same_pr_supporting_contract_is_not_promoted) ... ok
-test_assessment_exact_source_replay_reconciles_report_only (test_trust_reconciliation.TrustReconciliationTests.test_assessment_exact_source_replay_reconciles_report_only) ... ok
-test_controlled_evaluation_safe_requires_exact_trust_bound_holdout (test_trust_reconciliation.TrustReconciliationTests.test_controlled_evaluation_safe_requires_exact_trust_bound_holdout) ... ok
-test_controlled_evaluation_unsafe_requires_matching_protected_negative (test_trust_reconciliation.TrustReconciliationTests.test_controlled_evaluation_unsafe_requires_matching_protected_negative) ... ok
-test_duplicate_conclusive_authority_is_not_counted_twice (test_trust_reconciliation.TrustReconciliationTests.test_duplicate_conclusive_authority_is_not_counted_twice) ... ok
-test_evaluation_without_exact_evidence_ref_is_not_reconciled (test_trust_reconciliation.TrustReconciliationTests.test_evaluation_without_exact_evidence_ref_is_not_reconciled) ... ok
-test_generated_at_does_not_change_evidence_identity (test_trust_reconciliation.TrustReconciliationTests.test_generated_at_does_not_change_evidence_identity) ... ok
-test_independent_audit_is_provenance_unverified_not_self_asserted (test_trust_reconciliation.TrustReconciliationTests.test_independent_audit_is_provenance_unverified_not_self_asserted) ... ok
-test_outer_rehash_cannot_hide_semantic_status_tamper (test_trust_reconciliation.TrustReconciliationTests.test_outer_rehash_cannot_hide_semantic_status_tamper) ... ok
-test_production_defect_missing_reference_or_safe_verdict_fails_closed (test_trust_reconciliation.TrustReconciliationTests.test_production_defect_missing_reference_or_safe_verdict_fails_closed) ... ok
-test_report_round_trip_and_cli_delegation (test_trust_reconciliation.TrustReconciliationTests.test_report_round_trip_and_cli_delegation) ... ok
-test_request_source_mutation_is_detected_by_replay (test_trust_reconciliation.TrustReconciliationTests.test_request_source_mutation_is_detected_by_replay) ... ok
-test_same_report_id_with_different_generated_at_detects_report_hash_mismatch (test_trust_reconciliation.TrustReconciliationTests.test_same_report_id_with_different_generated_at_detects_report_hash_mismatch) ... ok
-test_valid_production_defect_unsafe_reconciles_with_same_revision_reproducer (test_trust_reconciliation.TrustReconciliationTests.test_valid_production_defect_unsafe_reconciles_with_same_revision_reproducer) ... ok
-test_declared_missing_source_is_source_missing (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_declared_missing_source_is_source_missing) ... ok
-test_exact_id_and_sha_refs_are_required (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_exact_id_and_sha_refs_are_required) ... ok
-test_issuer_and_temporal_bindings_fail_closed (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_issuer_and_temporal_bindings_fail_closed) ... ok
-test_legacy_audit_without_mapping_remains_unverified (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_legacy_audit_without_mapping_remains_unverified) ... ok
-test_retroactive_revocation_invalidates_reconciliation (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_retroactive_revocation_invalidates_reconciliation) ... ok
-test_same_audit_cannot_supply_two_conclusive_outcomes (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_same_audit_cannot_supply_two_conclusive_outcomes) ... ok
-test_semantic_rehash_cannot_flip_provenance_projection (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_semantic_rehash_cannot_flip_provenance_projection) ... ok
 test_verdict_mismatch_is_explicit (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_verdict_mismatch_is_explicit) ... ok
 test_verified_audit_reconciles_and_counts_for_stage10e (test_trust_reconciliation_audit.TrustReconciliationAuditTests.test_verified_audit_reconciles_and_counts_for_stage10e) ... ok
-test_unreconciled_assessment_keeps_audit_assessment_unreconciled (test_trust_reconciliation_audit_edge.TrustReconciliationAuditEdgeTests.test_unreconciled_assessment_keeps_audit_assessment_unreconciled) ... ok
+test_unreconciled_assessment_keeps_audit_assessment_unreconciled (test_trust_reconciliation_audit_edge.TrustReconciliationAuditEdgeTests.test_unreconciled_assessment_keeps_audit_assessment_unreconciled) ... /opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659a5c0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659bc40>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659a6b0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea4d0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea3e0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e33d0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2020>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3100>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2e30>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e32e0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e31f0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3c40>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2f20>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e25c0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e14e0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e35b0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2d40>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2c50>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1990>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3010>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2b60>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e26b0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2890>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1e40>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e18a0>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1d50>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/copy.py:201: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2980>
+  for key, value in x.items():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
 test_atomic_replace_failure_preserves_existing_output (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_atomic_replace_failure_preserves_existing_output) ... ok
 test_evaluation_not_bound_by_trust_report_is_rejected (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_evaluation_not_bound_by_trust_report_is_rejected) ... ok
-test_malformed_report_and_fixed_authorization_flags_fail_verification (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_malformed_report_and_fixed_authorization_flags_fail_verification) ... ok
+test_malformed_report_and_fixed_authorization_flags_fail_verification (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_malformed_report_and_fixed_authorization_flags_fail_verification) ... /opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659bc40>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea4d0>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea3e0>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2980>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2890>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2b60>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3010>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e26b0>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/jsonschema/_keywords.py:285: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e35b0>
+  if not any(validator.is_type(instance, type) for type in types):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
 test_manifest_path_traversal_is_rejected (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_manifest_path_traversal_is_rejected) ... ok
 test_missing_declared_source_fails_assessment_replay (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_missing_declared_source_fails_assessment_replay) ... ok
 test_observed_defect_without_reproducer_is_insufficient_for_unsafe (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_observed_defect_without_reproducer_is_insufficient_for_unsafe) ... ok
-test_output_symlink_is_rejected_without_target_mutation (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_output_symlink_is_rejected_without_target_mutation) ... ok
+test_output_symlink_is_rejected_without_target_mutation (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_output_symlink_is_rejected_without_target_mutation) ... /opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2980>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/error.py:6: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e33d0>
+  def __init__(self, name, index, line, column, buffer, pointer):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
 test_symlink_assessment_source_is_rejected (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_symlink_assessment_source_is_rejected) ... ok
 test_unsupported_security_incident_never_becomes_confirmed_source (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_unsupported_security_incident_never_becomes_confirmed_source) ... ok
 test_wrong_project_defect_authority_fails_closed (test_trust_reconciliation_hardening.TrustReconciliationHardeningTests.test_wrong_project_defect_authority_fails_closed) ... ok
 test_future_defect_transition_cannot_backfill_old_unsafe_outcome (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_future_defect_transition_cannot_backfill_old_unsafe_outcome) ... ok
-test_future_finding_link_cannot_backfill_old_revision_relation (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_future_finding_link_cannot_backfill_old_revision_relation) ... ok
+test_future_finding_link_cannot_backfill_old_revision_relation (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_future_finding_link_cannot_backfill_old_revision_relation) ... /opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea3e0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea4d0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659bc40>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e27a0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2f20>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e31f0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2c50>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e35b0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e26b0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1990>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1300>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3010>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2b60>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2890>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e0400>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e05e0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1e40>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2e30>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e32e0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2980>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3100>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e33d0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2d40>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e0c70>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e36a0>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3790>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3970>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3880>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3b50>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/json/decoder.py:361: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3a60>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
 test_lexical_symlink_reference_is_rejected (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_lexical_symlink_reference_is_rejected) ... ok
 test_orphan_manifest_assessment_and_outcome_are_rejected (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_orphan_manifest_assessment_and_outcome_are_rejected) ... ok
 test_outcome_base_status_semantic_tamper_is_rejected_after_rehash (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_outcome_base_status_semantic_tamper_is_rejected_after_rehash) ... ok
-test_same_revision_nonholdout_duplicates_do_not_make_holdout_ambiguous (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_same_revision_nonholdout_duplicates_do_not_make_holdout_ambiguous) ... ok
+test_same_revision_nonholdout_duplicates_do_not_make_holdout_ambiguous (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_same_revision_nonholdout_duplicates_do_not_make_holdout_ambiguous) ... /opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f368659bc40>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea4d0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36865ea3e0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3970>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3880>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3790>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e34c0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e36a0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3a60>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3b50>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2d40>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e33d0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2980>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e3100>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e32e0>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2200>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1e40>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2020>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e2e30>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/hostedtoolcache/Python/3.14.7/x64/lib/python3.14/site-packages/yaml/tokens.py:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f36860e1d50>
+  def __init__(self, start_mark, end_mark):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
 test_unsupported_and_unproven_authority_checks_cannot_escalate_after_rehash (test_trust_reconciliation_review.TrustReconciliationImplementationReviewTests.test_unsupported_and_unproven_authority_checks_cannot_escalate_after_rehash) ... ok
 test_frozen_holdout_has_no_lifecycle_leakage (test_trust_risk_calibration_wave1_fixtures.TrustRiskCalibrationWave1FixtureTests.test_frozen_holdout_has_no_lifecycle_leakage) ... ok
 test_holdout_band_coverage_and_r4_limitation_are_explicit (test_trust_risk_calibration_wave1_fixtures.TrustRiskCalibrationWave1FixtureTests.test_holdout_band_coverage_and_r4_limitation_are_explicit) ... ok
@@ -395,6 +391,7 @@ FAIL: test_assess_and_source_replay_bind_r4_semantics (test_trust_r4_semantic_au
 Traceback (most recent call last):
   File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_trust_r4_semantic_authoritative_promotion.py", line 247, in test_assess_and_source_replay_bind_r4_semantics
     self.assertEqual(report["risk_model_version"], "1.4")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: '1.5' != '1.4'
 - 1.5
 ?   ^
@@ -412,6 +409,7 @@ During handling of the above exception, another exception occurred:
 Traceback (most recent call last):
   File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_trust_r4_semantic_authoritative_promotion.py", line 146, in test_v12_remains_frozen_without_r4_semantic_authority
     with self.assertRaisesRegex(ValueError, "requires Trust risk model v1.3 or v1.4"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: "requires Trust risk model v1.3 or v1.4" does not match "R4 semantic evidence requires Trust risk model v1.3, v1.4 or v1.5"
 
 ======================================================================
@@ -420,6 +418,7 @@ FAIL: test_assess_and_source_replay_support_both_v13_and_v14 (test_trust_r4_veri
 Traceback (most recent call last):
   File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_trust_r4_verifier_role_authoritative_promotion.py", line 271, in test_assess_and_source_replay_support_both_v13_and_v14
     self.assertEqual(v14_report["risk_model_version"], "1.4")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: '1.5' != '1.4'
 - 1.5
 ?   ^
@@ -433,6 +432,7 @@ FAIL: test_contract_is_shadow_only_on_v13_authority (test_trust_r4_verifier_role
 Traceback (most recent call last):
   File "/home/runner/work/Project_Intelligence_Engine/Project_Intelligence_Engine/tests/test_trust_r4_verifier_role_remediation_shadow.py", line 40, in test_contract_is_shadow_only_on_v13_authority
     self.assertEqual(TRUST_RISK_MODEL_VERSION, "1.4")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: '1.5' != '1.4'
 - 1.5
 ?   ^
@@ -441,30 +441,30 @@ AssertionError: '1.5' != '1.4'
 
 
 ----------------------------------------------------------------------
-Ran 605 tests in 31.915s
+Ran 605 tests in 44.466s
 
 FAILED (failures=4)
-MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmpnj79n80u/conflicts.json
-INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmpe083dtb8/graph.json
-ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmpe083dtb8/impact.json
-INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmpci3d7hiv
-VALID profile: /tmp/tmpci3d7hiv/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpci3d7hiv/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmpp3lm_55d
-VALID profile: /tmp/tmpp3lm_55d/.review/project.yml; packs=7; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpp3lm_55d/.review/intelligence/config.yml; components=5
-INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmpmmi1bpr_
-VALID profile: /tmp/tmpmmi1bpr_/.review/project.yml; packs=11; inherits=['spring-postgres']
-VALID intelligence config: /tmp/tmpmmi1bpr_/.review/intelligence/config.yml; components=7
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpgvi1ner7
-VALID profile: /tmp/tmpgvi1ner7/.review/project.yml; packs=8; inherits=['nextjs-supabase']
-VALID intelligence config: /tmp/tmpgvi1ner7/.review/intelligence/config.yml; components=4
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpz611od1q
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpz611od1q/analysis
+MERGED 1 findings; conflicts=1; conflicts_file=/tmp/tmp0zq0whys/conflicts.json
+INDEXED project: files=2; edges=4; warnings=0; output=/tmp/tmpvccp30rg/graph.json
+ANALYZED change: direct=1; impacted=1; packs=1; output=/tmp/tmpvccp30rg/impact.json
+INITIALIZED project: preset=bejewely; created=6; overwritten=0; skipped=0; root=/tmp/tmplwwyqgj9
+VALID profile: /tmp/tmplwwyqgj9/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmplwwyqgj9/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=buildmap; created=6; overwritten=0; skipped=0; root=/tmp/tmp6n3spfn6
+VALID profile: /tmp/tmp6n3spfn6/.review/project.yml; packs=7; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmp6n3spfn6/.review/intelligence/config.yml; components=5
+INITIALIZED project: preset=journey-connect; created=6; overwritten=0; skipped=0; root=/tmp/tmpykgunsfw
+VALID profile: /tmp/tmpykgunsfw/.review/project.yml; packs=11; inherits=['spring-postgres']
+VALID intelligence config: /tmp/tmpykgunsfw/.review/intelligence/config.yml; components=7
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpebt9ipyo
+VALID profile: /tmp/tmpebt9ipyo/.review/project.yml; packs=8; inherits=['nextjs-supabase']
+VALID intelligence config: /tmp/tmpebt9ipyo/.review/intelligence/config.yml; components=4
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpkcqjwt_s
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmpkcqjwt_s/analysis
 VALID GitHub source: repo=demo/repo; pr=#7; files=1
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpguzfaigd
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpguzfaigd/analysis
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpguzfaigd/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpbws35zq2
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpbws35zq2/analysis
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpbws35zq2/analysis
 {
   "schema_version": "1.0",
   "ready": true,
@@ -484,18 +484,18 @@ ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; outp
     "hostname": "github.com"
   }
 }
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp_2sx9grd
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmp_2sx9grd/allowed
-INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmplnv0cxlj
-INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmplnv0cxlj
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpiujwamhz
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmpiujwamhz
-INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmpiujwamhz
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpyyyj7vfx
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpmx4g7gud
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpmx4g7gud/allowed
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp34k1ydgq
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmp34k1ydgq/analysis
-INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpmodykqcq
-ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpmodykqcq/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpsqkoo3aa
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpsqkoo3aa/allowed
+INITIALIZED project: preset=bejewely; created=5; overwritten=0; skipped=0; root=/tmp/tmphy0kckzf
+INITIALIZED project: preset=bejewely; created=0; overwritten=0; skipped=5; root=/tmp/tmphy0kckzf
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp2zd55hna
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=0; skipped=5; root=/tmp/tmp2zd55hna
+INITIALIZED project: preset=generic-webapp; created=0; overwritten=5; skipped=0; root=/tmp/tmp2zd55hna
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpihekk53r
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpsyprk861
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpsyprk861/allowed
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmp0gssc8s7
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=1; packs=1; output=/tmp/tmp0gssc8s7/analysis
+INITIALIZED project: preset=generic-webapp; created=6; overwritten=0; skipped=0; root=/tmp/tmpis7_vnvq
+ANALYZED pull request: repo=demo/repo; pr=#7; files=1; impacted=0; packs=1; output=/tmp/tmpis7_vnvq/allowed
 UNITTEST_EXIT_STATUS=1
