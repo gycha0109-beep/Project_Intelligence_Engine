@@ -89,24 +89,41 @@
     "dispatch": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["attempted", "provider_response", "postcondition_readback", "postcondition_verified"],
+      "required": ["attempted", "suppressed", "provider_response", "postcondition_readback", "postcondition_verified"],
       "properties": {
         "attempted": {"type": "boolean"},
-        "provider_response": {"$ref": "#/$defs/prSnapshotWithTime"},
-        "postcondition_readback": {"$ref": "#/$defs/prSnapshot"},
+        "suppressed": {"type": "boolean"},
+        "provider_response": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/prSnapshotWithTime"}
+          ]
+        },
+        "postcondition_readback": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/prSnapshot"}
+          ]
+        },
         "postcondition_verified": {"type": "boolean"}
       }
     },
     "rollback": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["attempted", "provider_response", "postcondition_readback", "postcondition_verified", "final_target_state_restored"],
+      "required": ["attempted", "provider_response", "postcondition_readback", "postcondition_verified", "final_target_state_restored", "restoration_mode"],
       "properties": {
         "attempted": {"type": "boolean"},
-        "provider_response": {"$ref": "#/$defs/prSnapshotWithTime"},
+        "provider_response": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/prSnapshotWithTime"}
+          ]
+        },
         "postcondition_readback": {"$ref": "#/$defs/prSnapshot"},
         "postcondition_verified": {"type": "boolean"},
-        "final_target_state_restored": {"type": "boolean"}
+        "final_target_state_restored": {"type": "boolean"},
+        "restoration_mode": {"enum": ["ROLLBACK_VERIFIED", "NO_DISPATCH_STATE_PRESERVED"]}
       }
     },
     "credential_scope": {
