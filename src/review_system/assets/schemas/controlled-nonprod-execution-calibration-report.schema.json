@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/controlled-nonprod-execution-calibration-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "calibration_id",
+    "generated_at",
+    "mode",
+    "project_id",
+    "source_main_sha",
+    "production_execution_authorized",
+    "non_production_execution_authorized",
+    "automation_authorized",
+    "pilot_authorized",
+    "target",
+    "capability",
+    "authorization",
+    "pre_dispatch",
+    "dispatch",
+    "rollback",
+    "credential_scope",
+    "blockers",
+    "status",
+    "next_step",
+    "evidence_snapshot_sha256",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_version": {"const": "TRUST_CONTROLLED_NON_PRODUCTION_EXECUTION_CALIBRATION_V1"},
+    "calibration_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "CONTROLLED_NON_PRODUCTION_CALIBRATION"},
+    "project_id": {"type": "string", "minLength": 1},
+    "source_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "production_execution_authorized": {"const": false},
+    "non_production_execution_authorized": {"const": true},
+    "automation_authorized": {"const": false},
+    "pilot_authorized": {"const": false},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "repository", "resource_type", "resource_id", "environment", "head_sha", "initial_state"],
+      "properties": {
+        "provider": {"const": "GITHUB"},
+        "repository": {"type": "string", "minLength": 1},
+        "resource_type": {"const": "PULL_REQUEST"},
+        "resource_id": {"type": "string", "pattern": "^[1-9][0-9]*$"},
+        "environment": {"const": "NON_PRODUCTION_CALIBRATION"},
+        "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "initial_state": {"const": "DRAFT"}
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "operation", "rollback_operation"],
+      "properties": {
+        "class": {"const": "GITHUB_PR_MUTATION"},
+        "operation": {"const": "MARK_READY_FOR_REVIEW"},
+        "rollback_operation": {"const": "CONVERT_TO_DRAFT"}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "basis", "authorization_id", "authorization_ref"],
+      "properties": {
+        "required": {"const": true},
+        "basis": {"const": "EXPLICIT_HUMAN_BOUNDARY_AUTHORIZATION"},
+        "authorization_id": {"type": "string", "minLength": 1},
+        "authorization_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "pre_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_head_exact", "target_precondition_exact", "kill_switch_clear", "rollback_ready"],
+      "properties": {
+        "source_head_exact": {"type": "boolean"},
+        "target_precondition_exact": {"type": "boolean"},
+        "kill_switch_clear": {"type": "boolean"},
+        "rollback_ready": {"type": "boolean"}
+      }
+    },
+    "dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "provider_response", "postcondition_readback", "postcondition_verified"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "provider_response": {"$ref": "#/$defs/prSnapshotWithTime"},
+        "postcondition_readback": {"$ref": "#/$defs/prSnapshot"},
+        "postcondition_verified": {"type": "boolean"}
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "provider_response", "postcondition_readback", "postcondition_verified", "final_target_state_restored"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "provider_response": {"$ref": "#/$defs/prSnapshotWithTime"},
+        "postcondition_readback": {"$ref": "#/$defs/prSnapshot"},
+        "postcondition_verified": {"type": "boolean"},
+        "final_target_state_restored": {"type": "boolean"}
+      }
+    },
+    "credential_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transport", "target_scoped", "proven", "evidence_ref"],
+      "properties": {
+        "transport": {"const": "CONNECTED_GITHUB_ACCOUNT"},
+        "target_scoped": {"type": "boolean"},
+        "proven": {"type": "boolean"},
+        "evidence_ref": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "status": {"enum": ["CONTROLLED_NON_PRODUCTION_CALIBRATION_PASS", "BLOCKED"]},
+    "next_step": {"type": "string", "minLength": 1},
+    "evidence_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "prSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "draft", "head_sha"],
+      "properties": {
+        "state": {"const": "open"},
+        "draft": {"type": "boolean"},
+        "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "prSnapshotWithTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "draft", "head_sha", "updated_at"],
+      "properties": {
+        "state": {"const": "open"},
+        "draft": {"type": "boolean"},
+        "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}
