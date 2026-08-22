@@ -1,0 +1,60 @@
+name: Temporary Trust Signing Hard Gate Patch
+
+on:
+  push:
+    branches:
+      - feat/trust-signing-trust-root-authority
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[trust-signing-hardgate-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply signing authority hard-gate patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one target, found {count}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          trust = "src/review_system/trust.py"
+          replace_once(
+              trust,
+              'from .trust_signing_trust_root_authority import (\n    build_trust_signing_trust_root_evidence,\n    normalize_trust_signing_trust_root_evidence,\n)\n',
+              'from .trust_signing_trust_root_authority import (\n    REASON_ID as SIGNING_TRUST_ROOT_REASON_ID,\n    build_trust_signing_trust_root_evidence,\n    normalize_trust_signing_trust_root_evidence,\n)\n',
+          )
+          replace_once(
+              trust,
+              '            band, reason_id = "R3", "SEMANTIC_R3_SIGNING_TRUST_ROOT_AUTHORITY"\n',
+              '            band, reason_id = "R3", SIGNING_TRUST_ROOT_REASON_ID\n',
+          )
+          replace_once(
+              trust,
+              '    high_risk_reason_ids = {"HIGH_RISK_PATH", *_WORKFLOW_HIGH_RISK_REASON_IDS}\n',
+              '    high_risk_reason_ids = {\n        "HIGH_RISK_PATH",\n        SIGNING_TRUST_ROOT_REASON_ID,\n        *_WORKFLOW_HIGH_RISK_REASON_IDS,\n    }\n',
+          )
+
+          test = "tests/test_trust_signing_trust_root_authoritative_promotion.py"
+          replace_once(
+              test,
+              '            self.assertEqual(v15["risk"]["effective_band"], "R3")\n            self.assertEqual([], verify_trust_report_data(v15))\n',
+              '            self.assertEqual(v15["risk"]["effective_band"], "R3")\n            hard_gates = {item["gate_id"]: item for item in v15["hard_gates"]}\n            self.assertTrue(hard_gates["AUTHORIZATION_OR_MIGRATION_CHANGE"]["triggered"])\n            self.assertIn(path, hard_gates["AUTHORIZATION_OR_MIGRATION_CHANGE"]["details"])\n            self.assertEqual([], verify_trust_report_data(v15))\n',
+          )
+          PY
+          git rm .github/workflows/tmp-trust-signing-hardgate-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/review_system/trust.py tests/test_trust_signing_trust_root_authoritative_promotion.py
+          git commit -m "fix(trust): bind signing authority to high-risk hard gate [trust-signing-hardgate-patched]"
+          git push origin HEAD:feat/trust-signing-trust-root-authority
