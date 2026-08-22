@@ -70,9 +70,9 @@ def analyze_signing_trust_root_candidate(path: str, excerpt: str) -> dict[str, A
         combined,
     )
     trust_root_assignment = _matches(
-        r"(?:UPDATE_PUBLIC_KEY|SIGNATURE[_-]?PUBLIC[_-]?KEY|VERIFICATION[_-]?KEY|"
+        r"[\"']?(?:UPDATE_PUBLIC_KEY|SIGNATURE[_-]?PUBLIC[_-]?KEY|VERIFICATION[_-]?KEY|"
         r"TRUST[_-]?ROOT(?:[_-]?(?:PUBLIC)?[_-]?KEY)?|trusted[_-]?keys?|"
-        r"trustRootPublicKey|\"pubkey\")\s*(?::|=)",
+        r"trustRootPublicKey|pubkey)[\"']?\s*(?::|=)",
         excerpt,
     )
     runtime_or_config_surface = _is_runtime_or_config_surface(normalized_path)
