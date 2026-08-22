@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "TRUST_R4_EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_SHADOW_V1",
+  "artifact_kind": "R4_VERIFIER_ROLE_REMEDIATION_SHADOW_CALIBRATION",
+  "defect_id": "EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_GAP",
+  "pie_authority": {
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "main_sha": "7aa435f1b5afd208a05b222f5bed55da77d4c6e8",
+    "risk_model_version": "1.3"
+  },
+  "authority_ceiling": {
+    "mode": "REPORT_ONLY",
+    "shadow_only": true,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "authoritative_remediation_authorized": false,
+    "blind_holdout_claim": false
+  },
+  "calibration_policy": {
+    "positive_source": "MasterV PR #7, post-Wave1 independent audit evidence selected after inspection; not blinded.",
+    "existing_r4_regression": "Reuse r4-semantic-underdetection-seen-v1.json to require all five prior R4 positives and four prior negative controls to preserve their classifications.",
+    "candidate_scope": "Only current SUPPORTING_REGRESSION_ONLY executable scripts may be reconsidered.",
+    "candidate_requirements": [
+      "explicit acceptance/verification/closure PASS or SUCCESS outcome",
+      "external or operational observation",
+      "durable evidence output",
+      "operational published/production/hosted/release context",
+      "fail-closed behavior",
+      "executable assertions",
+      "no explicit evaluation-only ceiling"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "MV-7-LIVE-PUBLISHED-UPDATER-ACCEPTANCE-VERIFIER",
+      "source_kind": "POST_WAVE1_REAL_POSITIVE_NOT_BLINDED",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 7,
+      "head_sha": "1651af7ffda64dcbe595a7c8f793f7e5c03e9b05",
+      "path": "scripts/desktop-rel-1c-published-updater-windows.mjs",
+      "human_band": "R4",
+      "current_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_classification": "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
+      "candidate_triggered": true,
+      "excerpt": "const manifestResponse = await fetch(latestEndpoint, { redirect: \"follow\", cache: \"no-store\" });\nassert(manifestResponse.ok, `Published latest.json is unavailable`);\nassert(typeof platform?.signature === \"string\" && platform.signature.trim().length > 0, \"Published manifest signature is empty\");\nconst evidence = { status: \"MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS\", tauri_signature_verified_by_successful_install: true, release_mutation: false };\nfs.writeFileSync(path.join(evidenceDir, \"published-updater-evidence.json\"), JSON.stringify(evidence, null, 2));\nmain().catch((error) => { console.error(error); process.exitCode = 1; });"
+    },
+    {
+      "case_id": "MV-7-SUPPORTING-CONTRACT-NEGATIVE",
+      "source_kind": "POST_WAVE1_REAL_NEGATIVE_SAME_PR",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 7,
+      "head_sha": "1651af7ffda64dcbe595a7c8f793f7e5c03e9b05",
+      "path": "scripts/desktop-rel-1c-contract.mjs",
+      "human_band": "R2",
+      "acceptable_bands": ["R2", "R3"],
+      "current_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_triggered": false,
+      "excerpt": "function assert(condition, message) { if (!condition) throw new Error(message); }\nassert(verifier.includes('MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS'), 'verifier contract marker missing');\nconsole.log(JSON.stringify({ status: \"MASTERV_REL_1C_VERIFICATION_HARNESS_CONTRACT_PASS\" }));"
+    },
+    {
+      "case_id": "NEG-LIVE-REGRESSION-WITH-DURABLE-LOG",
+      "source_kind": "SYNTHETIC_NEGATIVE_CONTROL",
+      "repository": "neutral/example",
+      "path": "scripts/check-public-endpoint.mjs",
+      "human_band": "R2",
+      "current_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_triggered": false,
+      "excerpt": "const response = await fetch('https://example.invalid/health');\nassert(response.ok, 'public endpoint regression');\nfs.writeFileSync('artifacts/health-smoke.json', JSON.stringify({ status: 'PUBLIC_ENDPOINT_SMOKE_PASS' }));\nmain().catch((error) => { console.error(error); process.exitCode = 1; });"
+    },
+    {
+      "case_id": "NEG-ACCEPTANCE-MARKER-CONTRACT-ONLY",
+      "source_kind": "SYNTHETIC_NEGATIVE_CONTROL",
+      "repository": "neutral/example",
+      "path": "scripts/verify-release-contract.mjs",
+      "human_band": "R2",
+      "current_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_triggered": false,
+      "excerpt": "function assert(condition, message) { if (!condition) throw new Error(message); }\nassert(source.includes('PRODUCTION_RELEASE_ACCEPTANCE_PASS'), 'acceptance marker missing');\nconsole.log('release contract: PASS');"
+    },
+    {
+      "case_id": "NEG-EVALUATION-ONLY-LIVE-ACCEPTANCE",
+      "source_kind": "SYNTHETIC_NEGATIVE_CONTROL",
+      "repository": "neutral/example",
+      "path": "scripts/verify-synthetic-live-evaluation.mjs",
+      "human_band": "R2",
+      "current_classification": "SUPPORTING_EVALUATION_ONLY",
+      "candidate_classification": "SUPPORTING_EVALUATION_ONLY",
+      "candidate_triggered": false,
+      "excerpt": "const evidenceClass = 'SYNTHETIC_SIMULATION_EVIDENCE';\nconst synthetic_evidence_evaluation_only = true;\nconst response = await fetch('https://example.invalid/production-probe');\nassert(response.ok, 'synthetic probe');\nfs.writeFileSync('artifacts/synthetic.json', JSON.stringify({ status: 'PRODUCTION_MODEL_ACCEPTANCE_PASS', synthetic_evidence_evaluation_only }));\nmain().catch((error) => { console.error(error); process.exitCode = 1; });"
+    },
+    {
+      "case_id": "NEG-LIVE-ACCEPTANCE-NO-DURABLE-EVIDENCE",
+      "source_kind": "SYNTHETIC_NEGATIVE_CONTROL",
+      "repository": "neutral/example",
+      "path": "scripts/check-production-release.mjs",
+      "human_band": "R2",
+      "current_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_classification": "SUPPORTING_REGRESSION_ONLY",
+      "candidate_triggered": false,
+      "excerpt": "const response = await fetch('https://example.invalid/production-release');\nassert(response.ok, 'production release unavailable');\nconsole.log(JSON.stringify({ status: 'PRODUCTION_RELEASE_ACCEPTANCE_PASS' }));\nmain().catch((error) => { console.error(error); process.exitCode = 1; });"
+    }
+  ]
+}
