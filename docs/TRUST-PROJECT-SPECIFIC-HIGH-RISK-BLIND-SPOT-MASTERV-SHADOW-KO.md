@@ -11,7 +11,8 @@
 - `pilot_authorized = false`
 - authoritative remediation: **not authorized**
 - blind holdout claim: **not made**
-- verification: **PENDING EXACT-HEAD CI**
+- initial exact-head CI: **PASS — CI #1235 / run 32542757958**
+- audit result: **HIGH_RISK_SEMANTIC_BLIND_SPOT_REPRODUCED**
 
 이 audit의 목적은 MasterV라는 프로젝트 이름을 특별취급하는 규칙을 만드는 것이 아닙니다. 특정 프로젝트의 실제 고위험 의미가 generic Trust vocabulary에서 누락되는지 확인하고, 누락된다면 그 원인이 다른 프로젝트에도 적용 가능한 일반 semantic gap인지 분리하는 것입니다.
 
@@ -42,9 +43,28 @@ full original PR diff replay claim = NO
 
 따라서 이 stage가 증명하는 것은 현재 classifier의 semantic discrimination behavior이며, 원본 PR 전체의 완전한 historical replay를 주장하지 않습니다.
 
-## 3. Audit cases
+## 3. Audit result
 
-### MV-3 — known seen signing trust-root anchor
+Initial exact-head CI #1235에서 source-inspection hypothesis가 그대로 재현되었습니다.
+
+| Case | Evidence status | Policy expected | Trust v1.3 | Result |
+|---|---|---:|---:|---|
+| MV-3 signing trust-root anchor | Wave1 seen anchor | R3 | R2 | UNDERCLASSIFIED |
+| MV-5 CRLF compatibility fix | post-Wave1 negative control | R2 | R2 | MATCH |
+| MV-7 published updater acceptance verifier | post-Wave1 audit evidence | R4 | R3 | UNDERCLASSIFIED |
+| MV-12 `deployment-surface.ts` | post-Wave1 path probe | R3 | R2 | UNDERCLASSIFIED |
+| MV-12 legacy provider route guard | post-Wave1 path probe | R3 | R2 | UNDERCLASSIFIED |
+
+```text
+TOTAL_CASES = 5
+UNDERCLASSIFIED = 4
+MATCH = 1
+OVERCLASSIFIED = 0
+```
+
+이 숫자는 MasterV 프로젝트 전체의 오류율을 의미하지 않습니다. 고위험 semantic boundary를 확인하기 위해 의도적으로 선택한 bounded audit corpus의 결과입니다.
+
+## 4. MV-3 — known seen signing trust-root anchor
 
 Production updater public signing authority를 새로운 key ID로 회전하고 native updater 및 Tauri release/bootstrap/RC config의 public trust root를 함께 변경합니다.
 
@@ -54,20 +74,31 @@ Frozen policy expectation:
 R3 — release security / signing authority
 ```
 
-현재 path vocabulary에는 `signing`, `updater`, `public key`, `trust root` 자체를 high-risk R3로 올리는 일반 규칙이 없습니다.
+Observed v1.3:
 
-### MV-5 — post-Wave1 negative control
+```text
+current = R2
+result = UNDERCLASSIFIED
+```
+
+현재 path vocabulary에는 `signing`, `updater`, `public key`, `trust root` 자체를 high-risk R3로 올리는 일반 규칙이 없습니다. 이 miss는 새 evidence가 아니라 기존 Wave1 human-frozen R3 anchor의 재현입니다.
+
+## 5. MV-5 — negative control
 
 `desktop-rel-1-contract.mjs`가 Windows CRLF를 LF로 정규화하도록 한 줄 변경합니다.
+
+Observed:
 
 ```text
 release context != release authority mutation
 expected = R2
+current = R2
+result = MATCH
 ```
 
-이 사례는 surrounding release vocabulary 때문에 일반 compatibility fix가 과승격되는 것을 방지하는 control입니다.
+따라서 단순히 release/updater 문맥이 존재한다는 이유로 모든 인접 변경을 R3로 올리는 방식은 부적절합니다.
 
-### MV-7 — post-Wave1 published updater acceptance verifier
+## 6. MV-7 — post-Wave1 verifier-authority reproduction
 
 PR의 핵심 제품은 이미 공개된 `v0.1.3 -> signed v0.1.4` updater path를 실제 설치로 검증하고, 성공 시 다음 acceptance evidence를 산출하는 verifier입니다.
 
@@ -77,77 +108,160 @@ MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS
 
 이 verifier의 성공만이 남은 updater acceptance gate를 닫을 수 있으므로 Wave 1 band intent상 **R4 verifier authority**입니다.
 
-그러나 현재 v1.3 R4 semantic contract는 일반 supporting script의 `assert`/`throw`만으로 R4를 주지 않고, explicit gate outcome 또는 `live-verification` role 같은 추가 증명을 요구합니다. MV-7의 verifier filename은 그 기존 seen vocabulary와 다릅니다.
+Observed v1.3:
 
-### MV-12 path probes — production boundary semantics
+```text
+policy expected = R4
+current = R3
+result = UNDERCLASSIFIED
+```
 
-PR #12 전체는 여러 contract/workflow와 함께 움직이므로 aggregate PR band와 핵심 production boundary file의 discrimination을 분리해야 합니다.
+R4 semantic evidence에서 핵심 verifier:
 
-Audit은 두 direct path를 별도 probe합니다.
+```text
+scripts/desktop-rel-1c-published-updater-windows.mjs
+classification = SUPPORTING_REGRESSION_ONLY
+is_r4_authority = false
+```
 
-1. `lib/deployment-surface.ts`
-   - production에서 `gateway` 이외 surface를 fail closed
-   - production execution surface authority 자체를 변경
-   - expected R3
+동시에 bounded workflow evidence에는 `UNKNOWN` workflow semantics가 존재하여 PR-level floor를 R3까지 올리지만 R4 verifier authority까지는 도달하지 못합니다.
 
-2. `app/api/analyze/route.ts`
-   - production legacy provider route를 request parsing/provider execution 전에 404 차단
-   - authorization-like provider execution boundary 변경
-   - expected R3
+따라서 다음이 재현되었습니다.
 
-이 path-level probe는 PR #12 전체 band가 안전하더라도 companion workflow/verifier에 의해 핵심 authority file의 blind spot이 가려지는지 확인하기 위한 것입니다.
+```text
+R4_SEMANTIC_UNDERDETECTION
+= REPRODUCED_ON_POST_WAVE1_INDEPENDENT_AUDIT_EVIDENCE
+```
 
-## 4. Genericity requirement
+단, source를 본 뒤 사례를 선택했으므로 **blind holdout/generalization claim은 하지 않습니다.**
 
-이번 audit helper는 repository 이름을 risk signal로 받지 않습니다. 동일 source evidence에서 repository metadata만 `neutral/example`로 바꿔도 risk projection과 audit outcome이 같아야 합니다.
+## 7. MV-12 — latent R3 production-boundary gaps
+
+PR #12 전체는 여러 contract/workflow와 함께 움직이므로 aggregate PR band와 핵심 production boundary file의 discrimination을 분리했습니다.
+
+### `lib/deployment-surface.ts`
+
+production에서 `gateway` 이외 surface를 fail closed하고 production execution surface authority 자체를 변경합니다.
+
+```text
+expected = R3
+current = R2
+result = UNDERCLASSIFIED
+```
+
+### `app/api/analyze/route.ts`
+
+production legacy provider route를 request parsing/provider execution 전에 404로 차단하여 provider execution boundary를 변경합니다.
+
+```text
+expected = R3
+current = R2
+result = UNDERCLASSIFIED
+```
+
+이는 PR 전체가 companion workflow/verifier 때문에 높은 band를 받을 수 있더라도 direct authority file 자체의 semantic visibility가 부족할 수 있음을 보여줍니다.
+
+## 8. Genericity check
+
+Audit helper는 repository 이름을 risk signal로 받지 않습니다. Tests는 대표 case에 대해 repository metadata만 다음처럼 교체해 재생했습니다.
+
+```text
+gycha0109-beep/MasterV
+-> neutral/example
+```
+
+결과:
+
+```text
+risk projection = IDENTICAL
+audit outcome = IDENTICAL
+```
+
+따라서 이번 reproduction은 `MasterV` 문자열에 의존하지 않습니다.
 
 금지되는 remediation 예:
 
 ```text
-MasterV path -> R3
+MasterV path -> R3/R4
 masterv token -> high risk
 특정 repo whitelist/blacklist
 ```
 
-허용 가능한 후속 연구 방향은 source semantics가 일반화되는 경우뿐입니다.
+## 9. Defect decomposition
+
+현재 evidence는 하나의 거대한 project-specific heuristic보다 최소 세 종류의 generic semantic gap을 가리킵니다.
+
+### A. SIGNING_TRUST_ROOT_AUTHORITY_GAP
 
 예:
 
-- signing trust-root mutation
-- executable release/update acceptance authority
-- production deployment-surface authority
-- fail-closed provider execution boundary
+- updater public signing key rotation
+- signature verification trust-root mutation
 
-## 5. Expected diagnostic outcomes — pending CI confirmation
+목표 band: R3 계열.
 
-현재 source inspection에 기반한 test hypothesis는 다음입니다.
+### B. EXECUTABLE_ACCEPTANCE_VERIFIER_ROLE_GAP
 
-| Case | Policy expected | v1.3 hypothesis | Audit hypothesis |
-|---|---:|---:|---|
-| MV-3 seen signing anchor | R3 | R2 | UNDERCLASSIFIED |
-| MV-5 negative control | R2 | R2 | MATCH |
-| MV-7 updater acceptance verifier | R4 | R3 | UNDERCLASSIFIED |
-| MV-12 deployment-surface path | R3 | R2 | UNDERCLASSIFIED |
-| MV-12 legacy provider route guard | R3 | R2 | UNDERCLASSIFIED |
+예:
 
-이 표는 exact-head CI가 통과하기 전까지 final result가 아닙니다. 실제 classifier output이 다르면 expectation을 약화시키지 않고 원인을 재분석합니다.
+- real published artifact를 실행/검증하고 acceptance closure 결과를 직접 산출하는 verifier
+- filename에 `live-verification` 또는 explicit `*_GATE`가 없어도 authority role이 실질적으로 동일한 경우
 
-## 6. Governance consequence if reproduced
+목표 band: R4 계열.
 
-MV-3의 miss는 이미 알려진 external-seen evidence의 재현이므로 새 blind claim이 아닙니다.
+### C. PRODUCTION_EXECUTION_BOUNDARY_GAP
 
-MV-7이 실제로 R3 이하이면:
+예:
+
+- production deployment surface fail-closed selection
+- provider execution route isolation
+
+목표 band: R3 계열.
+
+이 세 class는 동일 remediation으로 묶어서는 안 됩니다. R3 operational authority와 R4 verifier authority의 acceptance 조건이 다르기 때문입니다.
+
+## 10. Regression / CI
+
+Initial audit head:
 
 ```text
-R4_SEMANTIC_UNDERDETECTION
-= post-Wave1 independent evidence에서 재현
+9e9479c89e68e139ce5d6fca3f712a24d97e5a19
 ```
 
-이 경우 PR #52의 bounded v1.3 promotion 자체가 잘못되었다는 뜻은 아닙니다. 당시 명시한 대로 independent R4 holdout이 없었기 때문에, 새로운 vocabulary에서 추가 miss가 발견된 것입니다. 후속 authoritative remediation은 별도 승인 대상입니다.
+CI:
 
-MV-12 path probes가 R2이면 별도의 R3 semantic gap도 존재합니다. 이 경우 signing/release/security/deployment/access boundary를 하나의 거대한 heuristic으로 합치지 않고 각각 genericizable evidence class인지 검토해야 합니다.
+```text
+CI #1235
+run 32542757958
+Python 3.11 = SUCCESS
+Python 3.13 = SUCCESS
+Python 3.14 = SUCCESS
+full unittest = SUCCESS
+asset sync = SUCCESS
+profile validation = SUCCESS
+findings validation = SUCCESS
+wheel build = SUCCESS
+```
 
-## 7. Explicit non-actions
+기존 authoritative code를 수정하지 않았기 때문에 기존 D1/D2/R4/Wave1 regression suite도 같은 full unittest 안에서 그대로 통과했습니다.
+
+## 11. Governance conclusion
+
+```text
+PROJECT_SPECIFIC_HIGH_RISK_SEMANTIC_BLIND_SPOT = REPRODUCED
+MASTERV_NAME_HEURISTIC_REQUIRED = NO
+R4_SEMANTIC_UNDERDETECTION_POST_WAVE1 = REPRODUCED
+R3_SIGNING_TRUST_ROOT_GAP = REPRODUCED
+R3_PRODUCTION_EXECUTION_BOUNDARY_GAP = REPRODUCED
+BLIND_HOLDOUT_CLAIM = NO
+AUTHORITATIVE_REMEDIATION = NOT_AUTHORIZED
+```
+
+PR #52의 v1.3 bounded promotion을 소급하여 무효화하지 않습니다. 당시 명시된 limitation은 independent R4 holdout 부재였고, 이번 post-Wave1 evidence가 그 미검증 vocabulary에서 추가 miss를 드러낸 것입니다.
+
+후속 단계는 세 gap을 generic evidence contract로 각각 calibration하는 작업이어야 하며, project-name/path-name blanket escalation을 사용해서는 안 됩니다.
+
+## 12. Explicit non-actions
 
 이 shadow audit은 다음을 하지 않습니다.
 
