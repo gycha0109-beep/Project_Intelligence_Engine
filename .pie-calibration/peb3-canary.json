@@ -1,0 +1,14 @@
+{
+  "calibration_id": "PEB3-CONTROLLED-NONPROD-20260822",
+  "capability": "GITHUB_BRANCH_FILE_CANARY_WRITE",
+  "environment": "NON_PRODUCTION_CALIBRATION",
+  "production_effect": false,
+  "project_id": "PIE",
+  "purpose": "Controlled non-production execution calibration for PEB-3",
+  "repository": "gycha0109-beep/Project_Intelligence_Engine",
+  "rollback_required": true,
+  "schema_version": "1.0",
+  "source_main_sha": "5b5af6fd7f54365dadf5cf233c044507bf349fdf",
+  "target_branch": "calibration/peb3-controlled-nonprod-20260822",
+  "target_path": ".pie-calibration/peb3-canary.json"
+}
