@@ -90,7 +90,7 @@ def _snapshot(value: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def _expected_blockers(value: dict[str, Any]) -> list[str]:
+def _pre_dispatch_blockers(value: dict[str, Any]) -> list[str]:
     blockers: list[str] = []
     pre_dispatch = value.get("pre_dispatch") if isinstance(value.get("pre_dispatch"), dict) else {}
     for key, blocker in (
@@ -101,25 +101,40 @@ def _expected_blockers(value: dict[str, Any]) -> list[str]:
     ):
         if pre_dispatch.get(key) is not True:
             blockers.append(blocker)
+    credential_scope = value.get("credential_scope") if isinstance(value.get("credential_scope"), dict) else {}
+    if credential_scope.get("target_scoped") is not True or credential_scope.get("proven") is not True:
+        blockers.append("TARGET_SCOPED_CREDENTIAL_NOT_PROVEN")
+    return sorted(set(blockers))
 
+
+def _expected_blockers(value: dict[str, Any]) -> list[str]:
+    blockers = _pre_dispatch_blockers(value)
     dispatch = value.get("dispatch") if isinstance(value.get("dispatch"), dict) else {}
+    rollback = value.get("rollback") if isinstance(value.get("rollback"), dict) else {}
+
+    if blockers:
+        if dispatch.get("attempted") is True:
+            blockers.append("DISPATCH_ATTEMPTED_WITH_PRE_DISPATCH_BLOCKER")
+        if dispatch.get("suppressed") is not True:
+            blockers.append("DISPATCH_NOT_SUPPRESSED_WITH_PRE_DISPATCH_BLOCKER")
+        if rollback.get("attempted") is True:
+            blockers.append("ROLLBACK_ATTEMPTED_WITHOUT_CONTROLLED_DISPATCH")
+        if rollback.get("final_target_state_restored") is not True:
+            blockers.append("FINAL_TARGET_STATE_NOT_PRESERVED")
+        return sorted(set(blockers))
+
     if dispatch.get("attempted") is not True:
         blockers.append("CONTROLLED_DISPATCH_NOT_ATTEMPTED")
+    if dispatch.get("suppressed") is not False:
+        blockers.append("CONTROLLED_DISPATCH_UNEXPECTEDLY_SUPPRESSED")
     if dispatch.get("postcondition_verified") is not True:
         blockers.append("CONTROLLED_DISPATCH_POSTCONDITION_NOT_VERIFIED")
-
-    rollback = value.get("rollback") if isinstance(value.get("rollback"), dict) else {}
     if rollback.get("attempted") is not True:
         blockers.append("ROLLBACK_NOT_ATTEMPTED")
     if rollback.get("postcondition_verified") is not True:
         blockers.append("ROLLBACK_POSTCONDITION_NOT_VERIFIED")
     if rollback.get("final_target_state_restored") is not True:
         blockers.append("FINAL_TARGET_STATE_NOT_RESTORED")
-
-    credential_scope = value.get("credential_scope") if isinstance(value.get("credential_scope"), dict) else {}
-    if credential_scope.get("target_scoped") is not True or credential_scope.get("proven") is not True:
-        blockers.append("TARGET_SCOPED_CREDENTIAL_NOT_PROVEN")
-
     return sorted(set(blockers))
 
 
@@ -133,22 +148,77 @@ def build_controlled_nonprod_report(
     target_head_sha: str,
     authorization_id: str,
     authorization_ref: str,
-    dispatch_updated_at: str,
-    rollback_updated_at: str,
     credential_scope_proven: bool,
     credential_scope_evidence_ref: str | None = None,
+    dispatch_updated_at: str | None = None,
+    rollback_updated_at: str | None = None,
     generated_at: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(target_pr_number, int) or target_pr_number <= 0:
         raise ControlledNonProductionExecutionError("target_pr_number must be a positive integer")
     source_sha = _sha40(source_main_sha, "source_main_sha")
     target_sha = _sha40(target_head_sha, "target_head_sha")
-    dispatch_time = _timestamp(dispatch_updated_at, "dispatch_updated_at")
-    rollback_time = _timestamp(rollback_updated_at, "rollback_updated_at")
     target_scoped = bool(credential_scope_proven)
     evidence_ref = None
     if credential_scope_evidence_ref is not None:
         evidence_ref = _non_empty(credential_scope_evidence_ref, "credential_scope_evidence_ref")
+
+    if target_scoped:
+        dispatch_time = _timestamp(dispatch_updated_at, "dispatch_updated_at")
+        rollback_time = _timestamp(rollback_updated_at, "rollback_updated_at")
+        dispatch = {
+            "attempted": True,
+            "suppressed": False,
+            "provider_response": {
+                "state": "open",
+                "draft": False,
+                "head_sha": target_sha,
+                "updated_at": dispatch_time,
+            },
+            "postcondition_readback": {
+                "state": "open",
+                "draft": False,
+                "head_sha": target_sha,
+            },
+            "postcondition_verified": True,
+        }
+        rollback = {
+            "attempted": True,
+            "provider_response": {
+                "state": "open",
+                "draft": True,
+                "head_sha": target_sha,
+                "updated_at": rollback_time,
+            },
+            "postcondition_readback": {
+                "state": "open",
+                "draft": True,
+                "head_sha": target_sha,
+            },
+            "postcondition_verified": True,
+            "final_target_state_restored": True,
+            "restoration_mode": "ROLLBACK_VERIFIED",
+        }
+    else:
+        dispatch = {
+            "attempted": False,
+            "suppressed": True,
+            "provider_response": None,
+            "postcondition_readback": None,
+            "postcondition_verified": False,
+        }
+        rollback = {
+            "attempted": False,
+            "provider_response": None,
+            "postcondition_readback": {
+                "state": "open",
+                "draft": True,
+                "head_sha": target_sha,
+            },
+            "postcondition_verified": False,
+            "final_target_state_restored": True,
+            "restoration_mode": "NO_DISPATCH_STATE_PRESERVED",
+        }
 
     report: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -188,37 +258,8 @@ def build_controlled_nonprod_report(
             "kill_switch_clear": True,
             "rollback_ready": True,
         },
-        "dispatch": {
-            "attempted": True,
-            "provider_response": {
-                "state": "open",
-                "draft": False,
-                "head_sha": target_sha,
-                "updated_at": dispatch_time,
-            },
-            "postcondition_readback": {
-                "state": "open",
-                "draft": False,
-                "head_sha": target_sha,
-            },
-            "postcondition_verified": True,
-        },
-        "rollback": {
-            "attempted": True,
-            "provider_response": {
-                "state": "open",
-                "draft": True,
-                "head_sha": target_sha,
-                "updated_at": rollback_time,
-            },
-            "postcondition_readback": {
-                "state": "open",
-                "draft": True,
-                "head_sha": target_sha,
-            },
-            "postcondition_verified": True,
-            "final_target_state_restored": True,
-        },
+        "dispatch": dispatch,
+        "rollback": rollback,
         "credential_scope": {
             "transport": "CONNECTED_GITHUB_ACCOUNT",
             "target_scoped": target_scoped,
@@ -293,24 +334,48 @@ def verify_controlled_nonprod_report_data(value: Any) -> list[str]:
             errors.append("authorization.authorization_ref is required")
 
         dispatch = value.get("dispatch") if isinstance(value.get("dispatch"), dict) else {}
-        dispatch_response = dispatch.get("provider_response") if isinstance(dispatch.get("provider_response"), dict) else {}
-        dispatch_readback = dispatch.get("postcondition_readback") if isinstance(dispatch.get("postcondition_readback"), dict) else {}
-        if dispatch_response.get("state") != "open" or dispatch_response.get("draft") is not False:
-            errors.append("dispatch provider response must show ready/open state")
-        if dispatch_readback.get("state") != "open" or dispatch_readback.get("draft") is not False:
-            errors.append("dispatch postcondition readback must independently show ready/open state")
-        if target_head and (dispatch_response.get("head_sha") != target_head or dispatch_readback.get("head_sha") != target_head):
-            errors.append("dispatch head_sha must remain target-bound")
-
         rollback = value.get("rollback") if isinstance(value.get("rollback"), dict) else {}
-        rollback_response = rollback.get("provider_response") if isinstance(rollback.get("provider_response"), dict) else {}
-        rollback_readback = rollback.get("postcondition_readback") if isinstance(rollback.get("postcondition_readback"), dict) else {}
-        if rollback_response.get("state") != "open" or rollback_response.get("draft") is not True:
-            errors.append("rollback provider response must show restored draft/open state")
-        if rollback_readback.get("state") != "open" or rollback_readback.get("draft") is not True:
-            errors.append("rollback postcondition readback must independently show restored draft/open state")
-        if target_head and (rollback_response.get("head_sha") != target_head or rollback_readback.get("head_sha") != target_head):
-            errors.append("rollback head_sha must remain target-bound")
+        pre_blockers = _pre_dispatch_blockers(value)
+        if pre_blockers:
+            if dispatch.get("attempted") is not False or dispatch.get("suppressed") is not True:
+                errors.append("pre-dispatch blocker must suppress controlled dispatch")
+            if dispatch.get("provider_response") is not None or dispatch.get("postcondition_readback") is not None:
+                errors.append("suppressed dispatch cannot claim provider effect evidence")
+            if dispatch.get("postcondition_verified") is not False:
+                errors.append("suppressed dispatch cannot claim postcondition verification")
+            if rollback.get("attempted") is not False or rollback.get("provider_response") is not None:
+                errors.append("rollback cannot be dispatched when controlled dispatch was suppressed")
+            preserved = rollback.get("postcondition_readback") if isinstance(rollback.get("postcondition_readback"), dict) else {}
+            if preserved.get("state") != "open" or preserved.get("draft") is not True:
+                errors.append("suppressed dispatch must preserve the initial draft/open target state")
+            if target_head and preserved.get("head_sha") != target_head:
+                errors.append("preserved target state head_sha must remain target-bound")
+            if rollback.get("final_target_state_restored") is not True or rollback.get("restoration_mode") != "NO_DISPATCH_STATE_PRESERVED":
+                errors.append("suppressed dispatch must preserve final target state without rollback execution")
+        else:
+            dispatch_response = dispatch.get("provider_response") if isinstance(dispatch.get("provider_response"), dict) else {}
+            dispatch_readback = dispatch.get("postcondition_readback") if isinstance(dispatch.get("postcondition_readback"), dict) else {}
+            if dispatch.get("attempted") is not True or dispatch.get("suppressed") is not False:
+                errors.append("controlled dispatch must be attempted when pre-dispatch checks pass")
+            if dispatch_response.get("state") != "open" or dispatch_response.get("draft") is not False:
+                errors.append("dispatch provider response must show ready/open state")
+            if dispatch_readback.get("state") != "open" or dispatch_readback.get("draft") is not False:
+                errors.append("dispatch postcondition readback must independently show ready/open state")
+            if target_head and (dispatch_response.get("head_sha") != target_head or dispatch_readback.get("head_sha") != target_head):
+                errors.append("dispatch head_sha must remain target-bound")
+
+            rollback_response = rollback.get("provider_response") if isinstance(rollback.get("provider_response"), dict) else {}
+            rollback_readback = rollback.get("postcondition_readback") if isinstance(rollback.get("postcondition_readback"), dict) else {}
+            if rollback.get("attempted") is not True:
+                errors.append("rollback must be attempted after controlled dispatch")
+            if rollback_response.get("state") != "open" or rollback_response.get("draft") is not True:
+                errors.append("rollback provider response must show restored draft/open state")
+            if rollback_readback.get("state") != "open" or rollback_readback.get("draft") is not True:
+                errors.append("rollback postcondition readback must independently show restored draft/open state")
+            if target_head and (rollback_response.get("head_sha") != target_head or rollback_readback.get("head_sha") != target_head):
+                errors.append("rollback head_sha must remain target-bound")
+            if rollback.get("final_target_state_restored") is not True or rollback.get("restoration_mode") != "ROLLBACK_VERIFIED":
+                errors.append("successful controlled dispatch must end in verified rollback restoration")
 
         expected_blockers = _expected_blockers(value)
         if value.get("blockers") != expected_blockers:
