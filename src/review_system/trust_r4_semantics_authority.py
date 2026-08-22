@@ -8,14 +8,17 @@ from typing import Any, Iterable
 from .github.source import validate_pull_request_source
 from .identity import canonical_json_sha256, normalize_source_revision
 from .intelligence_config import normalize_path
-from .trust_r4_semantics_shadow import (
-    CLASSIFICATIONS,
-    CONTRACT_VERSION,
-    analyze_r4_semantics,
-)
 from .workflow_semantics import split_git_diff_by_path
 
 
+CONTRACT_VERSION = "TRUST_R4_SEMANTIC_UNDERDETECTION_SHADOW_V1"
+CLASSIFICATIONS = (
+    "NORMATIVE_DECISION_AUTHORITY",
+    "EXECUTABLE_VERIFICATION_GATE_AUTHORITY",
+    "SUPPORTING_EVALUATION_ONLY",
+    "SUPPORTING_REGRESSION_ONLY",
+    "UNKNOWN",
+)
 TRUST_R4_SEMANTIC_EVIDENCE_SCHEMA_VERSION = "1.0"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _R4_AUTHORITY_CLASSES = {
@@ -134,6 +137,10 @@ def build_trust_r4_semantic_evidence(
         raise ValueError(
             "R4 semantic diff is missing changed file sections: " + ", ".join(missing)
         )
+
+    # Lazy import avoids trust -> authority -> shadow -> trust import cycles while
+    # preserving the exact shadow-calibrated analyzer as the single implementation.
+    from .trust_r4_semantics_shadow import analyze_r4_semantics
 
     analyses: list[dict[str, Any]] = []
     for path in files:
