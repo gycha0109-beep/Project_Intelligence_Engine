@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from pathlib import Path
 import unittest
 
@@ -13,6 +14,7 @@ from review_system.trust_execution_controlled_nonprod import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ACTUAL_EVIDENCE = ROOT / "evidence" / "trust" / "peb3-controlled-nonprod-20260822.json"
 
 
 def _build(*, credential_scope_proven: bool) -> dict:
@@ -111,6 +113,16 @@ class ControlledNonProductionExecutionTests(unittest.TestCase):
         tampered["report_sha256"] = "0" * 64
         errors = verify_controlled_nonprod_report_data(tampered)
         self.assertTrue(any("report_sha256 mismatch" in error for error in errors))
+
+    def test_actual_peb3_evidence_is_fail_closed_at_credential_scope_blocker(self) -> None:
+        report = json.loads(ACTUAL_EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(verify_controlled_nonprod_report_data(report), [])
+        self.assertEqual(report["status"], STATUS_BLOCKED)
+        self.assertEqual(report["blockers"], ["TARGET_SCOPED_CREDENTIAL_NOT_PROVEN"])
+        self.assertEqual(report["target"]["resource_id"], "60")
+        self.assertFalse(report["dispatch"]["attempted"])
+        self.assertTrue(report["dispatch"]["suppressed"])
+        self.assertTrue(report["rollback"]["final_target_state_restored"])
 
     def test_schema_asset_is_synchronized(self) -> None:
         source = ROOT / "schemas" / "controlled-nonprod-execution-calibration-report.schema.json"
