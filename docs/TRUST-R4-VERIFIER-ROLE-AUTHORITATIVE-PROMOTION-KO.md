@@ -13,7 +13,7 @@
 - `automation_authorized = false`
 - `pilot_authorized = false`
 - Stage10K HUMAN_DECISION: **NO**
-- merge: **not authorized**
+- merge: **not authorized at promotion freeze; later landing authorization recorded in section 13**
 - blind R4 generalization claim: **NO**
 
 ## 1. Promotion purpose
@@ -296,7 +296,32 @@ findings validation = SUCCESS
 wheel build = SUCCESS
 ```
 
-A final exact-head CI is required after this result-freeze document is committed.
+### CI #1263
+
+Run:
+
+```text
+32546496987
+```
+
+Exact promotion-freeze head:
+
+```text
+2e34481dc12b7d5278c0d7029e331282d9a5da44
+```
+
+Result:
+
+```text
+Python 3.11 = SUCCESS
+Python 3.13 = SUCCESS
+Python 3.14 = SUCCESS
+full unittest = SUCCESS
+asset sync = SUCCESS
+all profile validations = SUCCESS
+findings validation = SUCCESS
+wheel build = SUCCESS
+```
 
 ## 11. Explicit non-actions
 
@@ -311,11 +336,10 @@ This promotion does not:
 - authorize pilot operation
 - create a Stage10K HUMAN_DECISION
 - claim blind R4 generalization
-- authorize merge
 
 ## 12. Promotion acceptance condition
 
-The promotion may be marked `PASS` only if the final exact-head CI after this documentation freeze confirms all of:
+The promotion is accepted because the exact promotion-freeze CI confirmed:
 
 ```text
 Trust current candidate = v1.4
@@ -330,9 +354,47 @@ Wave1 underclassification = 0
 all CI matrices = SUCCESS
 ```
 
-Until that final exact-head CI succeeds:
+Result:
 
 ```text
-R4_VERIFIER_ROLE_AUTHORITATIVE_PROMOTION = VALIDATION_PENDING
-PR55_MERGE = NOT_AUTHORIZED
+R4_VERIFIER_ROLE_AUTHORITATIVE_PROMOTION = PASS
+```
+
+## 13. Main-based landing revalidation
+
+Explicit PR #55 landing authorization was received after the promotion freeze.
+
+The frozen shadow dependency PR #54 was first made ready and merged with exact expected head:
+
+```text
+PR #54 head = 7630a68ff2b1f434b1b9266a03f8f3557a8f51bd
+PR #54 merge = SUCCESS
+new main = 3e574e99ae0ec0f459fd023b135f52f15c7afb78
+```
+
+PR #55 was then retargeted from the shadow branch to that exact `main`.
+
+The promotion implementation remained unchanged. This documentation-only commit exists solely to force a fresh pull-request merge-ref CI against the landed shadow dependency and current main.
+
+Landing requires all of the following on this new exact head:
+
+```text
+PR #55 base = main
+main = 3e574e99ae0ec0f459fd023b135f52f15c7afb78
+promotion implementation = unchanged
+Python 3.11 = SUCCESS
+Python 3.13 = SUCCESS
+Python 3.14 = SUCCESS
+full unittest = SUCCESS
+asset sync = SUCCESS
+all profile validations = SUCCESS
+findings validation = SUCCESS
+wheel build = SUCCESS
+```
+
+Until that main-based CI succeeds:
+
+```text
+R4_VERIFIER_ROLE_MAIN_LANDING = VALIDATION_PENDING
+PR55_MERGE = PENDING_CI
 ```
