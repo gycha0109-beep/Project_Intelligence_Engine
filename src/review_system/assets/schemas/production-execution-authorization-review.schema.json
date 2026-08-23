@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/production-execution-authorization-review.schema.json",
+  "title": "Production Execution Authorization Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "stage",
+    "mode",
+    "review_id",
+    "generated_at",
+    "project_id",
+    "source_main_sha",
+    "production_boundary_authorized",
+    "production_execution_authorized",
+    "automation_authorized",
+    "pilot_authorized",
+    "boundary_authorization",
+    "effect_authorization",
+    "request",
+    "preconditions",
+    "blockers",
+    "status",
+    "next_step",
+    "request_sha256",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "contract_version": {
+      "const": "TRUST_PRODUCTION_EXECUTION_AUTHORIZATION_REVIEW_V1"
+    },
+    "stage": {
+      "const": "PEB-4A"
+    },
+    "mode": {
+      "const": "PRODUCTION_EXECUTION_AUTHORIZATION_REVIEW"
+    },
+    "review_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_main_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "production_boundary_authorized": {
+      "type": "boolean"
+    },
+    "production_execution_authorized": {
+      "const": false
+    },
+    "automation_authorized": {
+      "const": false
+    },
+    "pilot_authorized": {
+      "const": false
+    },
+    "boundary_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "basis",
+        "authorization_id",
+        "authorization_ref"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "basis": {
+          "const": "EXPLICIT_HUMAN_PRODUCTION_BOUNDARY_AUTHORIZATION"
+        },
+        "authorization_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "authorization_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "effect_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "authorized",
+        "authorization_id",
+        "authorization_ref",
+        "bound_request_sha256"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "authorized": {
+          "const": false
+        },
+        "authorization_id": {
+          "type": "null"
+        },
+        "authorization_ref": {
+          "type": "null"
+        },
+        "bound_request_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environment",
+        "trust_report_id",
+        "trust_report_sha256",
+        "trust_risk_band",
+        "target_provider",
+        "target_resource",
+        "capability_class",
+        "operation",
+        "rollback_operation",
+        "action_payload_sha256",
+        "target_precondition_fingerprint",
+        "credential_scope_evidence_ref",
+        "rollback_evidence_ref",
+        "postcondition_verifier_ref",
+        "blast_radius_evidence_ref",
+        "kill_switch_evidence_ref",
+        "recovery_window_evidence_ref"
+      ],
+      "properties": {
+        "environment": {
+          "const": "PRODUCTION"
+        },
+        "trust_report_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "trust_report_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "trust_risk_band": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "R0",
+            "R1",
+            "R2",
+            "R3",
+            "R4",
+            null
+          ]
+        },
+        "target_provider": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "target_resource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "capability_class": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "operation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "rollback_operation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "action_payload_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "target_precondition_fingerprint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "credential_scope_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "rollback_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "postcondition_verifier_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "blast_radius_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "kill_switch_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "recovery_window_evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "preconditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_head_exact",
+        "trust_decision_bound",
+        "target_nominated",
+        "operation_nominated",
+        "action_payload_bound",
+        "target_precondition_bound",
+        "credential_scope_proven",
+        "rollback_proven",
+        "postcondition_verifier_proven",
+        "blast_radius_bounded",
+        "kill_switch_proven",
+        "recovery_window_proven"
+      ],
+      "properties": {
+        "source_head_exact": {
+          "type": "boolean"
+        },
+        "trust_decision_bound": {
+          "type": "boolean"
+        },
+        "target_nominated": {
+          "type": "boolean"
+        },
+        "operation_nominated": {
+          "type": "boolean"
+        },
+        "action_payload_bound": {
+          "type": "boolean"
+        },
+        "target_precondition_bound": {
+          "type": "boolean"
+        },
+        "credential_scope_proven": {
+          "type": "boolean"
+        },
+        "rollback_proven": {
+          "type": "boolean"
+        },
+        "postcondition_verifier_proven": {
+          "type": "boolean"
+        },
+        "blast_radius_bounded": {
+          "type": "boolean"
+        },
+        "kill_switch_proven": {
+          "type": "boolean"
+        },
+        "recovery_window_proven": {
+          "type": "boolean"
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "status": {
+      "enum": [
+        "BLOCKED",
+        "PRODUCTION_EFFECT_AUTHORIZATION_REQUEST_READY"
+      ]
+    },
+    "next_step": {
+      "enum": [
+        "NOMINATE_PRODUCTION_TARGET_AND_COMPLETE_SAFETY_EVIDENCE",
+        "PEB4B_EXPLICIT_ONE_SHOT_EFFECT_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    "request_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "report_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
