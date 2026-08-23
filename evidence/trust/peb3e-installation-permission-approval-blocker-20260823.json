@@ -1,0 +1,51 @@
+{
+  "contract_version": "PEB3E_INSTALLATION_PERMISSION_APPROVAL_BLOCKER_V1",
+  "observed_at": "2026-08-23T07:42:00Z",
+  "pie_main_before": "a1fa190456219ce17030d4082bcf8191821c4b34",
+  "target": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "pull_request": 1,
+    "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c",
+    "state": "open",
+    "draft": true,
+    "merged": false
+  },
+  "formal_attempt": {
+    "operation": "MARK_READY_FOR_REVIEW",
+    "result": "REJECTED_BEFORE_EFFECT",
+    "provider_error": "Resource not accessible by integration",
+    "post_effect_observed": false,
+    "rollback_required": false
+  },
+  "credential_state": {
+    "app_slug": "pie-peb3-calibration-executor",
+    "app_id": 4688931,
+    "installation_id": 155856824,
+    "installation_account": "pie-peb3-lab",
+    "repository_selection": "selected",
+    "registered_permissions": {
+      "contents": "write",
+      "metadata": "read",
+      "pull_requests": "write"
+    },
+    "installation_permissions": {
+      "metadata": "read",
+      "pull_requests": "write"
+    },
+    "fresh_token_permissions": {
+      "metadata": "read",
+      "pull_requests": "write"
+    },
+    "contents_write_token_request_result": "HTTP_422"
+  },
+  "blocker": "UPDATED_GITHUB_APP_PERMISSION_NOT_APPROVED_ON_INSTALLATION",
+  "required_next_action": "APPROVE_CONTENTS_WRITE_FOR_PIE_PEB3_LAB_INSTALLATION",
+  "safety": {
+    "production_execution_authorized": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "stage10k_human_decision": "NO_NEW_DECISION",
+    "trust_v1_5_changed": false,
+    "existing_r4_changed": false
+  }
+}
