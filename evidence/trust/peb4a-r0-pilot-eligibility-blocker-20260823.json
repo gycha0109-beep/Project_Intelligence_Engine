@@ -1,0 +1,51 @@
+{
+  "contract_version": "PEB4A_R0_PILOT_ELIGIBILITY_BLOCKER_V1",
+  "source_main_sha": "a27d6458563367984d19fa40050b00fee316deb1",
+  "production_boundary_authorized": true,
+  "production_execution_authorized": false,
+  "effect_authorization_authorized": false,
+  "automation_authorized": false,
+  "pilot_authorized": false,
+  "stage10k_human_decision": "NO_NEW_DECISION",
+  "authority_alignment": {
+    "original_peb4_boundary": "EXPLICIT_HUMAN_PILOT_AUTHORIZATION_BOUNDARY",
+    "peb4a_role": "GENERIC_PRE_EFFECT_AUTHORIZATION_REVIEW_CONSTRAINED_BY_PILOT_AUTHORITY",
+    "required_pilot_eligibility_status": "ELIGIBLE_FOR_HUMAN_PILOT_AUTHORIZATION_REVIEW"
+  },
+  "authoritative_findings": {
+    "stage10g_committed_r0_evidence_package_present": false,
+    "stage10g_committed_repository_eligibility": "NOT_ELIGIBLE",
+    "stage10h_runtime_acquisition_status": "BLOCKED_EXTERNAL_EVIDENCE_REQUIRED",
+    "eligible_runtime_pilot_artifact_found": false,
+    "eligible_runtime_pilot_artifact_ref": null
+  },
+  "observed_real_prospective_case": {
+    "repository": "gycha0109-beep/Saju",
+    "pull_request": 1,
+    "pie_validation_pr": 35,
+    "assessment_id": "assessment-69c9afead15517a2d60b06245f946249",
+    "effective_risk_band": "R4",
+    "readiness": "NOT_READY",
+    "campaign_status": "COLLECTING_EVIDENCE",
+    "human_review_recorded": false,
+    "outcome_recorded": false,
+    "qualifies_as_r0_pilot_eligibility_evidence": false
+  },
+  "approved_v1_gate": {
+    "minimum_r0_assessments": 20,
+    "minimum_r0_reviewed": 20,
+    "minimum_r0_conclusive_outcomes": 12,
+    "minimum_r0_confirmed_safe": 12,
+    "minimum_unsafe_challenge_evidence": 8,
+    "minimum_r0_independent_audits": 5,
+    "minimum_r0_outcome_coverage_percent": 60,
+    "minimum_evidence_span_days": 14,
+    "maximum_r0_false_negatives": 0,
+    "maximum_r0_false_negative_rate": 0.0
+  },
+  "hard_blocker": "REAL_R0_PILOT_ELIGIBILITY_EVIDENCE_NOT_ESTABLISHED",
+  "status": "BLOCKED",
+  "next_step": "COLLECT_REAL_R0_PROSPECTIVE_CAMPAIGN_EVIDENCE",
+  "production_target_nominated": false,
+  "production_effect_dispatch_permitted": false
+}
