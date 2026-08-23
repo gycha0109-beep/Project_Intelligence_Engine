@@ -1,0 +1,90 @@
+{
+  "contract_version": "PEB3E_CONTROLLED_NONPRODUCTION_CALIBRATION_CLOSEOUT_V1",
+  "observed_at": "2026-08-23T07:55:15Z",
+  "pie_starting_main": "d8144ab08fc1b944d3df058c3b8fda69009b7ad9",
+  "isolated_environment": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "production_effect": false,
+    "target_pull_request": 1,
+    "target_head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c"
+  },
+  "credential": {
+    "app_id": 4688931,
+    "app_slug": "pie-peb3-calibration-executor",
+    "installation_id": 155856824,
+    "installation_account": "pie-peb3-lab",
+    "repository_selection": "selected",
+    "installation_permissions": {
+      "contents": "write",
+      "metadata": "read",
+      "pull_requests": "write"
+    },
+    "repository_set": [
+      "pie-peb3-lab/pie-peb3-calibration"
+    ],
+    "token_scope_run_id": 32626770084,
+    "token_scope_artifact_id": 9489895023,
+    "token_scope_artifact_digest": "sha256:a549c5a4049d3e6933d6ca5b2c2a1eea94959ffe21d98cf33b9880b76b5c8479",
+    "token_scope_status": "PASS",
+    "token_value_included": false
+  },
+  "formal_execution": {
+    "workflow_run_id": 32626852473,
+    "trigger_pr": 5,
+    "trigger_head_sha": "5117721f53f43c7abfcad084a4991b80d4c4f394",
+    "artifact_id": 9489917030,
+    "artifact_digest": "sha256:0561d2d5cbc179871d42d0b4553ceceed120aa770d816609e0348033e9c19428",
+    "pre_dispatch_readback": {
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c"
+    },
+    "dispatch": {
+      "operation": "MARK_READY_FOR_REVIEW",
+      "attempted": true,
+      "postcondition_verified": true,
+      "postcondition": {
+        "state": "open",
+        "draft": false,
+        "merged": false,
+        "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c"
+      }
+    },
+    "rollback": {
+      "operation": "CONVERT_TO_DRAFT",
+      "attempted": true,
+      "verified": true,
+      "postcondition": {
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c"
+      }
+    },
+    "independent_final_readback": {
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c"
+    },
+    "status": "CONTROLLED_NON_PRODUCTION_CALIBRATION_PASS"
+  },
+  "resolved_blockers": [
+    "DEDICATED_NONPRODUCTION_REPOSITORY_NOT_ESTABLISHED",
+    "SELECTED_REPOSITORY_GITHUB_APP_SCOPE_NOT_PROVEN",
+    "SHORT_LIVED_TOKEN_SCOPE_NOT_PROVEN",
+    "GOVERNED_ADAPTER_BINDING_NOT_READY",
+    "AUTHORITATIVE_PROVIDER_SCOPE_EVIDENCE_INCOMPLETE",
+    "UPDATED_GITHUB_APP_PERMISSION_NOT_APPROVED_ON_INSTALLATION"
+  ],
+  "safety_ceiling": {
+    "production_execution_authorized": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "stage10k_human_decision": "NO_NEW_DECISION",
+    "trust_v1_5_changed": false,
+    "existing_r4_changed": false
+  },
+  "result": "PEB3E_CONTROLLED_NONPRODUCTION_EXECUTION_AND_ROLLBACK_VERIFIED"
+}
