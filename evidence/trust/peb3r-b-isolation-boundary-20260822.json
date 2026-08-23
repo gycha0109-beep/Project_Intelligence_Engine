@@ -1,56 +1,53 @@
 {
   "contract_version": "TRUST_PEB3R_ISOLATION_BOUNDARY_V1",
   "mode": "REPORT_ONLY",
-  "generated_at": "2026-08-22T09:18:00Z",
-  "source_main_sha": "64b13fcd5c7380b75ab99d736f674ddfaeccd636",
+  "generated_at": "2026-08-23T05:56:00Z",
+  "source_main_sha": "3b741c4f8e766f220caf069aa5129112f02b3807",
   "production_execution_authorized": false,
   "automation_authorized": false,
   "pilot_authorized": false,
   "dedicated_repository": {
-    "exists": false,
-    "full_name": "gycha0109-beep/pie-peb3-calibration",
+    "exists": true,
+    "full_name": "pie-peb3-lab/pie-peb3-calibration",
     "calibration_only": true,
     "production_deployment": false,
     "production_secrets": false,
-    "business_source_authority": false
+    "business_source_authority": false,
+    "visibility": "public",
+    "repository_id": "1343419049"
   },
   "credential": {
-    "mechanism": "CONNECTED_GITHUB_ACCOUNT",
-    "installation_id": 81654749,
+    "mechanism": "GITHUB_APP_INSTALLATION_TOKEN",
+    "installation_id": 155854672,
+    "installation_account": "pie-peb3-lab",
     "installation_identity_proven": true,
-    "selected_repository_scope_proven": false,
+    "selected_repository_scope_proven": true,
     "repository_set": [
-      "gycha0109-beep/K_beauty",
-      "gycha0109-beep/ranking",
-      "gycha0109-beep/thought-drawer",
-      "gycha0109-beep/material-evidence-consistency-guard",
-      "gycha0109-beep/Channel-Sync-Reconciliation-Guard",
-      "gycha0109-beep/smart-purchase-assistant",
-      "gycha0109-beep/BuildMap",
-      "gycha0109-beep/AnnoyingRadar",
-      "gycha0109-beep/journey-connect-backend",
-      "gycha0109-beep/Project_Intelligence_Engine",
-      "gycha0109-beep/Bejewely_business_planning",
-      "gycha0109-beep/MasterV",
-      "gycha0109-beep/Saju"
+      "pie-peb3-lab/pie-peb3-calibration"
     ],
     "token_repository_set_proven": false,
     "token_permission_set_proven": false,
     "bounded_validity_proven": false,
-    "pie_repository_write_authority": true,
-    "production_repository_write_authority": null
+    "pie_repository_write_authority": false,
+    "production_repository_write_authority": false
   },
   "adapter": {
     "provider": "GITHUB",
-    "repository": "gycha0109-beep/pie-peb3-calibration",
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
     "resource_type": "PULL_REQUEST",
     "implementation_ready": true,
     "implementation_ref": "src/review_system/trust_execution_governed_github_pr_adapter.py",
-    "live_target_binding_proven": false,
-    "exact_pr_binding": false,
-    "exact_head_binding": false,
-    "exact_precondition_binding": false,
-    "allowed_operations": [],
+    "live_target_binding_proven": true,
+    "target_pr_number": 1,
+    "target_head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c",
+    "target_initial_state": "DRAFT",
+    "exact_pr_binding": true,
+    "exact_head_binding": true,
+    "exact_precondition_binding": true,
+    "allowed_operations": [
+      "MARK_READY_FOR_REVIEW",
+      "CONVERT_TO_DRAFT"
+    ],
     "arbitrary_command_surface": false,
     "arbitrary_api_surface": false,
     "merge_surface": false,
@@ -62,25 +59,34 @@
     "repository_settings_surface": false
   },
   "provider_evidence": {
-    "repository_metadata_readback": false,
+    "repository_metadata_readback": true,
     "installation_repository_set_readback": true,
     "token_permission_set_readback": false
   },
+  "live_target": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "pr_number": 1,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "base_sha": "7813fd57037419ed9565016c70585d55cbd99438",
+    "head_sha": "295d73c9b263280705fe0ad66cd96d0edc5ee47c",
+    "changed_files": 1,
+    "merge_intent": false
+  },
   "observed_connector_capability": {
-    "dedicated_repository_search_result": "NOT_FOUND",
-    "repository_creation_action_available": false,
-    "installation_scope_update_action_available": false,
-    "installation_token_mint_action_available": false,
-    "authenticated_browser_automation_available": false,
-    "authenticated_gh_cli_available": false
+    "dedicated_repository_search_result": "FOUND",
+    "organization_installation_found": true,
+    "organization_installation_id": 155854672,
+    "organization_installation_repository_count": 1,
+    "organization_installation_repository_set_exact": true,
+    "installation_token_scope_readback_available": false,
+    "formal_dispatch_attempted": false
   },
   "expected_assessment": {
     "status": "BLOCKED",
     "blockers": [
-      "DEDICATED_NONPRODUCTION_REPOSITORY_NOT_ESTABLISHED",
-      "SELECTED_REPOSITORY_GITHUB_APP_SCOPE_NOT_PROVEN",
       "SHORT_LIVED_TOKEN_SCOPE_NOT_PROVEN",
-      "GOVERNED_ADAPTER_BINDING_NOT_READY",
       "AUTHORITATIVE_PROVIDER_SCOPE_EVIDENCE_INCOMPLETE"
     ],
     "next_step": "ESTABLISH_EXTERNAL_ADMIN_RESOURCE_AND_CREDENTIAL_BOUNDARY",
