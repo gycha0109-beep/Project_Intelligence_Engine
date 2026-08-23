@@ -1,0 +1,61 @@
+{
+  "contract_version": "PEB3_TOKEN_SCOPE_PROVIDER_EVIDENCE_V2",
+  "provider": "GITHUB",
+  "captured_from": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "workflow_run_id": 32625196298,
+    "workflow_run_number": 10,
+    "artifact_id": 9489480532,
+    "artifact_name": "peb3-token-scope-evidence",
+    "artifact_digest": "sha256:286296fbb533c7b97124f7c6f860bff5b7bcfbec73e26f7a74c4592454fd0198",
+    "head_sha": "9325814aa4883197e2d641fde368d414e04cefd4"
+  },
+  "app": {
+    "id": 4688931,
+    "slug": "pie-peb3-calibration-executor",
+    "owner": "gycha0109-beep",
+    "registered_permissions": {
+      "metadata": "read",
+      "pull_requests": "write"
+    }
+  },
+  "installation": {
+    "id": 155856824,
+    "account": "pie-peb3-lab",
+    "repository_selection": "selected",
+    "permissions": {
+      "metadata": "read",
+      "pull_requests": "write"
+    }
+  },
+  "token": {
+    "repository_set": [
+      "pie-peb3-lab/pie-peb3-calibration"
+    ],
+    "permissions": {
+      "metadata": "read",
+      "pull_requests": "write"
+    },
+    "expires_at": "2026-08-23T08:18:08Z",
+    "independent_repository_readback": [
+      "pie-peb3-lab/pie-peb3-calibration"
+    ],
+    "independent_repository_readback_verified": true,
+    "token_value_included": false
+  },
+  "assessment": {
+    "short_lived_token_scope_proven": true,
+    "authoritative_provider_scope_evidence_complete": true,
+    "dedicated_nonproduction_repository_proven": true,
+    "selected_repository_installation_proven": true,
+    "formal_peb3e_dispatch_precondition": "SATISFIED_PENDING_FRESH_TOKEN_MINT_AND_EXACT_TARGET_READBACK"
+  },
+  "authority_ceiling": {
+    "production_execution_authorized": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "stage10k_human_decision": "NO_NEW_DECISION",
+    "trust_v1_5_unchanged": true,
+    "existing_r4_authority_unchanged": true
+  }
+}
