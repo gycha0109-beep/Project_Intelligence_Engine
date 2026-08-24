@@ -1,0 +1,118 @@
+{
+  "schema_version": "PIE_AUTO1_REAL_ROLLOUT_CLOSEOUT_V1",
+  "stage": "AUTO-1C_AUTO-1D",
+  "status": "STRICT_SUCCESS_CLOSED",
+  "recorded_at": "2026-08-24T07:36:00Z",
+  "pie_workflow_revision": "bf9582973590bb58cde13a7d1faef6a17e56eef0",
+  "reusable_workflow": ".github/workflows/prospective-pr.yml",
+  "rollout_mode": "REPORT_ONLY_READ_ONLY_SHADOW",
+  "projects": [
+    {
+      "repository": "gycha0109-beep/BuildMap",
+      "stage": "AUTO-1C",
+      "rollout_pull_request": 70,
+      "rollout_head_sha": "136ca73a6a621839b93f71621d3d95231fbef2f0",
+      "rollout_merge_commit_sha": "1847e026f90760a8fa5b3dc5e88bcae5c3927410",
+      "runs": [
+        {
+          "run_id": 32678510001,
+          "artifact_id": 9503425200,
+          "artifact_digest": "sha256:4c8ab2f1162d2e0ee5428b8b2cb2e7b1d843d54db1996d50536c20ff595fdb00",
+          "raw_observation_manifest_sha256": "13702bd681addc43bd6208f5ee95b5f8e66dbaae595a43920d8c51fd427654a1"
+        },
+        {
+          "run_id": 32678579706,
+          "artifact_id": 9503445440,
+          "artifact_digest": "sha256:e7dea9256df8cb0faef751739f11ad4e1b50dc4d322b496e4435e4c0108c2767",
+          "raw_observation_manifest_sha256": "a3da96d872833833b980240ab22d99479acee2ce5f1d06dee3f8ea1ff4034eb5"
+        }
+      ],
+      "execution_id": "pie-pr-auto-240988aaf7179874aa7399cb17de879e",
+      "deterministic_result_sha256": "d3c1ae9b0c48a9086754968bf72103415ab29d7917f667f89b0ef303df3ea514",
+      "terminal_status": "WAITING_FOR_TRUST_INPUT",
+      "same_head_replay": true,
+      "same_execution_id": true,
+      "same_deterministic_result": true,
+      "distinct_raw_observation_manifests": true
+    },
+    {
+      "repository": "gycha0109-beep/K_beauty",
+      "stage": "AUTO-1D",
+      "rollout_pull_request": 301,
+      "rollout_head_sha": "f2a1cc7792919727d227ecf4ae5280fd0d1c8052",
+      "rollout_merge_commit_sha": "0213e7e12836c4aaff2c38d246384e72ef6328e3",
+      "compatibility_pull_request": 302,
+      "compatibility_merge_commit_sha": "9b4b60f164a529311e9f65fc4547cff3229c43ca",
+      "runs": [
+        {
+          "run_id": 32679817047,
+          "artifact_id": 9503787347,
+          "artifact_digest": "sha256:0043497f40944d67873dda4d451b76867ad6cf3ab4a6f8f720a1bb71ac3185d4",
+          "raw_observation_manifest_sha256": "cb7af7141482a1709dff35c77cc029cbe60bb30d46695ae937fa2bdc25cd73b3"
+        },
+        {
+          "run_id": 32679898122,
+          "artifact_id": 9503809073,
+          "artifact_digest": "sha256:13774e145a944fdc4d9692c5b7c5bba4dbaafc0d839a3b9eb4e83caae221a896",
+          "raw_observation_manifest_sha256": "4a51ffc1d5bf583abcbfe1e8629bac87c031bffcbc50998ead949fbdcda97673"
+        }
+      ],
+      "execution_id": "pie-pr-auto-d1b841f800d1e20be8921bb773fca8b5",
+      "deterministic_result_sha256": "3fd2588c42bf20e120dd737b13fcd6431242502e604df60463dce9603b2547c9",
+      "terminal_status": "WAITING_FOR_TRUST_INPUT",
+      "same_head_replay": true,
+      "same_execution_id": true,
+      "same_deterministic_result": true,
+      "distinct_raw_observation_manifests": true
+    },
+    {
+      "repository": "gycha0109-beep/Saju",
+      "stage": "AUTO-1D",
+      "rollout_pull_request": 3,
+      "rollout_head_sha": "29df95f38899815a78032c143beca18ff0f0e1fd",
+      "rollout_merge_commit_sha": "bf50a71f792b693e50629204c3474c458b28a042",
+      "runs": [
+        {
+          "run_id": 32680187180,
+          "artifact_id": 9503895516,
+          "artifact_digest": "sha256:5a0716664ce0daa38b505e838a58b79d33f616fbf269070c3f2c82955502c146",
+          "raw_observation_manifest_sha256": "b352faa7d8cd6a54154add359423fb497110c99833ee82175552e06a863aa4b0"
+        },
+        {
+          "run_id": 32680258090,
+          "artifact_id": 9503917774,
+          "artifact_digest": "sha256:73996ca9e1150ebe876fd83bf1786373d119f0bb67cb631a4fdbecf1d34058fe",
+          "raw_observation_manifest_sha256": "1cbfc72091d0e8f77b12e05a18443bcb50e2711c59441ddc35dcf54400629c05"
+        }
+      ],
+      "execution_id": "pie-pr-auto-a24d55ef29a0c51ff8a878d101f8cded",
+      "deterministic_result_sha256": "3f6baf57ed7ab579fca3bc1b8bc58b2a271a0af9e002af553744d4ab428c7fdd",
+      "terminal_status": "WAITING_FOR_TRUST_INPUT",
+      "same_head_replay": true,
+      "same_execution_id": true,
+      "same_deterministic_result": true,
+      "distinct_raw_observation_manifests": true
+    }
+  ],
+  "authority": {
+    "auto_capture": true,
+    "auto_analysis": true,
+    "auto_trust_assessment": false,
+    "auto_packet_prepare": false,
+    "human_review_recorded": false,
+    "outcome_recorded": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "merge_authorized": false,
+    "deploy_authorized": false,
+    "production_effect_authorized": false
+  },
+  "claims": {
+    "real_project_shadow_observed": true,
+    "multi_project_rollout_observed": true,
+    "semantic_replay_stable": true,
+    "raw_provider_observation_preserved": true,
+    "cross_project_knowledge_promotion_authorized": false,
+    "factory_intelligence_implementation_authorized": false
+  }
+}
