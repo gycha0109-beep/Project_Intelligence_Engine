@@ -173,10 +173,19 @@ def _read_bridge_case(value: str | Path) -> dict[str, Any]:
     target = result.get("target")
     if not isinstance(target, dict):
         raise ProspectiveCampaignProjectionError("SOURCE_ARTIFACT_INVALID", "AUTO-2 target binding is missing")
+    target_head = target.get("head_sha")
+    canonical_source_revision = result_request.get("source_revision")
+    if not isinstance(target_head, str) or len(target_head) != 40:
+        raise ProspectiveCampaignProjectionError("SOURCE_ARTIFACT_INVALID", "AUTO-2 target head_sha must be an exact Git SHA")
+    if canonical_source_revision != "git:" + target_head.lower():
+        raise ProspectiveCampaignProjectionError(
+            "SOURCE_MISMATCH",
+            "AUTO-2 target head_sha does not match canonical Trust request source_revision",
+        )
     bindings = (
         ("repository", target.get("repository"), manifest.get("repository")),
         ("pull_request", target.get("pull_request"), manifest.get("pull_request")),
-        ("source_revision", target.get("head_sha"), manifest.get("source_revision")),
+        ("source_revision", canonical_source_revision, manifest.get("source_revision")),
         ("pie_revision", authority.get("revision"), manifest.get("pie_revision")),
         ("assessment_id", result.get("assessment_id"), manifest.get("assessment_id")),
         ("packet_id", result.get("packet_id"), manifest.get("packet_id")),
