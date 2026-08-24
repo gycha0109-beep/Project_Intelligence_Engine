@@ -14,6 +14,11 @@ from .github_prospective_capture import (
 )
 from .prospective_automation_cli import add_prospective_automation_subparser
 from .trust_comparison import TrustComparisonError
+from .trust_outcome_declaration import (
+    OutcomeDeclarationError,
+    OutcomeDeclarationVerificationError,
+    build_outcome_declaration,
+)
 from .trust_prospective_evidence import (
     ProspectiveEvidenceError,
     ProspectiveEvidenceVerificationError,
@@ -42,6 +47,37 @@ def cmd_intake(args: argparse.Namespace) -> int:
         reground_report=args.reground_report,
         reground_observations=args.reground_observations,
         captured_at=args.captured_at,
+    )
+    _print({"valid": True, **result})
+    return 0
+
+
+def cmd_prepare_outcome_declaration(args: argparse.Namespace) -> int:
+    result = build_outcome_declaration(
+        actor=args.actor,
+        project_id=args.project_id,
+        assessment_id=args.assessment_id,
+        source_revision=args.source_revision,
+        trust_report_id=args.trust_report_id,
+        trust_report_sha256=args.trust_report_sha256,
+        review_event_id=args.review_event_id,
+        review_event_sha256=args.review_event_sha256,
+        review_level=args.review_level,
+        decision=args.decision,
+        review_packet_id=args.review_packet_id,
+        review_packet_sha256=args.review_packet_sha256,
+        authority_type=args.outcome_type,
+        verdict=args.verdict,
+        declared_at=args.declared_at,
+        defect_id=args.defect_id,
+        evidence_refs=args.evidence_ref,
+        defect_registry_sha256=args.defect_registry_sha256,
+        ledger_sha256=args.ledger_sha256,
+        evaluation_id=args.evaluation_id,
+        evaluation_report_sha256=args.evaluation_report_sha256,
+        audit_id=args.audit_id,
+        audit_artifact_sha256=args.audit_artifact_sha256,
+        audit_authority_registry_sha256=args.audit_authority_registry_sha256,
     )
     _print({"valid": True, **result})
     return 0
@@ -126,6 +162,38 @@ def _add_optional_trust_sources(command: argparse.ArgumentParser) -> None:
     command.add_argument("--reground-observations")
 
 
+def _add_outcome_declaration_parser(sub: argparse._SubParsersAction) -> None:
+    command = sub.add_parser(
+        "prepare-outcome-declaration",
+        help="Prepare an explicit human Outcome declaration without recording an Outcome.",
+    )
+    command.add_argument("--actor", required=True)
+    command.add_argument("--project-id", required=True)
+    command.add_argument("--assessment-id", required=True)
+    command.add_argument("--source-revision", required=True)
+    command.add_argument("--trust-report-id", required=True)
+    command.add_argument("--trust-report-sha256", required=True)
+    command.add_argument("--review-event-id", required=True)
+    command.add_argument("--review-event-sha256", required=True)
+    command.add_argument("--review-level", choices=["REVIEWED", "AUDITED"], required=True)
+    command.add_argument("--decision", choices=["APPROVE", "REQUEST_CHANGES", "HOLD", "REJECT", "RECLASSIFY"], required=True)
+    command.add_argument("--review-packet-id", required=True)
+    command.add_argument("--review-packet-sha256", required=True)
+    command.add_argument("--outcome-type", choices=["PRODUCTION_DEFECT", "CONTROLLED_EVALUATION", "INDEPENDENT_AUDIT"], required=True)
+    command.add_argument("--verdict", choices=["SAFE", "UNSAFE", "INCONCLUSIVE"], required=True)
+    command.add_argument("--declared-at")
+    command.add_argument("--defect-id")
+    command.add_argument("--evidence-ref", action="append", default=[])
+    command.add_argument("--defect-registry-sha256")
+    command.add_argument("--ledger-sha256")
+    command.add_argument("--evaluation-id")
+    command.add_argument("--evaluation-report-sha256")
+    command.add_argument("--audit-id")
+    command.add_argument("--audit-artifact-sha256")
+    command.add_argument("--audit-authority-registry-sha256")
+    command.set_defaults(func=cmd_prepare_outcome_declaration)
+
+
 def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command = sub.add_parser("intake-prospective-case")
     command.add_argument("--workspace", required=True)
@@ -138,6 +206,7 @@ def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
 
     add_prospective_review_subparsers(sub, emit=_print)
     add_prospective_automation_subparser(sub)
+    _add_outcome_declaration_parser(sub)
 
     command = sub.add_parser("record-prospective-outcome")
     command.add_argument("--workspace", required=True)
@@ -198,12 +267,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
     try:
         return args.func(args)
-    except (ProspectiveEvidenceVerificationError, GitHubProspectiveCaptureVerificationError) as exc:
+    except (
+        ProspectiveEvidenceVerificationError,
+        GitHubProspectiveCaptureVerificationError,
+        OutcomeDeclarationVerificationError,
+    ) as exc:
         _print({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
     except (
         ProspectiveEvidenceError,
         GitHubProspectiveCaptureError,
+        OutcomeDeclarationError,
         GitHubCLIError,
         TrustComparisonError,
         OSError,
