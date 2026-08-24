@@ -10,9 +10,11 @@ from typing import Any
 
 from .github_connector import GitHubCLI, collect_pull_request
 from .identity import canonical_json_sha256, normalize_source_revision
+from .profile import resolve_profile_file
 from .prospective_automation import RunGitHubPRRequest, run_github_pr
 from .trust import load_trust_request
 from .trust_comparison import new_registry, write_registry
+from .validation import validate_profile_data
 
 
 AUTHORITY_REPOSITORY = "gycha0109-beep/Project_Intelligence_Engine"
@@ -75,6 +77,34 @@ def _safe_source_path(value: str) -> str:
             f"Trust request path must be a JSON file under {TRUST_REQUEST_PREFIX}",
         )
     return path.as_posix()
+
+
+def _project_file(root: Path, value: str | Path, field: str) -> Path:
+    path = Path(value).expanduser()
+    resolved = path.resolve() if path.is_absolute() else (root / path).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise ProspectiveTrustBridgeError("PROFILE_INVALID", f"{field} must remain inside the target repository") from exc
+    if not resolved.is_file() or resolved.is_symlink():
+        raise ProspectiveTrustBridgeError("PROFILE_INVALID", f"{field} does not exist as a regular file: {resolved}")
+    return resolved
+
+
+def _target_project_id(root: Path, profile: str | Path) -> str:
+    source = _project_file(root, profile, "Project Profile")
+    try:
+        resolved = resolve_profile_file(source)
+    except Exception as exc:
+        raise ProspectiveTrustBridgeError("PROFILE_INVALID", f"cannot resolve target Project Profile: {exc}") from exc
+    errors = validate_profile_data(resolved)
+    if errors:
+        raise ProspectiveTrustBridgeError("PROFILE_INVALID", "invalid target Project Profile: " + "; ".join(errors))
+    project = resolved.get("project")
+    project_id = project.get("id") if isinstance(project, dict) else None
+    if not isinstance(project_id, str) or not project_id.strip():
+        raise ProspectiveTrustBridgeError("PROFILE_INVALID", "target Project Profile project.id is required")
+    return project_id.strip()
 
 
 def _json_object(text: str, label: str) -> dict[str, Any]:
@@ -337,6 +367,7 @@ def run_trusted_github_pr(
     request_file.parent.mkdir(parents=True, exist_ok=True)
     request_file.write_bytes(raw_request)
     _, trust_request = load_trust_request(request_file)
+    project_id = _target_project_id(root, request.profile)
 
     normalized_head = normalize_source_revision(head)
     expected_task_id = _expected_task_id(live_repository, request.pull_request, head)
@@ -371,10 +402,9 @@ def run_trusted_github_pr(
             "head_sha": head,
             "base_sha": base,
             "changed_files": changed_files,
+            "project_id": project_id,
         },
         "trust_request": {
-            "request_id": trust_request.get("request_id"),
-            "project_id": trust_request.get("project_id"),
             "task_id": trust_request.get("task_id"),
             "source_revision": trust_request.get("source_revision"),
         },
@@ -391,7 +421,7 @@ def run_trusted_github_pr(
     workspace = bridge_root / "workspace"
     _initialize_workspace(
         workspace,
-        project_id=str(trust_request["project_id"]),
+        project_id=project_id,
         authority_at=authority_at,
     )
     result = run_github_pr(

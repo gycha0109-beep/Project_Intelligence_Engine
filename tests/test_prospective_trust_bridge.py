@@ -14,6 +14,7 @@ from review_system.prospective_trust_bridge import (
     TrustedGitHubPRRequest,
     _provider_file,
     _safe_source_path,
+    _target_project_id,
     build_bridge_result_projection,
     run_trusted_github_pr,
 )
@@ -93,6 +94,20 @@ class TrustedBridgeUnitTests(unittest.TestCase):
         self.assertIn("GET", cli.calls[0])
         self.assertIn(f"ref={AUTHORITY}", cli.calls[0])
 
+    def test_target_project_id_is_loaded_from_validated_project_profile(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            profile = root / ".review" / "project.yml"
+            profile.parent.mkdir(parents=True)
+            profile.write_text(
+                """schema_version: \"1.0\"\nproject:\n  id: pie-auto2-calibration\n  name: PIE AUTO-2 Synthetic Calibration\n  repository_root: \".\"\n  baseline_branch: main\ntechnology:\n  languages: [text]\nscope:\n  include: [\".pie-auto2/**\"]\n  exclude: []\nreview:\n  packs: [universal.architecture]\ngate:\n  block_on: [P0]\n  require:\n    baseline_tests: false\nconstraints: {}\n""",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                "pie-auto2-calibration",
+                _target_project_id(root, ".review/project.yml"),
+            )
+
     def test_pie_target_cannot_use_unrelated_authority_revision(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -133,10 +148,9 @@ class TrustedBridgeUnitTests(unittest.TestCase):
                 "head_sha": HEAD,
                 "base_sha": BASE,
                 "changed_files": ["src/app.py"],
+                "project_id": "demo",
             },
             "trust_request": {
-                "request_id": "request-1",
-                "project_id": "demo",
                 "task_id": "github-pr:example",
                 "source_revision": f"git:{HEAD}",
             },
