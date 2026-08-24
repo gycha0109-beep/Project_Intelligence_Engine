@@ -19,7 +19,9 @@
     "human_review_recorded",
     "outcome_recorded",
     "automation_authorized",
-    "pilot_authorized"
+    "pilot_authorized",
+    "deterministic_replay_bound",
+    "deterministic_result_sha256"
   ],
   "properties": {
     "schema_version": {"const": "PIE_PR_PROSPECTIVE_RUN_V1"},
@@ -41,6 +43,11 @@
     "human_review_recorded": {"const": false},
     "outcome_recorded": {"const": false},
     "automation_authorized": {"const": false},
-    "pilot_authorized": {"const": false}
+    "pilot_authorized": {"const": false},
+    "deterministic_replay_bound": {"type": "boolean"},
+    "deterministic_result_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    }
   }
 }

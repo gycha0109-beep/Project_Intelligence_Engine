@@ -1,0 +1,301 @@
+name: PIE Prospective PR
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: Caller repository in owner/name form.
+        required: true
+        type: string
+      pull_request_number:
+        description: Pull request number from the caller pull_request event.
+        required: true
+        type: number
+      event_head_sha:
+        description: Exact pull_request event head SHA.
+        required: true
+        type: string
+      pie_revision:
+        description: Exact PIE commit SHA; must equal the called reusable workflow SHA.
+        required: true
+        type: string
+      profile:
+        description: Project-local PIE profile path.
+        required: false
+        default: .review/project.yml
+        type: string
+      config:
+        description: Project-local PIE intelligence config path.
+        required: false
+        default: .review/intelligence/config.yml
+        type: string
+    outputs:
+      execution_id:
+        description: Deterministic PIE prospective execution identity.
+        value: ${{ jobs.prospective.outputs.execution_id }}
+      status:
+        description: PIE prospective terminal status.
+        value: ${{ jobs.prospective.outputs.status }}
+      deterministic_result_sha256:
+        description: Stable semantic result hash for same-input replay comparison.
+        value: ${{ jobs.prospective.outputs.deterministic_result_sha256 }}
+      manifest_sha256:
+        description: Raw observation evidence-bundle manifest hash; may vary as provider observation metadata changes.
+        value: ${{ jobs.prospective.outputs.manifest_sha256 }}
+      artifact_name:
+        description: Uploaded evidence artifact name.
+        value: ${{ jobs.prospective.outputs.artifact_name }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pie-prospective-${{ inputs.repository }}-${{ inputs.pull_request_number }}
+  cancel-in-progress: true
+
+jobs:
+  prospective:
+    name: PIE prospective evidence
+    runs-on: ubuntu-latest
+    outputs:
+      execution_id: ${{ steps.result.outputs.execution_id }}
+      status: ${{ steps.result.outputs.status }}
+      deterministic_result_sha256: ${{ steps.result.outputs.deterministic_result_sha256 }}
+      manifest_sha256: ${{ steps.result.outputs.manifest_sha256 }}
+      artifact_name: ${{ steps.result.outputs.artifact_name }}
+    steps:
+      - name: Validate caller and workflow binding
+        env:
+          INPUT_REPOSITORY: ${{ inputs.repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pull_request_number }}
+          INPUT_EVENT_HEAD: ${{ inputs.event_head_sha }}
+          INPUT_PIE_REVISION: ${{ inputs.pie_revision }}
+          INPUT_PROFILE: ${{ inputs.profile }}
+          INPUT_CONFIG: ${{ inputs.config }}
+          CALLER_REPOSITORY: ${{ github.repository }}
+          CALLER_EVENT_NAME: ${{ github.event_name }}
+          CALLER_PR_NUMBER: ${{ github.event.pull_request.number }}
+          CALLER_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          WORKFLOW_REPOSITORY: ${{ job.workflow_repository }}
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import PurePosixPath
+
+          sha40 = re.compile(r"^[0-9a-fA-F]{40}$")
+          repository = os.environ["INPUT_REPOSITORY"].strip()
+          pr_number = os.environ["INPUT_PR_NUMBER"].strip()
+          event_head = os.environ["INPUT_EVENT_HEAD"].strip().lower()
+          pie_revision = os.environ["INPUT_PIE_REVISION"].strip().lower()
+          caller_repository = os.environ["CALLER_REPOSITORY"].strip()
+          caller_event = os.environ["CALLER_EVENT_NAME"].strip()
+          caller_pr = os.environ["CALLER_PR_NUMBER"].strip()
+          caller_head = os.environ["CALLER_EVENT_HEAD"].strip().lower()
+          workflow_sha = os.environ["WORKFLOW_SHA"].strip().lower()
+
+          failures = []
+          if caller_event != "pull_request":
+              failures.append(f"INVALID_EVENT: expected pull_request, got {caller_event!r}")
+          if repository.lower() != caller_repository.lower():
+              failures.append(
+                  f"SOURCE_MISMATCH: input repository {repository!r} != caller repository {caller_repository!r}"
+              )
+          if pr_number != caller_pr:
+              failures.append(f"SOURCE_MISMATCH: input PR {pr_number!r} != event PR {caller_pr!r}")
+          if not sha40.fullmatch(event_head):
+              failures.append("INVALID_INPUT: event_head_sha must be an exact 40-character Git SHA")
+          if event_head != caller_head:
+              failures.append(
+                  f"STALE_SOURCE_REVISION: input event head {event_head!r} != event payload head {caller_head!r}"
+              )
+          if not sha40.fullmatch(pie_revision):
+              failures.append("INVALID_INPUT: pie_revision must be an exact 40-character Git SHA")
+          if not sha40.fullmatch(workflow_sha):
+              failures.append("WORKFLOW_BINDING_FAILED: called workflow SHA is not an exact Git SHA")
+          if pie_revision != workflow_sha:
+              failures.append(
+                  f"WORKFLOW_BINDING_FAILED: pie_revision {pie_revision!r} != called workflow SHA {workflow_sha!r}"
+              )
+
+          for field in ("INPUT_PROFILE", "INPUT_CONFIG"):
+              raw = os.environ[field].strip().replace("\\", "/")
+              path = PurePosixPath(raw)
+              if not raw or path.is_absolute() or ".." in path.parts:
+                  failures.append(f"INVALID_INPUT: {field.lower()} must be a safe repository-relative path")
+
+          if failures:
+              raise SystemExit("\n".join(failures))
+          PY
+
+      - name: Checkout exact PR head ref
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          ref: refs/pull/${{ inputs.pull_request_number }}/head
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify checked-out head and clean worktree
+        env:
+          EVENT_HEAD_SHA: ${{ inputs.event_head_sha }}
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "${actual_head,,}" != "${EVENT_HEAD_SHA,,}" ]]; then
+            echo "STALE_SOURCE_REVISION: event=${EVENT_HEAD_SHA} checked_out=${actual_head}" >&2
+            exit 4
+          fi
+          if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+            echo "SOURCE_MISMATCH: checked-out PR worktree is not clean" >&2
+            exit 4
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install exact PIE revision
+        env:
+          WORKFLOW_REPOSITORY: ${{ job.workflow_repository }}
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            "git+https://github.com/${WORKFLOW_REPOSITORY}.git@${WORKFLOW_SHA}"
+          pie-trust-prospective --help >/dev/null
+
+      - name: Run read-only prospective orchestration
+        id: result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REPOSITORY: ${{ inputs.repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pull_request_number }}
+          INPUT_EVENT_HEAD: ${{ inputs.event_head_sha }}
+          INPUT_PIE_REVISION: ${{ inputs.pie_revision }}
+          INPUT_PROFILE: ${{ inputs.profile }}
+          INPUT_CONFIG: ${{ inputs.config }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+          WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_REF: ${{ job.workflow_ref }}
+        run: |
+          set -euo pipefail
+          result_file="${RUNNER_TEMP}/pie-result.json"
+          pie-trust-prospective run-github-pr "${INPUT_PR_NUMBER}" \
+            --event-head-sha "${INPUT_EVENT_HEAD}" \
+            --pie-revision "${INPUT_PIE_REVISION}" \
+            --repo "${INPUT_REPOSITORY}" \
+            --repository-root "${GITHUB_WORKSPACE}" \
+            --profile "${INPUT_PROFILE}" \
+            --config "${INPUT_CONFIG}" \
+            --output-root ".pie/automation" \
+            > "${result_file}"
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import shutil
+
+          result_path = Path(os.environ["RUNNER_TEMP"]) / "pie-result.json"
+          result = json.loads(result_path.read_text(encoding="utf-8"))
+          if result.get("valid") is not True:
+              raise SystemExit("PIE_INTERNAL_ERROR: orchestration did not return valid=true")
+          if result.get("deterministic_replay_bound") is not True:
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: AUTO-1B requires a deterministic replay-bound result")
+          deterministic_hash = result.get("deterministic_result_sha256")
+          if not isinstance(deterministic_hash, str) or re.fullmatch(r"[0-9a-f]{64}", deterministic_hash) is None:
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: deterministic_result_sha256 is missing or invalid")
+
+          bundle = Path(result["bundle"]).resolve()
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          try:
+              bundle.relative_to(workspace)
+          except ValueError as exc:
+              raise SystemExit("EVIDENCE_HASH_MISMATCH: bundle escaped caller workspace") from exc
+          if not (bundle / "manifest.json").is_file():
+              raise SystemExit("EVIDENCE_HASH_MISMATCH: raw observation manifest is missing")
+          if not (bundle / "deterministic-result.json").is_file():
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: deterministic-result.json is missing")
+
+          staging = Path(os.environ["RUNNER_TEMP"]) / "pie-upload"
+          if staging.exists():
+              shutil.rmtree(staging)
+          staging.mkdir(parents=True)
+          shutil.copytree(bundle, staging / "bundle")
+
+          workflow_context = {
+              "schema_version": "PIE_PROSPECTIVE_WORKFLOW_CONTEXT_V1",
+              "workflow_run_id": os.environ["WORKFLOW_RUN_ID"],
+              "workflow_run_attempt": os.environ["WORKFLOW_RUN_ATTEMPT"],
+              "workflow_ref": os.environ["WORKFLOW_REF"],
+              "repository": result["repository"],
+              "pull_request": result["pull_request"],
+              "source_revision": result["source_revision"],
+              "pie_revision": result["pie_revision"],
+              "execution_id": result["execution_id"],
+              "deterministic_result_sha256": deterministic_hash,
+              "raw_observation_manifest_sha256": result["manifest_sha256"],
+              "authority": {
+                  "human_review_recorded": False,
+                  "outcome_recorded": False,
+                  "automation_authorized": False,
+                  "pilot_authorized": False,
+                  "merge_authorized": False,
+                  "deploy_authorized": False,
+                  "production_effect_authorized": False,
+              },
+              "note": "Run-specific transport metadata and raw provider observation hashes are separate from the deterministic semantic replay hash.",
+          }
+          (staging / "workflow-context.json").write_text(
+              json.dumps(workflow_context, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+
+          safe_repo = result["repository"].replace("/", "-")
+          artifact_name = (
+              f"pie-{safe_repo}-pr-{result['pull_request']}-"
+              f"{result['source_revision'][:12]}-{result['execution_id'][-12:]}"
+          )
+          outputs = {
+              "execution_id": result["execution_id"],
+              "status": result["status"],
+              "deterministic_result_sha256": deterministic_hash,
+              "manifest_sha256": result["manifest_sha256"],
+              "artifact_name": artifact_name,
+              "upload_path": str(staging),
+          }
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              for key, value in outputs.items():
+                  handle.write(f"{key}={value}\n")
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          risk = result.get("risk_band") or "NOT_ASSESSED"
+          readiness = result.get("readiness") or "NOT_ASSESSED"
+          summary.write_text(
+              "# PIE Prospective Assessment\n\n"
+              f"- Status: `{result['status']}`\n"
+              f"- Risk: `{risk}`\n"
+              f"- Readiness: `{readiness}`\n"
+              f"- Execution: `{result['execution_id']}`\n"
+              f"- Source revision: `{result['source_revision']}`\n"
+              f"- PIE revision: `{result['pie_revision']}`\n"
+              f"- Deterministic replay hash: `{deterministic_hash}`\n"
+              f"- Raw observation manifest: `{result['manifest_sha256']}`\n"
+              "- Human review: `NOT RECORDED`\n"
+              "- Outcome: `NOT RECORDED`\n"
+              "- Merge / deploy / production effect authority: `NOT GRANTED`\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload replayable evidence capsule
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.result.outputs.artifact_name }}
+          path: ${{ steps.result.outputs.upload_path }}
+          if-no-files-found: error
