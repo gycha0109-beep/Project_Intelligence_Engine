@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from typing import Sequence
 
 from .prospective_campaign_aggregator import (
     ProspectiveCampaignAggregationError,
@@ -26,16 +27,26 @@ def cmd_aggregate_prospective_artifacts(args: argparse.Namespace) -> int:
     return 0
 
 
-def add_prospective_campaign_aggregator_subparser(sub: argparse._SubParsersAction) -> None:
-    command = sub.add_parser(
-        "aggregate-prospective-artifacts",
-        help="Verify and deduplicate replayable prospective PR evidence artifacts without mutating a campaign workspace.",
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="pie-trust-campaign-aggregate",
+        description="Verify and deduplicate replayable prospective PR evidence artifacts without mutating campaign authority.",
     )
-    command.add_argument(
+    parser.add_argument(
         "--artifact-root",
         action="append",
         required=True,
         help="Extracted Actions artifact root containing bundle/manifest.json, or a direct evidence bundle root.",
     )
-    command.add_argument("--output")
-    command.set_defaults(func=cmd_aggregate_prospective_artifacts)
+    parser.add_argument("--output")
+    parser.set_defaults(func=cmd_aggregate_prospective_artifacts)
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = build_parser().parse_args(list(argv) if argv is not None else None)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
