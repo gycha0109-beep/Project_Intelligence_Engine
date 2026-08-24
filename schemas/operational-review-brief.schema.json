@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/operational-review-brief.schema.json",
+  "title": "PIE Operational Review Loop v1 Review Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "status",
+    "next_step",
+    "source",
+    "change",
+    "affected",
+    "risk",
+    "required_verification",
+    "history",
+    "trust",
+    "authority",
+    "brief_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_version": {"const": "PIE_OPERATIONAL_REVIEW_BRIEF_V1"},
+    "status": {"enum": ["WAITING_FOR_TRUST_INPUT", "READY_FOR_HUMAN_REVIEW"]},
+    "next_step": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "repository", "pull_request", "source_revision", "pie_revision", "candidate_id", "candidate_sha256"],
+      "properties": {
+        "project_id": {"type": "string", "minLength": 1},
+        "repository": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hostname", "name_with_owner"],
+          "properties": {
+            "hostname": {"type": "string", "minLength": 1},
+            "name_with_owner": {"type": "string", "minLength": 3}
+          }
+        },
+        "pull_request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["number", "base_oid", "head_oid"],
+          "properties": {
+            "number": {"type": "integer", "minimum": 1},
+            "base_oid": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+            "head_oid": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+          }
+        },
+        "source_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "pie_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "candidate_id": {"type": "string", "minLength": 1},
+        "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changed_files", "limitations"],
+      "properties": {
+        "changed_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "limitations": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "affected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components", "dependent_files", "selected_packs"],
+      "properties": {
+        "components": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "dependent_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "selected_packs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["predicted_risk_band", "readiness", "review_required", "recommended_review_level", "hard_gates", "reason_codes"],
+      "properties": {
+        "predicted_risk_band": {"type": ["string", "null"]},
+        "readiness": {"type": ["string", "null"]},
+        "review_required": {"type": ["boolean", "null"]},
+        "recommended_review_level": {"type": ["string", "null"]},
+        "hard_gates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "required_verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operational_class", "trust_task_class", "required_scenarios", "required_evidence", "analysis_required_tests", "missing_inputs"],
+      "properties": {
+        "operational_class": {"type": ["string", "null"]},
+        "trust_task_class": {"type": ["string", "null"]},
+        "required_scenarios": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "required_evidence": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "analysis_required_tests": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "missing_inputs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "reason", "matches"],
+      "properties": {
+        "available": {"const": false},
+        "reason": {"const": "ORL-7_NOT_IMPLEMENTED"},
+        "matches": {"type": "array", "maxItems": 0}
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_id", "assessment_sha256", "trust_report_id", "trust_report_sha256",
+        "review_packet_id", "review_packet_sha256", "operational_policy"
+      ],
+      "properties": {
+        "assessment_id": {"type": ["string", "null"]},
+        "assessment_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "trust_report_id": {"type": ["string", "null"]},
+        "trust_report_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "review_packet_id": {"type": ["string", "null"]},
+        "review_packet_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "operational_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled", "binding_status", "match_status", "policy_revision", "policy_blob_sha",
+            "policy_content_sha256", "policy_sha256", "binding_sha256"
+          ],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "binding_status": {"type": ["string", "null"]},
+            "match_status": {"type": ["string", "null"]},
+            "policy_revision": {"type": ["string", "null"], "pattern": "^git:[0-9a-f]{40}$"},
+            "policy_blob_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+            "policy_content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+            "policy_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+            "binding_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_recorded", "outcome_recorded", "automation_authorized", "pilot_authorized",
+        "merge_authorized", "deploy_authorized", "production_effect_authorized"
+      ],
+      "properties": {
+        "human_review_recorded": {"const": false},
+        "outcome_recorded": {"const": false},
+        "automation_authorized": {"const": false},
+        "pilot_authorized": {"const": false},
+        "merge_authorized": {"const": false},
+        "deploy_authorized": {"const": false},
+        "production_effect_authorized": {"const": false}
+      }
+    },
+    "brief_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
