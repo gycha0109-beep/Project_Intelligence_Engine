@@ -36,8 +36,11 @@ on:
       status:
         description: PIE prospective terminal status.
         value: ${{ jobs.prospective.outputs.status }}
+      deterministic_result_sha256:
+        description: Stable semantic result hash for same-input replay comparison.
+        value: ${{ jobs.prospective.outputs.deterministic_result_sha256 }}
       manifest_sha256:
-        description: Canonical evidence-bundle manifest hash.
+        description: Raw observation evidence-bundle manifest hash; may vary as provider observation metadata changes.
         value: ${{ jobs.prospective.outputs.manifest_sha256 }}
       artifact_name:
         description: Uploaded evidence artifact name.
@@ -58,6 +61,7 @@ jobs:
     outputs:
       execution_id: ${{ steps.result.outputs.execution_id }}
       status: ${{ steps.result.outputs.status }}
+      deterministic_result_sha256: ${{ steps.result.outputs.deterministic_result_sha256 }}
       manifest_sha256: ${{ steps.result.outputs.manifest_sha256 }}
       artifact_name: ${{ steps.result.outputs.artifact_name }}
     steps:
@@ -194,12 +198,18 @@ jobs:
           import json
           import os
           from pathlib import Path
+          import re
           import shutil
 
           result_path = Path(os.environ["RUNNER_TEMP"]) / "pie-result.json"
           result = json.loads(result_path.read_text(encoding="utf-8"))
           if result.get("valid") is not True:
               raise SystemExit("PIE_INTERNAL_ERROR: orchestration did not return valid=true")
+          if result.get("deterministic_replay_bound") is not True:
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: AUTO-1B requires a deterministic replay-bound result")
+          deterministic_hash = result.get("deterministic_result_sha256")
+          if not isinstance(deterministic_hash, str) or re.fullmatch(r"[0-9a-f]{64}", deterministic_hash) is None:
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: deterministic_result_sha256 is missing or invalid")
 
           bundle = Path(result["bundle"]).resolve()
           workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
@@ -208,7 +218,9 @@ jobs:
           except ValueError as exc:
               raise SystemExit("EVIDENCE_HASH_MISMATCH: bundle escaped caller workspace") from exc
           if not (bundle / "manifest.json").is_file():
-              raise SystemExit("EVIDENCE_HASH_MISMATCH: canonical manifest is missing")
+              raise SystemExit("EVIDENCE_HASH_MISMATCH: raw observation manifest is missing")
+          if not (bundle / "deterministic-result.json").is_file():
+              raise SystemExit("NON_DETERMINISTIC_REPLAY: deterministic-result.json is missing")
 
           staging = Path(os.environ["RUNNER_TEMP"]) / "pie-upload"
           if staging.exists():
@@ -226,7 +238,8 @@ jobs:
               "source_revision": result["source_revision"],
               "pie_revision": result["pie_revision"],
               "execution_id": result["execution_id"],
-              "manifest_sha256": result["manifest_sha256"],
+              "deterministic_result_sha256": deterministic_hash,
+              "raw_observation_manifest_sha256": result["manifest_sha256"],
               "authority": {
                   "human_review_recorded": False,
                   "outcome_recorded": False,
@@ -236,7 +249,7 @@ jobs:
                   "deploy_authorized": False,
                   "production_effect_authorized": False,
               },
-              "note": "Transport metadata is outside the canonical evidence manifest so reruns do not alter deterministic evidence identity.",
+              "note": "Run-specific transport metadata and raw provider observation hashes are separate from the deterministic semantic replay hash.",
           }
           (staging / "workflow-context.json").write_text(
               json.dumps(workflow_context, indent=2, ensure_ascii=False) + "\n",
@@ -251,6 +264,7 @@ jobs:
           outputs = {
               "execution_id": result["execution_id"],
               "status": result["status"],
+              "deterministic_result_sha256": deterministic_hash,
               "manifest_sha256": result["manifest_sha256"],
               "artifact_name": artifact_name,
               "upload_path": str(staging),
@@ -270,6 +284,8 @@ jobs:
               f"- Execution: `{result['execution_id']}`\n"
               f"- Source revision: `{result['source_revision']}`\n"
               f"- PIE revision: `{result['pie_revision']}`\n"
+              f"- Deterministic replay hash: `{deterministic_hash}`\n"
+              f"- Raw observation manifest: `{result['manifest_sha256']}`\n"
               "- Human review: `NOT RECORDED`\n"
               "- Outcome: `NOT RECORDED`\n"
               "- Merge / deploy / production effect authority: `NOT GRANTED`\n",
