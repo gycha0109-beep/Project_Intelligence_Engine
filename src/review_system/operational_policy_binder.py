@@ -3,7 +3,6 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import datetime, timezone
 import base64
-import fnmatch
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -26,6 +25,7 @@ from .operational_policy import (
     OperationalPolicyError,
     normalize_operational_policy_data,
 )
+from .path_globs import expand_trailing_recursive_glob
 from .paths import asset
 from .trust import load_trust_request
 
@@ -156,24 +156,23 @@ def load_operational_trust_facts(path: str | Path) -> tuple[Path, dict[str, Any]
 
 
 def _glob_variants(pattern: str) -> tuple[str, ...]:
-    variants = {pattern}
-    frontier = [pattern]
+    variants: set[str] = set()
+    frontier = list(expand_trailing_recursive_glob(pattern))
     while frontier:
         current = frontier.pop()
+        if current in variants:
+            continue
+        variants.add(current)
         marker = "**/"
         index = current.find(marker)
-        if index < 0:
-            continue
-        collapsed = current[:index] + current[index + len(marker):]
-        if collapsed not in variants:
-            variants.add(collapsed)
-            frontier.append(collapsed)
+        if index >= 0:
+            frontier.append(current[:index] + current[index + len(marker):])
     return tuple(sorted(variants))
 
 
 def _matches_path(path: str, pattern: str) -> bool:
-    normalized = PurePosixPath(path.replace("\\", "/")).as_posix()
-    return any(fnmatch.fnmatchcase(normalized, variant) for variant in _glob_variants(pattern))
+    normalized = PurePosixPath(path.replace("\\", "/"))
+    return any(normalized.match(variant) for variant in _glob_variants(pattern))
 
 
 def _matched_classes(policy: dict[str, Any], changed_files: list[str]) -> list[str]:
