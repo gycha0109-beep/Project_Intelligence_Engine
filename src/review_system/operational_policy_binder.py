@@ -23,6 +23,7 @@ from .identity import canonical_json_sha256, normalize_source_revision
 from .io import load_data
 from .operational_policy import (
     POLICY_AUTHORITY,
+    OperationalPolicyError,
     normalize_operational_policy_data,
 )
 from .paths import asset
@@ -76,6 +77,16 @@ def _timestamp(value: str, field: str) -> str:
     return parsed.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _path_has_symlink(path: Path) -> bool:
+    absolute = path.expanduser().absolute()
+    current = Path(absolute.anchor)
+    for part in absolute.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
 def _safe_relative_path(value: str) -> str:
     raw = value.strip().replace("\\", "/")
     candidate = PurePosixPath(raw)
@@ -85,6 +96,13 @@ def _safe_relative_path(value: str) -> str:
             f"operational policy path must remain project-relative: {value!r}",
         )
     return candidate.as_posix()
+
+
+def _safe_output(path: str | Path, field: str) -> Path:
+    target = Path(path).expanduser()
+    if _path_has_symlink(target):
+        raise OperationalPolicyBindingError("INVALID_INPUT", f"{field} must not contain symlinks: {target}")
+    return target.resolve()
 
 
 def _exact_sha(value: Any, field: str) -> str:
@@ -125,9 +143,15 @@ def normalize_operational_trust_facts_data(data: Any) -> dict[str, Any]:
 
 
 def load_operational_trust_facts(path: str | Path) -> tuple[Path, dict[str, Any]]:
-    source = Path(path).expanduser().resolve(strict=True)
-    if not source.is_file() or source.is_symlink():
-        raise OperationalPolicyBindingError("TRUST_FACTS_INVALID", f"Trust facts must be a regular non-symlink file: {source}")
+    raw = Path(path).expanduser()
+    if _path_has_symlink(raw):
+        raise OperationalPolicyBindingError("TRUST_FACTS_INVALID", f"Trust facts path must not contain symlinks: {raw}")
+    try:
+        source = raw.resolve(strict=True)
+    except OSError as exc:
+        raise OperationalPolicyBindingError("TRUST_FACTS_INVALID", f"Trust facts not found: {raw}") from exc
+    if not source.is_file():
+        raise OperationalPolicyBindingError("TRUST_FACTS_INVALID", f"Trust facts must be a regular file: {source}")
     return source, normalize_operational_trust_facts_data(load_data(source))
 
 
@@ -205,12 +229,16 @@ def fetch_base_operational_policy(
     if response.get("encoding") != "base64" or not isinstance(response.get("content"), str):
         raise OperationalPolicyBindingError("POLICY_SOURCE_INVALID", "base operational policy must be returned as base64 file content")
     try:
-        raw = base64.b64decode(response["content"].encode("ascii"), validate=False)
+        encoded = "".join(response["content"].split())
+        raw = base64.b64decode(encoded.encode("ascii"), validate=True)
         text = raw.decode("utf-8")
         parsed = yaml.safe_load(text)
     except (ValueError, UnicodeError, yaml.YAMLError) as exc:
         raise OperationalPolicyBindingError("POLICY_SOURCE_INVALID", f"cannot decode base operational policy: {exc}") from exc
-    policy = normalize_operational_policy_data(parsed)
+    try:
+        policy = normalize_operational_policy_data(parsed)
+    except OperationalPolicyError as exc:
+        raise OperationalPolicyBindingError("POLICY_SOURCE_INVALID", str(exc)) from exc
     if policy["project_id"] != project_id:
         raise OperationalPolicyBindingError(
             "PROJECT_SCOPE_MISMATCH",
@@ -219,7 +247,7 @@ def fetch_base_operational_policy(
     if policy["policy_authority"] != POLICY_AUTHORITY:
         raise OperationalPolicyBindingError("POLICY_SOURCE_INVALID", "operational policy authority is not PR_BASE_REVISION")
     if snapshot_output is not None:
-        target = Path(snapshot_output).expanduser().resolve()
+        target = _safe_output(snapshot_output, "operational policy snapshot output")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
     return {
@@ -236,6 +264,10 @@ def fetch_base_operational_policy(
 def _binding_hash(value: dict[str, Any]) -> str:
     payload = deepcopy(value)
     payload.pop("binding_sha256", None)
+    trust_request = payload.get("trust_request")
+    if isinstance(trust_request, dict):
+        # Output filename is transport metadata, not binding semantics.
+        trust_request["artifact_name"] = None
     return canonical_json_sha256(payload)
 
 
@@ -265,7 +297,7 @@ def write_operational_policy_binding(path: str | Path, value: dict[str, Any]) ->
     errors = verify_operational_policy_binding_data(value)
     if errors:
         raise OperationalPolicyBindingVerificationError(errors)
-    target = Path(path).expanduser().resolve()
+    target = _safe_output(path, "operational policy binding output")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return target
@@ -424,6 +456,12 @@ def bind_operational_policy(
     expected_revision = normalize_source_revision(candidate["pull_request"]["head_oid"])
     if facts["source_revision"] != expected_revision:
         raise OperationalPolicyBindingError("STALE_TRUST_FACTS", "Trust facts source_revision does not match candidate PR head")
+    unexpected_scenarios = sorted(set(facts["completed_scenarios"]) - set(rule["required_scenarios"]))
+    if unexpected_scenarios:
+        raise OperationalPolicyBindingError(
+            "TRUST_FACTS_INVALID",
+            "completed_scenarios are not declared by the matched operational class: " + ", ".join(unexpected_scenarios),
+        )
     binding["facts"] = {
         "supplied": True,
         "facts_sha256": facts["facts_sha256"],
@@ -453,14 +491,17 @@ def bind_operational_policy(
         "replay_evidence": facts["replay_evidence"],
         "readiness_policy": deepcopy(rule["readiness_policy"]),
     }
-    target = Path(trust_request_output or (Path(candidate_path).resolve().parent / "operational-trust-request.json")).expanduser().resolve()
+    target = _safe_output(
+        trust_request_output or (Path(candidate_path).resolve().parent / "operational-trust-request.json"),
+        "operational Trust request output",
+    )
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(raw_request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     try:
         _source, normalized_request = load_trust_request(target)
-    except Exception:
+    except Exception as exc:
         target.unlink(missing_ok=True)
-        raise
+        raise OperationalPolicyBindingError("TRUST_REQUEST_INVALID", str(exc)) from exc
     binding["trust_request"] = {
         "materialized": True,
         "artifact_name": target.name,
