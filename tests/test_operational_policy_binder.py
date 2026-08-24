@@ -124,13 +124,21 @@ class _CLI:
         return SimpleNamespace(returncode=0, stdout=json.dumps(body), stderr="")
 
 
-def _facts(path: Path, *, revision: str = HEAD, verified_evidence=None, rollback=False, replay=False) -> Path:
+def _facts(
+    path: Path,
+    *,
+    revision: str = HEAD,
+    verified_evidence=None,
+    completed_scenarios=None,
+    rollback=False,
+    replay=False,
+) -> Path:
     value = {
         "schema_version": "1.0",
         "contract_version": "PIE_OPERATIONAL_TRUST_FACTS_V1",
         "project_id": "demo",
         "source_revision": "git:" + revision,
-        "completed_scenarios": ["process-restart"],
+        "completed_scenarios": ["process-restart"] if completed_scenarios is None else completed_scenarios,
         "verified_evidence": ["ci"] if verified_evidence is None else verified_evidence,
         "rollback_evidence": rollback,
         "replay_evidence": replay,
@@ -188,6 +196,15 @@ class OperationalPolicyBinderTests(unittest.TestCase):
             self.assertIn("OPERATIONAL_POLICY_NOT_FOUND_AT_BASE", result["missing_inputs"])
             self.assertIn(f"ref={BASE}", cli.calls[0][-1])
 
+    def test_invalid_base_policy_is_normalized_to_binding_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            invalid = _policy()
+            invalid["policy_authority"] = "PR_HEAD_REVISION"
+            with self.assertRaises(OperationalPolicyBindingError) as caught:
+                self._bind(root, _CLI(invalid))
+            self.assertEqual("POLICY_SOURCE_INVALID", caught.exception.code)
+
     def test_ambiguous_match_is_not_auto_resolved(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -222,6 +239,14 @@ class OperationalPolicyBinderTests(unittest.TestCase):
                 self._bind(root, _CLI(_policy()), trust_facts=facts)
             self.assertEqual("STALE_TRUST_FACTS", caught.exception.code)
 
+    def test_undeclared_completed_scenario_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            facts = _facts(root / "facts.yml", completed_scenarios=["process-restart", "invented-scenario"])
+            with self.assertRaises(OperationalPolicyBindingError) as caught:
+                self._bind(root, _CLI(_policy()), trust_facts=facts)
+            self.assertEqual("TRUST_FACTS_INVALID", caught.exception.code)
+
     def test_complete_explicit_facts_materialize_existing_trust_request_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -249,7 +274,7 @@ class OperationalPolicyBinderTests(unittest.TestCase):
             self.assertFalse(result["automation_authorized"])
             self.assertFalse(result["pilot_authorized"])
 
-    def test_same_inputs_produce_same_binding_hash(self):
+    def test_same_inputs_produce_same_binding_hash_independent_of_output_filename(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             facts = _facts(root / "facts.yml")
@@ -273,6 +298,7 @@ class OperationalPolicyBinderTests(unittest.TestCase):
                     trust_facts=facts,
                     trust_request_output=root / "two.json",
                 )
+            self.assertNotEqual(first["trust_request"]["artifact_name"], second["trust_request"]["artifact_name"])
             self.assertEqual(first["binding_sha256"], second["binding_sha256"])
             self.assertEqual(first["trust_request"]["request_sha256"], second["trust_request"]["request_sha256"])
 
