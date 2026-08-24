@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "task_id": "github-pr:64c84a1a3797bdc89762047aa81b2bee",
+  "source_revision": "git:bee68c0635fb5001d42168ddac23de04b1e526df",
+  "task_class": "documentation",
+  "changed_files": [
+    ".pie-auto2/synthetic-target.md"
+  ],
+  "required_scenarios": [],
+  "completed_scenarios": [],
+  "repository_match": true,
+  "head_match": true,
+  "rollback_evidence": false,
+  "replay_evidence": false,
+  "readiness_policy": {
+    "policy_id": "pie-auto2-synthetic-calibration",
+    "policy_version": "1.0.0",
+    "min_ledger_runs": 1,
+    "min_ledger_decisions": 1,
+    "min_defects": 1,
+    "min_closed_defects": 0,
+    "min_reground_observations": 1,
+    "min_reground_coverage": 1.0,
+    "min_reground_precision": 1.0,
+    "min_reground_recall": 1.0,
+    "max_reground_false_positive_rate": 0.0,
+    "require_active_policy": true,
+    "require_pass_evaluation": true,
+    "require_holdout": true,
+    "require_repeatability": true,
+    "require_zero_protected_negative_regressions": true
+  }
+}
