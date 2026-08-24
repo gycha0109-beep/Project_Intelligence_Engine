@@ -9,6 +9,7 @@ AUTO stage: NONE
 Current implementation:
 - ORL-1 Operational Policy Contract
 - ORL-2 Operational Policy Binder
+- ORL-3 Review Brief
 Factory Intelligence authority: NONE
 ```
 
@@ -369,7 +370,7 @@ These conditions do not create review authority or an Outcome.
 
 ## Authority ceiling
 
-ORL-1 and ORL-2 grant none of the following:
+ORL-1 through ORL-3 grant none of the following:
 
 ```text
 human review authority
@@ -383,15 +384,15 @@ Factory Intelligence authority
 cross-project promotion authority
 ```
 
-ORL-2 automates deterministic policy binding and safe request transport only.
+ORL-2 automates deterministic policy binding and safe request transport only. ORL-3 adds a deterministic, source-bound review projection only.
 
 ## Planned sequence
 
 ```text
 ORL-1  Operational Policy Contract          IMPLEMENTED
 ORL-2  Operational Policy Binder            IMPLEMENTED
-ORL-3  Review Brief                          NEXT
-ORL-4  Explicit Review Action                NOT IMPLEMENTED
+ORL-3  Review Brief                          IMPLEMENTED
+ORL-4  Explicit Review Action                NEXT
 ORL-5  Outcome Declaration Context           NOT IMPLEMENTED
 ORL-6  Explicit Outcome Action               NOT IMPLEMENTED
 ORL-7  Historical Recall                     DEFERRED FOR REAL CAMPAIGN CALIBRATION
