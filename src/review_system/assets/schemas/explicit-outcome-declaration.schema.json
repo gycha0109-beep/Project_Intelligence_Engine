@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pie.local/schemas/explicit-outcome-declaration.schema.json",
   "title": "PIE AUTO-3 Explicit Outcome Declaration",
   "type": "object",
