@@ -498,10 +498,20 @@ This brief is a deterministic project-local projection. It is not a human review
 """
 
 
+def _path_has_symlink(path: Path) -> bool:
+    absolute = path.expanduser().absolute()
+    current = Path(absolute.anchor)
+    for part in absolute.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
 def _safe_output(path: str | Path) -> Path:
     target = Path(path).expanduser()
-    if target.is_symlink():
-        raise OperationalReviewBriefError(f"review brief output must not be a symlink: {target}")
+    if _path_has_symlink(target):
+        raise OperationalReviewBriefError(f"review brief output path must not contain symlinks: {target}")
     return target.resolve()
 
 
