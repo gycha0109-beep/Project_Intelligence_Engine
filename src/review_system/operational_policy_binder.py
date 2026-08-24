@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import datetime, timezone
 import base64
+import fnmatch
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -25,7 +27,6 @@ from .operational_policy import (
     OperationalPolicyError,
     normalize_operational_policy_data,
 )
-from .path_globs import expand_trailing_recursive_glob
 from .paths import asset
 from .trust import load_trust_request
 
@@ -155,24 +156,26 @@ def load_operational_trust_facts(path: str | Path) -> tuple[Path, dict[str, Any]
     return source, normalize_operational_trust_facts_data(load_data(source))
 
 
-def _glob_variants(pattern: str) -> tuple[str, ...]:
-    variants: set[str] = set()
-    frontier = list(expand_trailing_recursive_glob(pattern))
-    while frontier:
-        current = frontier.pop()
-        if current in variants:
-            continue
-        variants.add(current)
-        marker = "**/"
-        index = current.find(marker)
-        if index >= 0:
-            frontier.append(current[:index] + current[index + len(marker):])
-    return tuple(sorted(variants))
-
-
 def _matches_path(path: str, pattern: str) -> bool:
-    normalized = PurePosixPath(path.replace("\\", "/"))
-    return any(normalized.match(variant) for variant in _glob_variants(pattern))
+    path_parts = tuple(PurePosixPath(path.replace("\\", "/")).parts)
+    pattern_parts = tuple(PurePosixPath(pattern.replace("\\", "/")).parts)
+
+    @lru_cache(maxsize=None)
+    def match(path_index: int, pattern_index: int) -> bool:
+        if pattern_index == len(pattern_parts):
+            return path_index == len(path_parts)
+        token = pattern_parts[pattern_index]
+        if token == "**":
+            if match(path_index, pattern_index + 1):
+                return True
+            return path_index < len(path_parts) and match(path_index + 1, pattern_index)
+        if path_index >= len(path_parts):
+            return False
+        if not fnmatch.fnmatchcase(path_parts[path_index], token):
+            return False
+        return match(path_index + 1, pattern_index + 1)
+
+    return match(0, 0)
 
 
 def _matched_classes(policy: dict[str, Any], changed_files: list[str]) -> list[str]:
