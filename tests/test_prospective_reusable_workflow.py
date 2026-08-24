@@ -52,12 +52,21 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, text)
 
-    def test_transport_metadata_does_not_mutate_canonical_bundle(self):
+    def test_transport_and_raw_observation_are_separate_from_replay_authority(self):
         text = self.text
         self.assertIn('shutil.copytree(bundle, staging / "bundle")', text)
         self.assertIn('staging / "workflow-context.json"', text)
-        self.assertIn("Transport metadata is outside the canonical evidence manifest", text)
+        self.assertIn("deterministic_result_sha256", text)
+        self.assertIn("raw_observation_manifest_sha256", text)
+        self.assertIn("Run-specific transport metadata and raw provider observation hashes are separate", text)
         self.assertIn("actions/upload-artifact@v4", text)
+
+    def test_missing_replay_hash_is_integrity_failure(self):
+        text = self.text
+        self.assertIn('result.get("deterministic_replay_bound") is not True', text)
+        self.assertIn("NON_DETERMINISTIC_REPLAY: AUTO-1B requires a deterministic replay-bound result", text)
+        self.assertIn("NON_DETERMINISTIC_REPLAY: deterministic_result_sha256 is missing or invalid", text)
+        self.assertIn("deterministic-result.json", text)
 
     def test_risk_result_is_not_a_failure_gate(self):
         text = self.text
