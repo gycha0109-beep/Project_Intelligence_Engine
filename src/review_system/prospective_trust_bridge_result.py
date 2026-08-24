@@ -52,6 +52,23 @@ def _semantic_bridge_projection(result: dict[str, Any], semantic_packet_sha256: 
     }
 
 
+def verify_stabilized_bridge_result(result: Any, packet: Any) -> list[str]:
+    if not isinstance(result, dict):
+        return ["AUTO-2 bridge result must be an object"]
+    if not isinstance(packet, dict):
+        return ["AUTO-2 Stage 10K packet must be an object"]
+    errors: list[str] = []
+    semantic_packet_sha256 = canonical_json_sha256(_semantic_packet_projection(packet))
+    if result.get("semantic_packet_sha256") != semantic_packet_sha256:
+        errors.append("semantic_packet_sha256 mismatch")
+    deterministic_result_sha256 = canonical_json_sha256(
+        _semantic_bridge_projection(result, semantic_packet_sha256)
+    )
+    if result.get("deterministic_result_sha256") != deterministic_result_sha256:
+        errors.append("deterministic_result_sha256 mismatch")
+    return sorted(set(errors))
+
+
 def stabilize_trusted_bridge_result(result: dict[str, Any]) -> dict[str, Any]:
     bundle = Path(str(result.get("bundle") or "")).expanduser().resolve()
     packet_path = bundle / "review" / "packet.json"
