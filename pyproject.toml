@@ -37,6 +37,7 @@ pie-trust-evidence-acquisition = "review_system.trust_evidence_acquisition_cli:m
 pie-trust-prospective = "review_system.trust_prospective_evidence_cli:main"
 pie-trust-campaign-aggregate = "review_system.prospective_campaign_aggregator_cli:main"
 pie-trust-campaign-project = "review_system.prospective_campaign_projection_cli:main"
+pie-trust-campaign-events = "review_system.prospective_campaign_event_projection_cli:main"
 
 [tool.setuptools]
 include-package-data = true
