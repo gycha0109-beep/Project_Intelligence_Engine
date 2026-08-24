@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "evidence_contract": "PIE_AUTO3_CONTROLLED_OUTCOME_CALIBRATION_CLOSEOUT_V1",
+  "status": "PASS",
+  "authority": {
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "revision": "6fc3be0d2ed29cf3a51929fc4f6f42bcb157cb65",
+    "auto3a_contract": "PIE_AUTO3_EXPLICIT_OUTCOME_DECLARATION_V1",
+    "auto3b_contract": "PIE_AUTO3_DECLARED_OUTCOME_TRANSPORT_V1"
+  },
+  "calibration_target": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "pull_request": 10,
+    "state": "OPEN",
+    "draft": true,
+    "merged": false,
+    "base_sha": "5673310fe66d74da5d31f165ffc4314e0d845740",
+    "head_sha": "a14a497ad73eff13e7765390507bb3c30ff3fd2d",
+    "source_revision": "git:a14a497ad73eff13e7765390507bb3c30ff3fd2d",
+    "source_discriminator": "github-cli",
+    "synthetic_source_warning": "SYNTHETIC_AUTO3_CALIBRATION_SOURCE"
+  },
+  "workflow": {
+    "name": "AUTO-3 Controlled Outcome Calibration",
+    "run_id": 32693408313,
+    "run_number": 2,
+    "conclusion": "success",
+    "artifact_id": 9508004231,
+    "artifact_name": "auto3-controlled-outcome-32693408313",
+    "artifact_digest": "sha256:8e132883a95b75fd4b2f27954f2fb085215fdffbfd44716b0509f72e45877d92"
+  },
+  "artifact_files": {
+    "summary.json": "153458338cb1230f8d9c545ddefa4a5044a3ef047b2494f4bf6aae925329fe82",
+    "result.json": "50160bfd2c3eabab8e2f8aaa8507473ba72241b4ce1e91719b1e66c8d0a6227b",
+    "transport-first.json": "1925a24c69e41189648c4c53ef6c6d5b8af1048b74644e0e2e1be9151f2fc38a",
+    "transport-replay.json": "f0f9a69a95925f48f42fc9ad337dc9eaa5c4bcf7d8539503a2d168a4e136e2f9",
+    "outcome-declaration.json": "2d7f8b8e41dd5f5ee1e7c6b31c89670be9e32a56a37e74f1132c386d58bf0527",
+    "evaluation-report.json": "ecdda1102a1887a6146694c4a36ec77ec317efe5a87207697edd7d80b7734525",
+    "trust-report.json": "ed582effb0da6c5c6a2ac81e9e155e5f15382a14ea115d0f279052d56bcca78a",
+    "review-packet.json": "5bc6d7169832602f8546a2a56a403b15594337b206db818067d935e20f67c9ed",
+    "comparison-registry.json": "d3917980112b4c77193a23410bd86ead3d26a4b55b68c293b3611d8305b981fe",
+    "reconciliation-sources.json": "39b98922648cfcf8304d464716603256616c9d459f5bb43622e050c9e91ed60d"
+  },
+  "controlled_evaluation": {
+    "evaluation_id": "evaluation-878c96ea9517c9fb2974f6373823b472",
+    "evaluation_report_sha256": "f3f98a79577d98d87a5417d4c0694c28b59cf8af8ec656f306bfdd6455f67140",
+    "gate": "PASS",
+    "repeatability_runs": 2,
+    "baseline_repeatable": true,
+    "challenger_repeatable": true,
+    "holdout_present": true,
+    "protected_negative_regressions": 0
+  },
+  "trust_assessment": {
+    "assessment_id": "assessment-1472ff872a1261c94cfa05eaee1890f0",
+    "trust_report_id": "trust-4c207d77faec061f8380e1dd039ed2c1",
+    "trust_report_sha256": "dc4c1f06204bc74460bcf22168582b90abf1cacbad1acb1f66ed66c496890210",
+    "effective_risk_band": "R2",
+    "readiness": "NOT_READY",
+    "evaluation_binding_preserved": true
+  },
+  "synthetic_review": {
+    "actor": "synthetic:auto3-calibration-human",
+    "review_level": "REVIEWED",
+    "decision": "APPROVE",
+    "confirmed_risk_band": "R2",
+    "review_event_id": "event-da5dbf5f05a26f9303a084565fb7cd6a",
+    "review_event_sha256": "6f31dd78fdb305af1214f907fa4a3d7495b352c87afcd590b38051b1aa72258f",
+    "review_packet_id": "prospective-review-packet-4ef0e675d8376c702e5790861b2630e8",
+    "review_packet_sha256": "e0df5e71d716ac4252a1ad18ee64cf6ffce7ddcb9447a2a0298f07592268e108",
+    "calibration_fixture_only": true,
+    "counts_as_real_r0_review_evidence": false
+  },
+  "outcome_declaration": {
+    "declaration_id": "outcome-declaration-b0c7a54eff2005b153c8e24a6ad19f47",
+    "declaration_sha256": "b0c7a54eff2005b153c8e24a6ad19f471298b8ad5b8e34f751600806ef0ea2d1",
+    "authority_type": "CONTROLLED_EVALUATION",
+    "verdict": "SAFE",
+    "human_outcome_declared": true,
+    "outcome_recorded_at_declaration": false,
+    "automatic_outcome_inference": false
+  },
+  "transport": {
+    "first": {
+      "status": "DECLARED_OUTCOME_RECORDED_AND_RECONCILED",
+      "reconciliation_status": "RECONCILED",
+      "idempotent": false,
+      "event_id": "event-ab4e0e03f3348347922667fa49319e06",
+      "registry_sha256": "1ca6025b9ff4eae064775c03fbd068eb632f56c6676669f57cebb954df1807aa",
+      "authority_key": "evaluation:f3f98a79577d98d87a5417d4c0694c28b59cf8af8ec656f306bfdd6455f67140:auto3-holdout",
+      "transport_sha256": "669e30927297c75f26efb1a84aa96edbe47801021661cd7b2df8b8650aeeecf7"
+    },
+    "replay": {
+      "status": "DECLARED_OUTCOME_RECORDED_AND_RECONCILED",
+      "reconciliation_status": "RECONCILED",
+      "idempotent": true,
+      "event_id": "event-ab4e0e03f3348347922667fa49319e06",
+      "registry_sha256": "1ca6025b9ff4eae064775c03fbd068eb632f56c6676669f57cebb954df1807aa",
+      "authority_key": "evaluation:f3f98a79577d98d87a5417d4c0694c28b59cf8af8ec656f306bfdd6455f67140:auto3-holdout",
+      "transport_sha256": "56a6c8172488c77513cf8f5eea38173e448bc5b71c50dad381c81dd44e5a467f"
+    },
+    "same_event_identity": true,
+    "same_final_registry_identity": true,
+    "same_authority_identity": true,
+    "outcome_event_count": 1
+  },
+  "final_state": {
+    "calibration_status": "AUTO3_CONTROLLED_CALIBRATION_PASS",
+    "campaign_status": "COLLECTING_EVIDENCE",
+    "calibration_only": true,
+    "synthetic_evidence": true,
+    "eligible_for_pilot_evidence": false,
+    "final_registry_sha256": "1ca6025b9ff4eae064775c03fbd068eb632f56c6676669f57cebb954df1807aa",
+    "summary_sha256": "d7dde303f777973bfa888b5da28fb8ac71c7d73df15844946d7e576718b6f648"
+  },
+  "authority_ceiling": {
+    "automatic_outcome_inference": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "merge_authorized": false,
+    "deploy_authorized": false,
+    "production_effect_authorized": false
+  },
+  "conclusion": "AUTO-3C proves the synthetic CONTROLLED_EVALUATION path from PASS evaluation through governed synthetic REVIEWED declaration and declared Outcome transport to exact source reconciliation, with identical replay idempotency and no authority elevation. This evidence is calibration-only and is not real R0 or pilot-eligibility evidence."
+}
