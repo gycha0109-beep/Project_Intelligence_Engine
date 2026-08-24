@@ -185,7 +185,7 @@ def _read_bridge_case(value: str | Path) -> dict[str, Any]:
     bindings = (
         ("repository", target.get("repository"), manifest.get("repository")),
         ("pull_request", target.get("pull_request"), manifest.get("pull_request")),
-        ("source_revision", canonical_source_revision, manifest.get("source_revision")),
+        ("source_revision", target_head.lower(), manifest.get("source_revision")),
         ("pie_revision", authority.get("revision"), manifest.get("pie_revision")),
         ("assessment_id", result.get("assessment_id"), manifest.get("assessment_id")),
         ("packet_id", result.get("packet_id"), manifest.get("packet_id")),
