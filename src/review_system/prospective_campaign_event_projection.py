@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import json
-import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -244,10 +242,20 @@ def _prepare_outcomes(
     declarations: Iterable[str | Path],
 ) -> dict[str, dict[str, Any]]:
     specs: dict[str, dict[str, Any]] = {}
-    declaration_paths = [Path(value).expanduser().resolve(strict=True) for value in declarations]
-    for path in declaration_paths:
-        if path.is_symlink() or not path.is_file():
+    declaration_paths: list[Path] = []
+    for value in declarations:
+        raw = Path(value).expanduser()
+        if _path_has_symlink(raw):
+            raise ProspectiveCampaignEventProjectionError("INVALID_INPUT", f"Outcome declaration must not contain symlinks: {raw}")
+        try:
+            path = raw.resolve(strict=True)
+        except OSError as exc:
+            raise ProspectiveCampaignEventProjectionError("INVALID_INPUT", f"Outcome declaration does not exist: {raw}") from exc
+        if not path.is_file() or path.is_symlink():
             raise ProspectiveCampaignEventProjectionError("INVALID_INPUT", f"Outcome declaration must be a regular file: {path}")
+        declaration_paths.append(path)
+
+    for path in declaration_paths:
         try:
             declaration = verify_outcome_declaration_file(str(path))
         except Exception as exc:
@@ -329,15 +337,17 @@ def _event_prefix(source_registry: dict[str, Any], destination_registry: dict[st
         )
     source_events = source_registry.get("events", [])
     destination_events = destination_registry.get("events", [])
-    shared = min(len(source_events), len(destination_events))
-    for index in range(shared):
-        if destination_events[index] != source_events[index]:
+    if len(destination_events) > len(source_events):
+        raise ProspectiveCampaignEventProjectionError(
+            "LINEAGE_MISMATCH",
+            "destination event chain extends beyond the governed source event chain",
+        )
+    for index, destination_event in enumerate(destination_events):
+        if destination_event != source_events[index]:
             raise ProspectiveCampaignEventProjectionError(
                 "LINEAGE_MISMATCH",
                 f"destination event chain diverges from source at sequence {index + 1}",
             )
-    if len(destination_events) > len(source_events):
-        return len(source_events)
     return len(destination_events)
 
 
@@ -357,9 +367,10 @@ def _copy_review_archive(
                 "GOVERNED_REVIEW_CONFLICT",
                 f"destination review archive differs from governed source: {packet_id}",
             )
+        _, destination_registry = load_registry(destination_root / "comparison-registry.json")
         _load_review_packet_archive(
             destination_root,
-            project_id=event.get("project_id") or load_registry(destination_root / "comparison-registry.json")[1]["project_id"],
+            project_id=destination_registry["project_id"],
             assessment_id=event["assessment_id"],
             review_packet_id=packet_id,
             review_packet_sha256=packet_sha,
@@ -559,6 +570,7 @@ def project_governed_campaign_events(
     if source_registry["project_id"] != destination_registry["project_id"]:
         raise ProspectiveCampaignEventProjectionError("PROJECT_SCOPE_MISMATCH", "source and destination project_id differ")
 
+    _event_prefix(source_registry, destination_registry)
     _require_reconciled(source, "source")
     _require_reconciled(destination, "destination")
     _verify_source_reviews(source, source_registry)
