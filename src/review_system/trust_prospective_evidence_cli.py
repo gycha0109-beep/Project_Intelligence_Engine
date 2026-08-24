@@ -12,6 +12,7 @@ from .github_prospective_capture import (
     load_github_prospective_capture_candidate,
     materialize_github_prospective_capture,
 )
+from .prospective_automation_cli import add_prospective_automation_subparser
 from .trust_comparison import TrustComparisonError
 from .trust_prospective_evidence import (
     ProspectiveEvidenceError,
@@ -136,6 +137,7 @@ def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command.set_defaults(func=cmd_intake)
 
     add_prospective_review_subparsers(sub, emit=_print)
+    add_prospective_automation_subparser(sub)
 
     command = sub.add_parser("record-prospective-outcome")
     command.add_argument("--workspace", required=True)
