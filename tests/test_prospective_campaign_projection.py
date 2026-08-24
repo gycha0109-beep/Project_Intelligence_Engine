@@ -73,18 +73,24 @@ def _packet(*, assessment: dict, transport: str) -> dict:
     }
 
 
-def _artifact(root: Path, name: str, *, transport: str) -> Path:
+def _semantic_source(root: Path):
+    source_root = root / "shared-semantic-source"
+    source_root.mkdir()
+    return build_r0_case(
+        source_root,
+        task_id="TASK-AUTO4B-001",
+        revision_char="c",
+        generated_at="2026-08-18T01:00:00Z",
+    )
+
+
+def _artifact(root: Path, name: str, *, transport: str, source) -> Path:
     artifact = root / name
     bridge = artifact / "bridge"
     bridge.mkdir(parents=True)
 
     workspace = init_workspace(bridge, project_id="demo")
-    fixture, report, report_path = build_r0_case(
-        bridge,
-        task_id="TASK-AUTO4B-001",
-        revision_char="c",
-        generated_at="2026-08-18T01:00:00Z",
-    )
+    fixture, report, report_path = source
     result = intake(workspace, fixture, report_path, captured_at="2026-08-18T02:00:00Z")
     workspace.rename(bridge / "workspace")
     workspace = bridge / "workspace"
@@ -201,8 +207,9 @@ class ProspectiveCampaignProjectionTests(unittest.TestCase):
     def test_auto2_semantic_replays_project_one_assessment(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            first = _artifact(root, "first", transport="6" * 32)
-            second = _artifact(root, "second", transport="7" * 32)
+            source = _semantic_source(root)
+            first = _artifact(root, "first", transport="6" * 32, source=source)
+            second = _artifact(root, "second", transport="7" * 32, source=source)
             workspace = root / "project-campaign"
 
             report = project_auto2_artifacts_to_campaign(
@@ -236,8 +243,9 @@ class ProspectiveCampaignProjectionTests(unittest.TestCase):
     def test_reprojection_is_idempotent_and_preserves_semantic_hash(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            first = _artifact(root, "first", transport="6" * 32)
-            second = _artifact(root, "second", transport="7" * 32)
+            source = _semantic_source(root)
+            first = _artifact(root, "first", transport="6" * 32, source=source)
+            second = _artifact(root, "second", transport="7" * 32, source=source)
             workspace = root / "project-campaign"
             initial = project_auto2_artifacts_to_campaign(workspace, [first, second], generated_at=GENERATED_AT)
             replay = project_auto2_artifacts_to_campaign(workspace, [second, first], generated_at=GENERATED_AT)
@@ -252,7 +260,8 @@ class ProspectiveCampaignProjectionTests(unittest.TestCase):
     def test_tampered_auto2_deterministic_result_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            artifact = _artifact(root, "one", transport="6" * 32)
+            source = _semantic_source(root)
+            artifact = _artifact(root, "one", transport="6" * 32, source=source)
             result_path = artifact / "bridge" / "result.json"
             result = json.loads(result_path.read_text(encoding="utf-8"))
             result["deterministic_result_sha256"] = "0" * 64
@@ -265,7 +274,8 @@ class ProspectiveCampaignProjectionTests(unittest.TestCase):
     def test_auto2_authority_elevation_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            artifact = _artifact(root, "one", transport="6" * 32)
+            source = _semantic_source(root)
+            artifact = _artifact(root, "one", transport="6" * 32, source=source)
             result_path = artifact / "bridge" / "result.json"
             result = json.loads(result_path.read_text(encoding="utf-8"))
             result["merge_authorized"] = True
@@ -278,8 +288,9 @@ class ProspectiveCampaignProjectionTests(unittest.TestCase):
     def test_different_source_observation_policies_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            first = _artifact(root, "first", transport="6" * 32)
-            second = _artifact(root, "second", transport="7" * 32)
+            source = _semantic_source(root)
+            first = _artifact(root, "first", transport="6" * 32, source=source)
+            second = _artifact(root, "second", transport="7" * 32, source=source)
             policy_path = second / "bridge" / "workspace" / "observation-policy.json"
             policy = json.loads(policy_path.read_text(encoding="utf-8"))
             policy["thresholds"]["minimum_r0_assessment_count"] = 21
