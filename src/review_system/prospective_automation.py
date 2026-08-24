@@ -121,6 +121,7 @@ def run_github_pr(
                 repository=request.repository,
                 profile=str(profile_path),
                 config=str(config_path),
+                graph=str(analysis_dir / "graph.json"),
                 allow_repository_mismatch=False,
                 allow_head_mismatch=False,
                 allow_dirty_worktree=False,
