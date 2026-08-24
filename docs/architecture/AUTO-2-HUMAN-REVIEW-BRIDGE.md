@@ -2,7 +2,7 @@
 
 ## Status
 
-AUTO-2 adds a governed bridge from an exact GitHub pull request to a deterministic Stage 10K review packet. It does **not** record a human decision, outcome, merge approval, deployment approval, pilot authorization, or production-effect authorization.
+AUTO-2 adds a governed bridge from an exact GitHub pull request to Stage 10K human-review evidence. It does **not** record a human decision, outcome, merge approval, deployment approval, pilot authorization, or production-effect authorization.
 
 ```text
 AUTO_CAPTURE           = YES
@@ -77,27 +77,64 @@ target changed-files
 
 The Trust request content itself is materialized only as a governed evidence input. No token or credential value is written to the evidence capsule.
 
-## Deterministic replay
+## Raw provenance vs semantic replay
 
-Raw Stage 10K `packet_sha256` can include transport/generation metadata. AUTO-2 therefore binds deterministic replay to the semantic Stage 10K identity:
+Stage 10K packet evidence deliberately preserves raw GitHub prospective-capture provenance. Provider collection metadata such as retrieval time can therefore change the candidate evidence hash and, transitively, raw Stage 10K values such as:
 
 ```text
 packet_id
+packet_sha256
 evidence_snapshot_sha256
-assessment_id
-risk/readiness projection
-authority source binding
-exact GitHub target binding
-Trust request content SHA-256
+github.candidate_evidence_snapshot_sha256
+github.candidate_report_sha256
 ```
 
-The bridge writes `result.json` and computes:
+These values remain in the evidence capsule and remain governed by the existing Stage 10K verification/archive contracts. AUTO-2 does not rewrite or weaken them.
+
+AUTO-2 separately derives a semantic packet projection. The projection preserves the review-relevant meaning:
 
 ```text
+packet contract
+project / assessment / task identity
+source revision and Trust-report identity
+GitHub candidate identity
+repository / PR / base / head
+predicted risk
+changed-files / hard gates / review requirement
+Trust evidence references
+source reconciliation state
+authority flags
+```
+
+and excludes only run-variant transport fields:
+
+```text
+generated_at
+packet_id
+packet_sha256
+evidence_snapshot_sha256
+github.candidate_evidence_snapshot_sha256
+github.candidate_report_sha256
+```
+
+The official AUTO-2 CLI records:
+
+```text
+semantic_packet_sha256
 deterministic_result_sha256
 ```
 
-from that stable projection. Run-specific provider transport metadata is not part of this semantic replay hash.
+`deterministic_result_sha256` binds the semantic packet hash together with the exact authority revision, Trust request, target repo/PR/base/head/changed-files, assessment, risk/readiness projection, and all negative authority flags.
+
+Therefore:
+
+```text
+raw provider / packet provenance may differ across observations
+semantic_packet_sha256 must remain equal for identical semantics
+deterministic_result_sha256 must remain equal for identical governed inputs
+```
+
+A semantic change such as a different target head, assessment, Trust source, risk projection, or review-relevant packet field must change the semantic/deterministic hash.
 
 The bridge uses the authority commit timestamp for the ephemeral Stage 10I workspace, Trust assessment capture, and Stage 10K packet generation. Replaying the same authority revision, Trust request, and exact PR target therefore receives the same governed temporal anchor.
 
@@ -144,12 +181,15 @@ target base
 changed-files
 ```
 
-and equality of:
+The proof must show equality of:
 
 ```text
-packet_id
-packet_evidence_snapshot_sha256
+assessment_id
+execution_id
+semantic_packet_sha256
 deterministic_result_sha256
 ```
 
-while all human/outcome/automation/pilot/merge/deploy/production-effect flags remain false.
+Raw `packet_id`, raw packet evidence hashes, provider retrieval metadata, and the raw observation manifest are retained as provenance and are permitted to differ between observations.
+
+All human/outcome/automation/pilot/merge/deploy/production-effect flags must remain false.

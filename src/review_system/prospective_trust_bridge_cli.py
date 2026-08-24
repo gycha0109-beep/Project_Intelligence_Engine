@@ -11,6 +11,10 @@ from .prospective_trust_bridge import (
     TrustedGitHubPRRequest,
     run_trusted_github_pr,
 )
+from .prospective_trust_bridge_result import (
+    ProspectiveTrustBridgeResultError,
+    stabilize_trusted_bridge_result,
+)
 
 
 def cmd_run_github_pr_trusted(args: argparse.Namespace) -> int:
@@ -31,7 +35,12 @@ def cmd_run_github_pr_trusted(args: argparse.Namespace) -> int:
             ),
             github_cli=GitHubCLI(executable=args.gh_executable, timeout_seconds=args.timeout),
         )
-    except (ProspectiveTrustBridgeError, ProspectiveAutomationError) as exc:
+        result = stabilize_trusted_bridge_result(result)
+    except (
+        ProspectiveTrustBridgeError,
+        ProspectiveTrustBridgeResultError,
+        ProspectiveAutomationError,
+    ) as exc:
         print(
             json.dumps(
                 {
