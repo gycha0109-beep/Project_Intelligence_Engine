@@ -17,10 +17,27 @@ from review_system.prospective_evidence_bundle import verify_evidence_bundle
 
 HEAD = "a" * 40
 PIE = "b" * 40
+BASE = "d" * 40
 
 
 class _CLI:
     pass
+
+
+def _candidate() -> dict:
+    return {
+        "candidate_id": "candidate-1",
+        "project_id": "demo",
+        "task_id": "github-pr:demo",
+        "repository": {"hostname": "github.com", "name_with_owner": "demo/repo"},
+        "pull_request": {"number": 7, "base_oid": BASE, "head_oid": HEAD},
+        "changed_files": ["src/core.py"],
+        "generated_at": "2026-08-24T00:00:00Z",
+        "source_evidence_sha256": "1" * 64,
+        "evidence_snapshot_sha256": "2" * 64,
+        "report_sha256": "3" * 64,
+        "status": "BLOCKED_OPERATOR_INPUT_REQUIRED",
+    }
 
 
 def _analysis(root: Path, *, live_head: str = HEAD, local_head: str = HEAD):
@@ -36,27 +53,23 @@ def _analysis(root: Path, *, live_head: str = HEAD, local_head: str = HEAD):
     (output / "REPORT.md").write_text("report\n", encoding="utf-8")
     (output / "pull-request.diff").write_text("diff --git a/a b/a\n", encoding="utf-8")
     candidate = output / "prospective-capture.json"
-    candidate.write_text(
-        json.dumps(
-            {
-                "candidate_id": "candidate-1",
-                "generated_at": "2026-08-24T00:00:00Z",
-                "source_evidence_sha256": "1" * 64,
-                "evidence_snapshot_sha256": "2" * 64,
-                "report_sha256": "3" * 64,
-                "status": "BLOCKED_OPERATOR_INPUT_REQUIRED",
-            }
-        ),
-        encoding="utf-8",
-    )
+    candidate_value = _candidate()
+    candidate_value["pull_request"]["head_oid"] = live_head
+    candidate.write_text(json.dumps(candidate_value), encoding="utf-8")
     source = {
-        "repository": {"name_with_owner": "demo/repo"},
-        "pull_request": {"number": 7, "base_oid": "d" * 40, "head_oid": live_head},
+        "repository": {"hostname": "github.com", "name_with_owner": "demo/repo"},
+        "pull_request": {"number": 7, "base_oid": BASE, "head_oid": live_head},
         "local_project_state": {"head_revision": local_head},
     }
     return SimpleNamespace(
         source=source,
-        impact={"impact": True, "source_evidence_sha256": "1" * 64},
+        impact={
+            "direct": {"components": ["core"]},
+            "impact": {"dependent_files": [{"path": "tests/test_core.py"}]},
+            "review": {"selected_packs": ["universal.test-completeness"], "required_tests": ["tests/test_core.py"]},
+            "limitations": ["review signal only"],
+            "source_evidence_sha256": "1" * 64,
+        },
         output_dir=output,
         source_path=output / "github-source.json",
         impact_path=output / "impact.json",
@@ -68,6 +81,32 @@ def _analysis(root: Path, *, live_head: str = HEAD, local_head: str = HEAD):
     )
 
 
+def _review_packet(*, risk_band: str = "R4") -> dict:
+    return {
+        "project_id": "demo",
+        "packet_id": "packet-1",
+        "packet_sha256": "7" * 64,
+        "assessment_id": "assessment-1",
+        "assessment_sha256": "8" * 64,
+        "task_id": "github-pr:demo",
+        "source_revision": "git:" + HEAD,
+        "trust_report_id": "trust-report-1",
+        "trust_report_sha256": "9" * 64,
+        "github": {
+            "candidate_id": "candidate-1",
+            "hostname": "github.com",
+            "repository": "demo/repo",
+            "pr_number": 7,
+            "base_oid": BASE,
+            "head_oid": HEAD,
+        },
+        "predicted_risk_band": risk_band,
+        "changed_files": ["src/core.py"],
+        "hard_gates": ["HUMAN_REVIEW_REQUIRED"],
+        "review_requirement": "HUMAN_APPROVAL_REQUIRED",
+    }
+
+
 class ProspectiveAutomationTests(unittest.TestCase):
     def _root(self, tmp: str) -> Path:
         root = Path(tmp)
@@ -76,7 +115,7 @@ class ProspectiveAutomationTests(unittest.TestCase):
         (root / ".review" / "intelligence" / "config.yml").write_text("components: []\n", encoding="utf-8")
         return root
 
-    def test_no_trust_request_stops_at_waiting_and_emits_replay_hash(self):
+    def test_no_trust_request_stops_at_waiting_and_emits_replay_hash_and_review_brief(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = self._root(tmp)
             with patch("review_system.prospective_automation.analyze_pull_request", return_value=_analysis(root)):
@@ -101,9 +140,15 @@ class ProspectiveAutomationTests(unittest.TestCase):
             self.assertFalse(result["pilot_authorized"])
             self.assertTrue(result["deterministic_replay_bound"])
             self.assertRegex(result["deterministic_result_sha256"], r"^[0-9a-f]{64}$")
+            self.assertRegex(result["review_brief_sha256"], r"^[0-9a-f]{64}$")
             bundle = Path(result["bundle"])
             self.assertTrue((bundle / "manifest.json").is_file())
             self.assertTrue((bundle / "deterministic-result.json").is_file())
+            self.assertTrue((bundle / "review" / "brief.json").is_file())
+            self.assertTrue((bundle / "review" / "BRIEF.md").is_file())
+            brief = json.loads((bundle / "review" / "brief.json").read_text(encoding="utf-8"))
+            self.assertEqual("WAITING_FOR_TRUST_INPUT", brief["status"])
+            self.assertFalse(brief["authority"]["human_review_recorded"])
             self.assertEqual([], verify_evidence_bundle(bundle))
             manifest = json.loads((bundle / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(result["deterministic_result_sha256"], manifest["deterministic_result_sha256"])
@@ -116,12 +161,8 @@ class ProspectiveAutomationTests(unittest.TestCase):
             with patch("review_system.prospective_automation.analyze_pull_request", return_value=first_analysis):
                 first = run_github_pr(
                     RunGitHubPRRequest(
-                        pull_request="7",
-                        event_head_sha=HEAD,
-                        pie_revision=PIE,
-                        repository_root=root,
-                        repository="demo/repo",
-                        output_root=".pie/first",
+                        pull_request="7", event_head_sha=HEAD, pie_revision=PIE,
+                        repository_root=root, repository="demo/repo", output_root=".pie/first",
                     ),
                     github_cli=_CLI(),
                 )
@@ -139,12 +180,8 @@ class ProspectiveAutomationTests(unittest.TestCase):
             with patch("review_system.prospective_automation.analyze_pull_request", return_value=second_analysis):
                 second = run_github_pr(
                     RunGitHubPRRequest(
-                        pull_request="7",
-                        event_head_sha=HEAD,
-                        pie_revision=PIE,
-                        repository_root=root,
-                        repository="demo/repo",
-                        output_root=".pie/second",
+                        pull_request="7", event_head_sha=HEAD, pie_revision=PIE,
+                        repository_root=root, repository="demo/repo", output_root=".pie/second",
                     ),
                     github_cli=_CLI(),
                 )
@@ -161,17 +198,14 @@ class ProspectiveAutomationTests(unittest.TestCase):
                 with self.assertRaises(ProspectiveAutomationError) as caught:
                     run_github_pr(
                         RunGitHubPRRequest(
-                            pull_request="7",
-                            event_head_sha=HEAD,
-                            pie_revision=PIE,
-                            repository_root=root,
-                            repository="demo/repo",
+                            pull_request="7", event_head_sha=HEAD, pie_revision=PIE,
+                            repository_root=root, repository="demo/repo",
                         ),
                         github_cli=_CLI(),
                     )
             self.assertEqual("STALE_SOURCE_REVISION", caught.exception.code)
 
-    def test_explicit_request_can_prepare_packet_without_recording_human_authority(self):
+    def test_explicit_request_can_prepare_packet_and_brief_without_recording_human_authority(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = self._root(tmp)
             request_path = root / "request.json"
@@ -190,25 +224,15 @@ class ProspectiveAutomationTests(unittest.TestCase):
 
             with (
                 patch("review_system.prospective_automation.analyze_pull_request", return_value=_analysis(root)),
-                patch(
-                    "review_system.prospective_automation.materialize_github_prospective_capture",
-                    side_effect=materialize_with_report,
-                ),
-                patch(
-                    "review_system.prospective_automation.prepare_review_packet",
-                    return_value={"packet_id": "packet-1"},
-                ),
+                patch("review_system.prospective_automation.materialize_github_prospective_capture", side_effect=materialize_with_report),
+                patch("review_system.prospective_automation.prepare_review_packet", return_value=_review_packet()),
                 patch("review_system.prospective_automation.write_review_packet", side_effect=write_packet),
             ):
                 result = run_github_pr(
                     RunGitHubPRRequest(
-                        pull_request="7",
-                        event_head_sha=HEAD,
-                        pie_revision=PIE,
-                        repository_root=root,
-                        repository="demo/repo",
-                        trust_request=request_path,
-                        workspace=workspace,
+                        pull_request="7", event_head_sha=HEAD, pie_revision=PIE,
+                        repository_root=root, repository="demo/repo",
+                        trust_request=request_path, workspace=workspace,
                     ),
                     github_cli=_CLI(),
                 )
@@ -222,6 +246,12 @@ class ProspectiveAutomationTests(unittest.TestCase):
             self.assertFalse(result["pilot_authorized"])
             self.assertFalse(result["deterministic_replay_bound"])
             self.assertIsNone(result["deterministic_result_sha256"])
+            bundle = Path(result["bundle"])
+            brief = json.loads((bundle / "review" / "brief.json").read_text(encoding="utf-8"))
+            self.assertEqual("packet-1", brief["trust"]["review_packet_id"])
+            self.assertEqual("HUMAN_APPROVAL_REQUIRED", brief["risk"]["review_requirement"])
+            self.assertFalse(brief["authority"]["human_review_recorded"])
+            self.assertEqual([], verify_evidence_bundle(bundle))
 
 
 if __name__ == "__main__":
