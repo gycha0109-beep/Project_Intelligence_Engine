@@ -15,6 +15,13 @@ from .operational_policy_binder import (
     bind_operational_policy,
     write_operational_policy_binding,
 )
+from .operational_review_brief import (
+    CONTRACT_VERSION as REVIEW_BRIEF_CONTRACT_VERSION,
+    OperationalReviewBriefError,
+    build_operational_review_brief,
+    write_operational_review_brief,
+    write_operational_review_brief_markdown,
+)
 from .prospective_evidence_bundle import verify_evidence_bundle, write_evidence_bundle
 from .prospective_execution_identity import build_prospective_execution_identity
 from .prospective_replay import build_deterministic_result
@@ -161,9 +168,11 @@ def run_github_pr(
             f"requested repository {request.repository!r} does not match collected source {repository!r}",
         )
 
-    candidate = json.loads(Path(analysis.prospective_candidate_path).read_text(encoding="utf-8"))
+    candidate_path = Path(analysis.prospective_candidate_path)
+    candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
     if not isinstance(candidate, dict):
         raise ProspectiveAutomationError("EVIDENCE_HASH_MISMATCH", "prospective candidate must contain an object")
+    candidate_sha256 = file_sha256(candidate_path)
 
     operational_binding: dict[str, Any] | None = None
     operational_binding_path: Path | None = None
@@ -186,7 +195,7 @@ def run_github_pr(
                 )
         try:
             operational_binding = bind_operational_policy(
-                analysis.prospective_candidate_path,
+                candidate_path,
                 github_cli=github_cli,
                 repository_root=root,
                 policy_path=request.operational_policy,
@@ -217,7 +226,7 @@ def run_github_pr(
         "source/identity.json": analysis.output_dir / "identity.json",
         "analysis/impact.json": analysis.impact_path,
         "analysis/REPORT.md": analysis.report_path,
-        "prospective/candidate.json": analysis.prospective_candidate_path,
+        "prospective/candidate.json": candidate_path,
     }
     if analysis.diff_path is not None:
         evidence_files["source/pull-request.diff"] = analysis.diff_path
@@ -247,10 +256,10 @@ def run_github_pr(
         "operational_binding_status": operational_binding.get("status") if operational_binding else None,
         "operational_match_status": operational_binding.get("match_status") if operational_binding else None,
         "operational_binding_sha256": operational_binding.get("binding_sha256") if operational_binding else None,
-        "operational_policy_sha256": (
-            operational_binding.get("policy", {}).get("policy_sha256") if operational_binding else None
-        ),
+        "operational_policy_sha256": operational_binding.get("policy", {}).get("policy_sha256") if operational_binding else None,
         "operational_missing_inputs": operational_binding.get("missing_inputs", []) if operational_binding else [],
+        "review_brief_contract_version": REVIEW_BRIEF_CONTRACT_VERSION,
+        "review_brief_sha256": None,
         "auto_capture": True,
         "auto_analysis": True,
         "auto_trust_assessment": False,
@@ -265,6 +274,7 @@ def run_github_pr(
     if operational_binding is not None and request_path is None:
         summary["next_step"] = "PROVIDE_EXPLICIT_OPERATIONAL_TRUST_FACTS"
 
+    review_packet: dict[str, Any] | None = None
     if request_path is not None:
         if request.workspace is None:
             raise ProspectiveAutomationError(
@@ -275,7 +285,7 @@ def run_github_pr(
         trust_report_path = analysis.output_dir / "prospective-trust-report.json"
         try:
             materialized = materialize_github_prospective_capture(
-                analysis.prospective_candidate_path,
+                candidate_path,
                 request=request_path,
                 workspace=workspace,
                 profile=profile_path,
@@ -290,16 +300,16 @@ def run_github_pr(
             raise ProspectiveAutomationError("PROSPECTIVE_MATERIALIZATION_FAILED", str(exc)) from exc
         materialization_path = _dump_json(analysis.output_dir / "prospective-materialization.json", materialized)
         assessment_id = materialized["assessment_id"]
-        packet = prepare_review_packet(
+        review_packet = prepare_review_packet(
             workspace,
             assessment_id=assessment_id,
-            github_candidate=analysis.prospective_candidate_path,
+            github_candidate=candidate_path,
             repository_root=root,
             github_cli=github_cli,
             repository=repository,
             generated_at=request.generated_at,
         )
-        packet_path = write_review_packet(analysis.output_dir / "prospective-review-packet.json", packet)
+        packet_path = write_review_packet(analysis.output_dir / "prospective-review-packet.json", review_packet)
         evidence_files.update({
             "trust/request.json": request_path,
             "trust/assessment.json": trust_report_path,
@@ -310,7 +320,7 @@ def run_github_pr(
             "status": "READY_FOR_HUMAN_REVIEW",
             "next_step": "EXPLICIT_HUMAN_REVIEW_REQUIRED",
             "assessment_id": assessment_id,
-            "packet_id": packet["packet_id"],
+            "packet_id": review_packet["packet_id"],
             "risk_band": materialized.get("predicted_risk_band"),
             "readiness": materialized.get("readiness") or materialized.get("readiness_status"),
             "auto_trust_assessment": True,
@@ -332,6 +342,25 @@ def run_github_pr(
             workflow_semantics=workflow_semantics,
         )
         summary["deterministic_result_sha256"] = deterministic_result["deterministic_result_sha256"]
+
+    try:
+        review_brief = build_operational_review_brief(
+            summary=summary,
+            candidate=candidate,
+            candidate_sha256=candidate_sha256,
+            impact=analysis.impact,
+            operational_binding=operational_binding,
+            review_packet=review_packet,
+        )
+        review_brief_path = write_operational_review_brief(analysis.output_dir / "operational-review-brief.json", review_brief)
+        review_brief_markdown = write_operational_review_brief_markdown(analysis.output_dir / "OPERATIONAL-REVIEW-BRIEF.md", review_brief)
+    except OperationalReviewBriefError as exc:
+        raise ProspectiveAutomationError("REVIEW_BRIEF_INVALID", str(exc)) from exc
+    summary["review_brief_sha256"] = review_brief["brief_sha256"]
+    evidence_files.update({
+        "review/brief.json": review_brief_path,
+        "review/BRIEF.md": review_brief_markdown,
+    })
 
     manifest = write_evidence_bundle(
         bundle_root,
