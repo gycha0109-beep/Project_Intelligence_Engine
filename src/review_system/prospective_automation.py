@@ -12,6 +12,7 @@ from .github_prospective_capture import materialize_github_prospective_capture
 from .identity import file_sha256
 from .prospective_evidence_bundle import verify_evidence_bundle, write_evidence_bundle
 from .prospective_execution_identity import build_prospective_execution_identity
+from .prospective_replay import build_deterministic_result
 from .trust_prospective_review import prepare_review_packet, write_review_packet
 
 
@@ -62,6 +63,15 @@ def _dump_json(path: Path, value: object) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return path
+
+
+def _load_json(path: Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ProspectiveAutomationError("EVIDENCE_HASH_MISMATCH", f"expected JSON object: {path}")
+    return value
 
 
 def _assert_exact_source_binding(*, event_head: str, source: dict[str, Any]) -> tuple[str, str]:
@@ -181,6 +191,8 @@ def run_github_pr(
         "outcome_recorded": False,
         "automation_authorized": False,
         "pilot_authorized": False,
+        "deterministic_replay_bound": request_path is None,
+        "deterministic_result_sha256": None,
     }
     candidate = json.loads(Path(analysis.prospective_candidate_path).read_text(encoding="utf-8"))
     summary["candidate_id"] = candidate.get("candidate_id")
@@ -235,13 +247,30 @@ def run_github_pr(
             "readiness": materialized.get("readiness") or materialized.get("readiness_status"),
             "auto_trust_assessment": True,
             "auto_packet_prepare": True,
+            "deterministic_replay_bound": False,
         })
+
+    deterministic_result = None
+    if request_path is None:
+        workflow_semantics = _load_json(analysis.workflow_semantics_path)
+        deterministic_result = build_deterministic_result(
+            identity=identity.to_dict(),
+            summary=summary,
+            base_revision=analysis.source.get("pull_request", {}).get("base_oid"),
+            changed_files=list(analysis.changed_files),
+            diff_sha256=file_sha256(analysis.diff_path) if analysis.diff_path is not None else None,
+            impact=analysis.impact,
+            candidate=candidate,
+            workflow_semantics=workflow_semantics,
+        )
+        summary["deterministic_result_sha256"] = deterministic_result["deterministic_result_sha256"]
 
     manifest = write_evidence_bundle(
         bundle_root,
         summary=summary,
         identity=identity.to_dict(),
         evidence_files=evidence_files,
+        deterministic_result=deterministic_result,
     )
     errors = verify_evidence_bundle(bundle_root)
     if errors:
