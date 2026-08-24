@@ -257,6 +257,7 @@ def _read_bridge_case(value: str | Path) -> dict[str, Any]:
         "project_id": project_id,
         "repository": target.get("repository"),
         "pull_request": target.get("pull_request"),
+        "task_id": assessment["task_id"],
         "source_revision": assessment["source_revision"],
         "assessment_id": assessment["assessment_id"],
         "captured_at": assessment["captured_at"],
@@ -352,7 +353,8 @@ def project_auto2_artifacts_to_campaign(
     cases = [_read_bridge_case(value) for value in values]
     cases.sort(
         key=lambda item: (
-            item["assessment_id"],
+            item["task_id"],
+            item["source_revision"],
             item["deterministic_result_sha256"],
             item["semantic_packet_sha256"],
             item["source_material_sha256"],
@@ -371,21 +373,23 @@ def project_auto2_artifacts_to_campaign(
         raise ProspectiveCampaignProjectionError("POLICY_MISMATCH", "AUTO-2 source artifacts use different observation policies")
     policy_hash = next(iter(policy_hashes))
 
-    by_assessment: dict[str, str] = {}
+    by_natural_key: dict[tuple[str, str], str] = {}
     for case in cases:
-        previous = by_assessment.setdefault(case["assessment_id"], case["deterministic_result_sha256"])
+        natural_key = (case["task_id"], case["source_revision"])
+        previous = by_natural_key.setdefault(natural_key, case["deterministic_result_sha256"])
         if previous != case["deterministic_result_sha256"]:
             raise ProspectiveCampaignProjectionError(
                 "NON_DETERMINISTIC_REPLAY",
-                f"assessment {case['assessment_id']} has conflicting AUTO-2 deterministic results",
+                f"task/source_revision {natural_key[0]}/{natural_key[1]} has conflicting AUTO-2 deterministic results",
             )
 
     projection_cases: list[dict[str, Any]] = []
-    seen_assessment_ids: set[str] = set()
+    seen_natural_keys: set[tuple[str, str]] = set()
     for case in cases:
-        if case["assessment_id"] in seen_assessment_ids:
+        natural_key = (case["task_id"], case["source_revision"])
+        if natural_key in seen_natural_keys:
             continue
-        seen_assessment_ids.add(case["assessment_id"])
+        seen_natural_keys.add(natural_key)
         projection_cases.append(case)
     semantic_duplicate_count = len(cases) - len(projection_cases)
 
@@ -440,7 +444,7 @@ def project_auto2_artifacts_to_campaign(
     finally:
         shutil.rmtree(temp_parent, ignore_errors=True)
 
-    assessment_ids = sorted({case["assessment_id"] for case in cases})
+    assessment_ids = sorted(case["assessment_id"] for case in projection_cases)
     projected_count = sum(1 for item in committed_results if item.get("idempotent") is False)
     idempotent_count = semantic_duplicate_count + sum(1 for item in committed_results if item.get("idempotent") is True)
     report: dict[str, Any] = {
