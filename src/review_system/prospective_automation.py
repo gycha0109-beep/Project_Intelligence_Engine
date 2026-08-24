@@ -10,6 +10,11 @@ from .application import AnalyzePullRequestRequest, analyze_pull_request
 from .github_connector import GitHubCLI
 from .github_prospective_capture import materialize_github_prospective_capture
 from .identity import file_sha256
+from .operational_policy_binder import (
+    OperationalPolicyBindingError,
+    bind_operational_policy,
+    write_operational_policy_binding,
+)
 from .prospective_evidence_bundle import verify_evidence_bundle, write_evidence_bundle
 from .prospective_execution_identity import build_prospective_execution_identity
 from .prospective_replay import build_deterministic_result
@@ -36,6 +41,8 @@ class RunGitHubPRRequest:
     profile: str = ".review/project.yml"
     config: str = ".review/intelligence/config.yml"
     trust_request: str | Path | None = None
+    operational_policy: str | None = None
+    operational_trust_facts: str | Path | None = None
     workspace: str | Path | None = None
     output_root: str | Path = ".pie/automation"
     generated_at: str | None = None
@@ -102,6 +109,17 @@ def run_github_pr(
     root = Path(request.repository_root).resolve()
     if not root.is_dir():
         raise ProspectiveAutomationError("INVALID_INPUT", f"repository root does not exist: {root}")
+    if request.trust_request is not None and request.operational_policy is not None:
+        raise ProspectiveAutomationError(
+            "INVALID_INPUT",
+            "explicit Trust request and Operational Policy binding are mutually exclusive inputs",
+        )
+    if request.operational_trust_facts is not None and request.operational_policy is None:
+        raise ProspectiveAutomationError(
+            "INVALID_INPUT",
+            "operational Trust facts require --operational-policy",
+        )
+
     event_head = _exact_sha(request.event_head_sha, "event_head_sha")
     pie_revision = _exact_sha(request.pie_revision, "pie_revision")
     profile_path = _project_path(root, request.profile)
@@ -143,9 +161,45 @@ def run_github_pr(
             f"requested repository {request.repository!r} does not match collected source {repository!r}",
         )
 
+    candidate = json.loads(Path(analysis.prospective_candidate_path).read_text(encoding="utf-8"))
+    if not isinstance(candidate, dict):
+        raise ProspectiveAutomationError("EVIDENCE_HASH_MISMATCH", "prospective candidate must contain an object")
+
+    operational_binding: dict[str, Any] | None = None
+    operational_binding_path: Path | None = None
+    operational_policy_snapshot: Path | None = None
+    operational_facts_path: Path | None = None
     request_path = _project_path(root, request.trust_request) if request.trust_request is not None else None
     if request_path is not None and not request_path.is_file():
         raise ProspectiveAutomationError("INVALID_INPUT", f"Trust request does not exist: {request_path}")
+
+    if request.operational_policy is not None:
+        operational_binding_path = analysis.output_dir / "operational-policy-binding.json"
+        operational_policy_snapshot = analysis.output_dir / "operational-base-policy.yml"
+        generated_request = analysis.output_dir / "operational-trust-request.json"
+        if request.operational_trust_facts is not None:
+            operational_facts_path = _project_path(root, request.operational_trust_facts)
+            if not operational_facts_path.is_file():
+                raise ProspectiveAutomationError(
+                    "INVALID_INPUT",
+                    f"operational Trust facts do not exist: {operational_facts_path}",
+                )
+        try:
+            operational_binding = bind_operational_policy(
+                analysis.prospective_candidate_path,
+                github_cli=github_cli,
+                repository_root=root,
+                policy_path=request.operational_policy,
+                trust_facts=operational_facts_path,
+                trust_request_output=generated_request,
+                policy_snapshot_output=operational_policy_snapshot,
+            )
+            write_operational_policy_binding(operational_binding_path, operational_binding)
+        except OperationalPolicyBindingError as exc:
+            raise ProspectiveAutomationError(exc.code, str(exc)) from exc
+        if operational_binding["trust_request"]["materialized"]:
+            request_path = generated_request
+
     trust_request_sha256 = file_sha256(request_path) if request_path is not None else None
     identity = build_prospective_execution_identity(
         repository=repository,
@@ -169,6 +223,12 @@ def run_github_pr(
         evidence_files["source/pull-request.diff"] = analysis.diff_path
     if analysis.workflow_semantics_path is not None:
         evidence_files["analysis/workflow-semantics.json"] = analysis.workflow_semantics_path
+    if operational_binding_path is not None:
+        evidence_files["operational/binding.json"] = operational_binding_path
+    if operational_policy_snapshot is not None and operational_policy_snapshot.is_file():
+        evidence_files["operational/base-policy.yml"] = operational_policy_snapshot
+    if operational_facts_path is not None:
+        evidence_files["operational/trust-facts.yml"] = operational_facts_path
 
     summary: dict[str, Any] = {
         "schema_version": "PIE_PR_PROSPECTIVE_RUN_V1",
@@ -179,11 +239,18 @@ def run_github_pr(
         "pie_revision": pie_revision,
         "status": "WAITING_FOR_TRUST_INPUT",
         "next_step": "PROVIDE_EXPLICIT_TRUST_REQUEST",
-        "candidate_id": None,
+        "candidate_id": candidate.get("candidate_id"),
         "assessment_id": None,
         "packet_id": None,
         "risk_band": None,
         "readiness": None,
+        "operational_binding_status": operational_binding.get("status") if operational_binding else None,
+        "operational_match_status": operational_binding.get("match_status") if operational_binding else None,
+        "operational_binding_sha256": operational_binding.get("binding_sha256") if operational_binding else None,
+        "operational_policy_sha256": (
+            operational_binding.get("policy", {}).get("policy_sha256") if operational_binding else None
+        ),
+        "operational_missing_inputs": operational_binding.get("missing_inputs", []) if operational_binding else [],
         "auto_capture": True,
         "auto_analysis": True,
         "auto_trust_assessment": False,
@@ -195,14 +262,14 @@ def run_github_pr(
         "deterministic_replay_bound": request_path is None,
         "deterministic_result_sha256": None,
     }
-    candidate = json.loads(Path(analysis.prospective_candidate_path).read_text(encoding="utf-8"))
-    summary["candidate_id"] = candidate.get("candidate_id")
+    if operational_binding is not None and request_path is None:
+        summary["next_step"] = "PROVIDE_EXPLICIT_OPERATIONAL_TRUST_FACTS"
 
     if request_path is not None:
         if request.workspace is None:
             raise ProspectiveAutomationError(
                 "INVALID_INPUT",
-                "workspace is required when an explicit Trust request is supplied",
+                "workspace is required when a Trust request is supplied or materialized",
             )
         workspace = _project_path(root, request.workspace)
         trust_report_path = analysis.output_dir / "prospective-trust-report.json"

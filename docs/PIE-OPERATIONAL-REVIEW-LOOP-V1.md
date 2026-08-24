@@ -6,7 +6,9 @@
 Program: PIE Operational Review Loop v1
 Classification: project-local operational adapter layer
 AUTO stage: NONE
-Current implementation: ORL-1 Operational Policy Contract
+Current implementation:
+- ORL-1 Operational Policy Contract
+- ORL-2 Operational Policy Binder
 Factory Intelligence authority: NONE
 ```
 
@@ -106,7 +108,7 @@ The ORL-1 loader compares the Operational Policy readiness schema with `trust-re
 
 ## Base-revision authority
 
-The policy used to evaluate a PR must come from the exact PR base revision:
+The policy used to evaluate a PR comes from the exact PR base revision:
 
 ```text
 PR base SHA = A
@@ -123,15 +125,16 @@ policy_authority: PR_BASE_REVISION
 
 A PR that edits `.review/operational/policy.yml` cannot weaken the policy used to evaluate itself. The changed policy becomes eligible only after it lands and is part of a later PR base revision.
 
-ORL-2 will bind the fetched base policy to exact provenance fields including:
+ORL-2 records:
 
 ```text
 policy_revision
 policy_blob_sha
+policy_content_sha256
 policy_sha256
 ```
 
-ORL-1 defines the semantic `policy_sha256`; GitHub base-revision/blob binding belongs to ORL-2.
+`policy_revision` is the exact Git base revision, `policy_blob_sha` is the exact Git blob identity returned for that base revision, `policy_content_sha256` binds the fetched bytes, and `policy_sha256` binds the normalized operational semantics.
 
 ## Evidence requirement is not evidence completion
 
@@ -155,9 +158,185 @@ Outcome = SAFE
 
 CI status metadata is not automatically treated as independently verified execution evidence.
 
-ORL-2 must materialize existing Trust request fields only when their source provenance actually supplies the required fact. Missing facts remain missing and keep the flow at `WAITING_FOR_TRUST_INPUT`.
+Missing facts remain missing and keep the flow at `WAITING_FOR_TRUST_INPUT`.
 
-## Fail-closed policy validation
+## ORL-2 — Operational Policy Binder
+
+ORL-2 consumes the existing exact-head GitHub prospective candidate and the ORL-1 policy from the exact PR base revision.
+
+Conceptually:
+
+```text
+AUTO-1 exact PR candidate
+        +
+exact base-revision Operational Policy
+        +
+optional explicit ORL Trust Facts
+        ↓
+deterministic policy match
+        ↓
+NO_POLICY_MATCH
+UNIQUE_POLICY_MATCH
+AMBIGUOUS_POLICY_MATCH
+        ↓
+MISSING_TRUST_FIELDS
+or
+TRUST_REQUEST_MATERIALIZED
+```
+
+ORL-2 is not a second Trust evaluator.
+
+When a request can be materialized, the output is the existing `trust-request.schema.json` contract and the existing prospective materialization / review-packet path remains authoritative.
+
+### Matching behavior
+
+V1 intentionally does not union multiple operational classes.
+
+```text
+0 matching classes
+→ NO_POLICY_MATCH
+
+1 matching class
+→ UNIQUE_POLICY_MATCH
+
+2+ matching classes
+→ AMBIGUOUS_POLICY_MATCH
+→ fail closed
+```
+
+An ambiguous match is not resolved by specificity heuristics, AI, priority guessing, or path-order selection.
+
+### Explicit Trust Facts
+
+The optional facts contract is:
+
+```text
+PIE_OPERATIONAL_TRUST_FACTS_V1
+```
+
+Example:
+
+```yaml
+schema_version: "1.0"
+contract_version: PIE_OPERATIONAL_TRUST_FACTS_V1
+project_id: thought-drawer
+source_revision: git:<EXACT_PR_HEAD>
+
+completed_scenarios:
+  - process-restart
+  - duplicate-scheduling
+
+verified_evidence:
+  - android-ci
+
+rollback_evidence: false
+replay_evidence: false
+
+provided_by: github-user
+provided_at: 2026-08-24T09:00:00Z
+```
+
+These facts are explicit operator input.
+
+They are not:
+
+```text
+human review
+Outcome
+merge authority
+deploy authority
+production-effect authority
+```
+
+A false boolean is transported only when explicitly supplied. Absence is not converted into false.
+
+`required_evidence` IDs cannot silently disappear during binding. If the selected Operational Policy requires an evidence ID that is not present in the explicit facts, ORL-2 remains at `MISSING_TRUST_FIELDS` and does not create a Trust request.
+
+### Existing Trust contract reuse
+
+When all required binder inputs exist, ORL-2 fills only fields whose provenance is explicit:
+
+| Trust request field | Source |
+|---|---|
+| `task_id` | AUTO-1 candidate |
+| `source_revision` | exact PR HEAD |
+| `changed_files` | AUTO-1 candidate |
+| `repository_match` | AUTO-1 exact verification |
+| `head_match` | AUTO-1 exact verification |
+| `task_class` | explicit ORL-1 mapping |
+| `required_scenarios` | ORL-1 policy |
+| `readiness_policy` | ORL-1 policy |
+| `completed_scenarios` | explicit ORL Trust Facts |
+| `rollback_evidence` | explicit ORL Trust Facts |
+| `replay_evidence` | explicit ORL Trust Facts |
+
+The resulting request is validated by the existing Trust request loader before it may be passed to AUTO-2 materialization.
+
+### `run-github-pr` adapter
+
+The existing orchestration command accepts two mutually exclusive Trust-source modes:
+
+```text
+--request <existing explicit Trust request>
+```
+
+or:
+
+```text
+--operational-policy .review/operational/policy.yml
+[--operational-trust-facts <facts file>]
+```
+
+If the binder cannot materialize a request:
+
+```text
+status = WAITING_FOR_TRUST_INPUT
+auto_trust_assessment = false
+auto_packet_prepare = false
+```
+
+If the binder materializes a valid existing Trust request and a campaign workspace is supplied:
+
+```text
+generated existing Trust request
+→ existing materialize_github_prospective_capture
+→ existing Trust assessment
+→ existing prepare_review_packet
+→ READY_FOR_HUMAN_REVIEW
+```
+
+No parallel Trust evaluator or review-recording path is introduced.
+
+### Operational evidence capsule
+
+When ORL-2 is enabled, the prospective evidence bundle may include:
+
+```text
+operational/
+  binding.json
+  base-policy.yml
+  trust-facts.yml
+```
+
+`binding.json` is a projection and carries a deterministic `binding_sha256`.
+
+It remains non-authoritative for human review, Outcome, merge, deploy, or production effect.
+
+### Replay binding
+
+When ORL-2 stops before Trust request materialization, the existing deterministic prospective result also binds:
+
+```text
+operational_binding_status
+operational_match_status
+operational_binding_sha256
+operational_policy_sha256
+operational_missing_inputs
+```
+
+Therefore policy matching changes cannot silently alter an otherwise same-input replay result.
+
+## ORL-1 fail-closed policy validation
 
 ORL-1 rejects:
 
@@ -169,11 +348,28 @@ ORL-1 rejects:
 - undeclared extra fields,
 - review or Outcome fields inserted into the policy contract.
 
-The normalized policy is deterministically ordered and receives a semantic SHA-256 so ORL-2 can bind the exact policy semantics used for a PR.
+The normalized policy is deterministically ordered and receives a semantic SHA-256.
+
+## ORL-2 fail-closed conditions
+
+ORL-2 rejects or stops on:
+
+- candidate exact-head blockers,
+- unresolved or non-exact PR base revision,
+- GitHub base-policy readback failure,
+- base policy project mismatch,
+- missing base policy,
+- no operational-class match,
+- ambiguous operational-class match,
+- stale Trust Facts source revision,
+- missing required evidence IDs,
+- invalid materialized Trust request.
+
+These conditions do not create review authority or an Outcome.
 
 ## Authority ceiling
 
-ORL-1 grants none of the following:
+ORL-1 and ORL-2 grant none of the following:
 
 ```text
 human review authority
@@ -187,14 +383,14 @@ Factory Intelligence authority
 cross-project promotion authority
 ```
 
-The policy is an explicit project-local verification requirement contract only.
+ORL-2 automates deterministic policy binding and safe request transport only.
 
 ## Planned sequence
 
 ```text
-ORL-1  Operational Policy Contract          IMPLEMENTED IN CURRENT PROGRAM PR
-ORL-2  Operational Policy Binder            NEXT
-ORL-3  Review Brief                          NOT IMPLEMENTED
+ORL-1  Operational Policy Contract          IMPLEMENTED
+ORL-2  Operational Policy Binder            IMPLEMENTED
+ORL-3  Review Brief                          NEXT
 ORL-4  Explicit Review Action                NOT IMPLEMENTED
 ORL-5  Outcome Declaration Context           NOT IMPLEMENTED
 ORL-6  Explicit Outcome Action               NOT IMPLEMENTED

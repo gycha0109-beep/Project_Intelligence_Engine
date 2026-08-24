@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/operational-trust-facts.schema.json",
+  "title": "PIE Operational Review Loop v1 Explicit Trust Facts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "project_id",
+    "source_revision",
+    "completed_scenarios",
+    "verified_evidence",
+    "rollback_evidence",
+    "replay_evidence",
+    "provided_by",
+    "provided_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_version": {"const": "PIE_OPERATIONAL_TRUST_FACTS_V1"},
+    "project_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "source_revision": {"type": "string", "pattern": "^git:[0-9a-f]{40}$"},
+    "completed_scenarios": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9._:-]+$"}
+    },
+    "verified_evidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9._:-]+$"}
+    },
+    "rollback_evidence": {"type": "boolean"},
+    "replay_evidence": {"type": "boolean"},
+    "provided_by": {"type": "string", "minLength": 1, "maxLength": 200},
+    "provided_at": {"type": "string", "format": "date-time"}
+  }
+}
