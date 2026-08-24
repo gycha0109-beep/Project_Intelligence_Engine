@@ -21,6 +21,8 @@ def cmd_run_github_pr(args: argparse.Namespace) -> int:
                 profile=args.profile,
                 config=args.config,
                 trust_request=args.request,
+                operational_policy=args.operational_policy,
+                operational_trust_facts=args.operational_trust_facts,
                 workspace=args.workspace,
                 output_root=args.output_root,
                 generated_at=args.generated_at,
@@ -50,7 +52,16 @@ def add_prospective_automation_subparser(sub: argparse._SubParsersAction) -> Non
     command.add_argument("--repository-root", default=".")
     command.add_argument("--profile", default=".review/project.yml")
     command.add_argument("--config", default=".review/intelligence/config.yml")
-    command.add_argument("--request")
+    trust_source = command.add_mutually_exclusive_group()
+    trust_source.add_argument("--request", help="Existing explicit Trust request")
+    trust_source.add_argument(
+        "--operational-policy",
+        help="Project-relative Operational Policy path fetched from the exact PR base revision",
+    )
+    command.add_argument(
+        "--operational-trust-facts",
+        help="Explicit ORL Trust facts bound to the current PR HEAD; requires --operational-policy",
+    )
     command.add_argument("--workspace")
     command.add_argument("--output-root", default=".pie/automation")
     command.add_argument("--generated-at")
