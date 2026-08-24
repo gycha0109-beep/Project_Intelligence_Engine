@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "evidence_contract": "PIE_AUTO2_HUMAN_REVIEW_BRIDGE_CALIBRATION_V1",
+  "status": "PASS",
+  "authority": {
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "revision": "5043c7caea2893d86183d8f76ae7c9b1c7aa0101",
+    "trust_request_path": "evidence/trust/requests/auto2-synthetic-calibration-pr8-20260824.json",
+    "trust_request_sha256": "f59d36876dc3ef1ddb609584ea9b18998d45bdc39f162edb309e731350539dd3"
+  },
+  "target": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "pull_request": 8,
+    "state": "OPEN",
+    "draft": true,
+    "merged": false,
+    "base_sha": "5673310fe66d74da5d31f165ffc4314e0d845740",
+    "head_sha": "bee68c0635fb5001d42168ddac23de04b1e526df",
+    "changed_files": [
+      ".pie-auto2/synthetic-target.md"
+    ]
+  },
+  "harness": {
+    "repository": "pie-peb3-lab/pie-peb3-calibration",
+    "pull_request": 9,
+    "state": "OPEN",
+    "draft": true,
+    "merged": false,
+    "head_sha": "0c26c0920983c539b602216552f98a2e9a8fdfa3"
+  },
+  "replays": [
+    {
+      "label": "A",
+      "run_id": 32689759680,
+      "artifact_id": 9506850092,
+      "artifact_digest": "sha256:7ea69187f43390402167e8afb49fa98400e27c56d78e83e6d633276957db2cbc",
+      "assessment_id": "assessment-14f66912abbff347151c07ebdbc2be94",
+      "execution_id": "pie-pr-auto-b4266d81d47c3d95a9f0a07670b24b72",
+      "raw_packet_id": "prospective-review-packet-98ea4b35d723dfe95e24b16230e812ff",
+      "raw_packet_evidence_snapshot_sha256": "5d3dce5079081d83c8764734205e12a3f3e6cd35458c517dbc17ba0a49883620",
+      "raw_observation_manifest_sha256": "66ce561f335b98e7a26143a67d431fd54771b4c18854986491716222aeea8884",
+      "semantic_packet_sha256": "c87ed7aeafb9bbafda7b82ded448421171a90bb78bf24721236f2ec62934ebe3",
+      "deterministic_result_sha256": "ad6a05956ca29ad84924d5136a86734017c0802d104a440ad036e99e5a1b690b"
+    },
+    {
+      "label": "B",
+      "run_id": 32689866835,
+      "artifact_id": 9506886022,
+      "artifact_digest": "sha256:dbc0c217420e1bb2dd75be9a8208f3ce0966975512021ebd373ed72f1d58ffcf",
+      "assessment_id": "assessment-14f66912abbff347151c07ebdbc2be94",
+      "execution_id": "pie-pr-auto-b4266d81d47c3d95a9f0a07670b24b72",
+      "raw_packet_id": "prospective-review-packet-0980dd54252837011b5ffffea5320abc",
+      "raw_packet_evidence_snapshot_sha256": "f00f0193a917b60efe0305c4993460ba8efb6e8f7be0edf65a21bf06f5e89336",
+      "raw_observation_manifest_sha256": "9c5d52ca56eb7b17ab2ee85cfcf6b0903d602c26a2908decbff318e4c82eab31",
+      "semantic_packet_sha256": "c87ed7aeafb9bbafda7b82ded448421171a90bb78bf24721236f2ec62934ebe3",
+      "deterministic_result_sha256": "ad6a05956ca29ad84924d5136a86734017c0802d104a440ad036e99e5a1b690b"
+    }
+  ],
+  "replay_assertions": {
+    "assessment_id_equal": true,
+    "execution_id_equal": true,
+    "semantic_packet_sha256_equal": true,
+    "deterministic_result_sha256_equal": true,
+    "raw_packet_id_equal": false,
+    "raw_packet_evidence_snapshot_sha256_equal": false,
+    "raw_observation_manifest_sha256_equal": false
+  },
+  "terminal_state": "READY_FOR_HUMAN_REVIEW",
+  "risk_band": "R1",
+  "authority_ceiling": {
+    "human_review_recorded": false,
+    "outcome_recorded": false,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "merge_authorized": false,
+    "deploy_authorized": false,
+    "production_effect_authorized": false
+  },
+  "conclusion": "AUTO-2 semantic replay is calibrated for exact identical governed inputs while raw provider and Stage 10K packet provenance remains independently preserved."
+}
