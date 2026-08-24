@@ -21,6 +21,11 @@ _SUMMARY_RESULT_KEYS = (
     "packet_id",
     "risk_band",
     "readiness",
+    "operational_binding_status",
+    "operational_match_status",
+    "operational_binding_sha256",
+    "operational_policy_sha256",
+    "operational_missing_inputs",
     "auto_capture",
     "auto_analysis",
     "auto_trust_assessment",
@@ -88,7 +93,7 @@ def build_deterministic_result(
 
 def verify_deterministic_result(value: Any) -> list[str]:
     if not isinstance(value, dict):
-        return ["deterministic result must be an object"]
+        return ["deterministic result must contain an object"]
     errors: list[str] = []
     if value.get("schema_version") != REPLAY_SCHEMA_VERSION:
         errors.append("deterministic result schema_version mismatch")
