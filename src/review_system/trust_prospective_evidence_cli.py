@@ -19,6 +19,11 @@ from .trust_outcome_declaration import (
     OutcomeDeclarationVerificationError,
     build_outcome_declaration,
 )
+from .trust_outcome_transport import (
+    OutcomeTransportError,
+    OutcomeTransportVerificationError,
+    transport_declared_outcome,
+)
 from .trust_prospective_evidence import (
     ProspectiveEvidenceError,
     ProspectiveEvidenceVerificationError,
@@ -78,6 +83,20 @@ def cmd_prepare_outcome_declaration(args: argparse.Namespace) -> int:
         audit_id=args.audit_id,
         audit_artifact_sha256=args.audit_artifact_sha256,
         audit_authority_registry_sha256=args.audit_authority_registry_sha256,
+    )
+    _print({"valid": True, **result})
+    return 0
+
+
+def cmd_transport_outcome_declaration(args: argparse.Namespace) -> int:
+    result = transport_declared_outcome(
+        args.workspace,
+        declaration=args.declaration,
+        defect_registry=args.defect_registry,
+        ledger=args.ledger,
+        evaluation_report=args.evaluation_report,
+        audit_artifact=args.audit_artifact,
+        audit_authority_registry=args.audit_authority_registry,
     )
     _print({"valid": True, **result})
     return 0
@@ -193,6 +212,19 @@ def _add_outcome_declaration_parser(sub: argparse._SubParsersAction) -> None:
     command.add_argument("--audit-authority-registry-sha256")
     command.set_defaults(func=cmd_prepare_outcome_declaration)
 
+    command = sub.add_parser(
+        "record-declared-prospective-outcome",
+        help="Verify and transport an existing explicit Outcome declaration into the prospective campaign.",
+    )
+    command.add_argument("--workspace", required=True)
+    command.add_argument("--declaration", required=True)
+    command.add_argument("--defect-registry")
+    command.add_argument("--ledger")
+    command.add_argument("--evaluation-report")
+    command.add_argument("--audit-artifact")
+    command.add_argument("--audit-authority-registry")
+    command.set_defaults(func=cmd_transport_outcome_declaration)
+
 
 def add_prospective_subparsers(sub: argparse._SubParsersAction) -> None:
     command = sub.add_parser("intake-prospective-case")
@@ -271,6 +303,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ProspectiveEvidenceVerificationError,
         GitHubProspectiveCaptureVerificationError,
         OutcomeDeclarationVerificationError,
+        OutcomeTransportVerificationError,
     ) as exc:
         _print({"valid": False, "errors": list(exc.errors)}, stream=sys.stderr)
         return 4
@@ -278,6 +311,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ProspectiveEvidenceError,
         GitHubProspectiveCaptureError,
         OutcomeDeclarationError,
+        OutcomeTransportError,
         GitHubCLIError,
         TrustComparisonError,
         OSError,
