@@ -6,6 +6,7 @@ import sys
 
 from .github_connector import GitHubCLI
 from .prospective_automation import ProspectiveAutomationError, RunGitHubPRRequest, run_github_pr
+from .prospective_trust_bridge_cli import add_prospective_trust_bridge_subparser
 
 
 def cmd_run_github_pr(args: argparse.Namespace) -> int:
@@ -57,3 +58,5 @@ def add_prospective_automation_subparser(sub: argparse._SubParsersAction) -> Non
     command.add_argument("--timeout", type=int, default=120)
     command.add_argument("--gh-executable", help=argparse.SUPPRESS)
     command.set_defaults(func=cmd_run_github_pr)
+
+    add_prospective_trust_bridge_subparser(sub)
