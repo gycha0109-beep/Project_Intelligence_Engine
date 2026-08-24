@@ -245,6 +245,12 @@ def _read_bridge_case(value: str | Path) -> dict[str, Any]:
         raise ProspectiveCampaignProjectionError("SOURCE_RECONCILIATION_FAILED", "AUTO-2 required assessment sources are incomplete")
 
     policy = _load_json(workspace / "observation-policy.json", "AUTO-2 observation policy")
+    source_material_sha256 = canonical_json_sha256(
+        {
+            field: file_sha256(path) if path is not None else None
+            for field, path in sorted(sources.items())
+        }
+    )
     return {
         "artifact_root": str(Path(value).expanduser().resolve()),
         "bridge_root": str(bridge),
@@ -257,6 +263,7 @@ def _read_bridge_case(value: str | Path) -> dict[str, Any]:
         "registry_created_at": registry["created_at"],
         "deterministic_result_sha256": result.get("deterministic_result_sha256"),
         "semantic_packet_sha256": result.get("semantic_packet_sha256"),
+        "source_material_sha256": source_material_sha256,
         "policy": policy,
         "policy_sha256": canonical_json_sha256(policy),
         "sources": sources,
@@ -343,7 +350,14 @@ def project_auto2_artifacts_to_campaign(
     if not values:
         raise ProspectiveCampaignProjectionError("INVALID_INPUT", "at least one AUTO-2 bridge artifact is required")
     cases = [_read_bridge_case(value) for value in values]
-    cases.sort(key=lambda item: (item["assessment_id"], item["deterministic_result_sha256"], item["semantic_packet_sha256"]))
+    cases.sort(
+        key=lambda item: (
+            item["assessment_id"],
+            item["deterministic_result_sha256"],
+            item["semantic_packet_sha256"],
+            item["source_material_sha256"],
+        )
+    )
 
     project_ids = {case["project_id"] for case in cases}
     if len(project_ids) != 1:
@@ -366,6 +380,15 @@ def project_auto2_artifacts_to_campaign(
                 f"assessment {case['assessment_id']} has conflicting AUTO-2 deterministic results",
             )
 
+    projection_cases: list[dict[str, Any]] = []
+    seen_assessment_ids: set[str] = set()
+    for case in cases:
+        if case["assessment_id"] in seen_assessment_ids:
+            continue
+        seen_assessment_ids.add(case["assessment_id"])
+        projection_cases.append(case)
+    semantic_duplicate_count = len(cases) - len(projection_cases)
+
     workspace = Path(workspace_root).expanduser()
     if _path_has_symlink(workspace):
         raise ProspectiveCampaignProjectionError("INVALID_INPUT", f"destination workspace must not contain symlinks: {workspace}")
@@ -381,15 +404,15 @@ def project_auto2_artifacts_to_campaign(
         if _workspace_policy_hash(workspace) != policy_hash:
             raise ProspectiveCampaignProjectionError("POLICY_MISMATCH", "destination campaign observation policy mismatch")
 
-    created_at = min(case["registry_created_at"] for case in cases)
+    created_at = min(case["registry_created_at"] for case in projection_cases)
     temp_parent = Path(tempfile.mkdtemp(prefix=".auto4b-projection.", dir=workspace.parent))
     staging = temp_parent / "workspace"
     try:
         if existed:
             shutil.copytree(workspace, staging)
         else:
-            _initialize_workspace(staging, project_id=project_id, created_at=created_at, policy=cases[0]["policy"])
-        preflight_results = _apply_cases(staging, cases)
+            _initialize_workspace(staging, project_id=project_id, created_at=created_at, policy=projection_cases[0]["policy"])
+        preflight_results = _apply_cases(staging, projection_cases)
         preflight_progress = _progress(staging, generated_at)
         _, preflight_registry = load_registry(staging / "comparison-registry.json")
         if preflight_progress.get("reconciliation", {}).get("source_reconciliation_complete") is not True:
@@ -398,7 +421,7 @@ def project_auto2_artifacts_to_campaign(
             raise ProspectiveCampaignProjectionError("AUTHORITY_VIOLATION", "preflight campaign projection elevated authority")
 
         if existed:
-            committed_results = _apply_cases(workspace, cases)
+            committed_results = _apply_cases(workspace, projection_cases)
             committed_progress = _progress(workspace, generated_at)
             _, committed_registry = load_registry(workspace / "comparison-registry.json")
             if committed_registry["registry_sha256"] != preflight_registry["registry_sha256"]:
@@ -419,7 +442,7 @@ def project_auto2_artifacts_to_campaign(
 
     assessment_ids = sorted({case["assessment_id"] for case in cases})
     projected_count = sum(1 for item in committed_results if item.get("idempotent") is False)
-    idempotent_count = sum(1 for item in committed_results if item.get("idempotent") is True)
+    idempotent_count = semantic_duplicate_count + sum(1 for item in committed_results if item.get("idempotent") is True)
     report: dict[str, Any] = {
         "schema_version": PROJECTION_SCHEMA_VERSION,
         "stage": "AUTO-4B",
