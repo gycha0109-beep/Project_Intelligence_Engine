@@ -77,14 +77,12 @@
     "risk": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["predicted_risk_band", "readiness", "review_required", "recommended_review_level", "hard_gates", "reason_codes"],
+      "required": ["predicted_risk_band", "readiness", "review_requirement", "hard_gates"],
       "properties": {
         "predicted_risk_band": {"type": ["string", "null"]},
         "readiness": {"type": ["string", "null"]},
-        "review_required": {"type": ["boolean", "null"]},
-        "recommended_review_level": {"type": ["string", "null"]},
-        "hard_gates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        "review_requirement": {"type": ["string", "null"]},
+        "hard_gates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       }
     },
     "required_verification": {
