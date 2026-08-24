@@ -67,7 +67,94 @@ def _dependent_paths(impact: Mapping[str, Any]) -> list[str]:
     values = section.get("dependent_files", [])
     if not isinstance(values, list):
         return []
-    return sorted({item["path"] for item in values if isinstance(item, Mapping) and isinstance(item.get("path"), str) and item["path"]})
+    return sorted({
+        item["path"]
+        for item in values
+        if isinstance(item, Mapping) and isinstance(item.get("path"), str) and item["path"]
+    })
+
+
+def _assert_source_closure(
+    *,
+    summary: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+    operational_binding: Mapping[str, Any] | None,
+    review_packet: Mapping[str, Any] | None,
+) -> None:
+    repository = candidate.get("repository", {})
+    pull_request = candidate.get("pull_request", {})
+    if not isinstance(repository, Mapping) or not isinstance(pull_request, Mapping):
+        raise OperationalReviewBriefError("candidate repository and pull_request bindings are required")
+    repo_name = repository.get("name_with_owner")
+    hostname = repository.get("hostname")
+    pr_number = pull_request.get("number")
+    base_oid = pull_request.get("base_oid")
+    head_oid = pull_request.get("head_oid")
+    changed_files = _sorted_strings(candidate.get("changed_files", []))
+
+    if summary.get("repository") != (repo_name.lower() if isinstance(repo_name, str) else repo_name):
+        raise OperationalReviewBriefError("summary repository does not match candidate repository")
+    if summary.get("pull_request") != pr_number:
+        raise OperationalReviewBriefError("summary pull_request does not match candidate")
+    if summary.get("source_revision") != head_oid:
+        raise OperationalReviewBriefError("summary source_revision does not match candidate PR head")
+    if summary.get("candidate_id") != candidate.get("candidate_id"):
+        raise OperationalReviewBriefError("summary candidate_id does not match candidate")
+
+    if operational_binding is not None:
+        binding_repo = operational_binding.get("repository", {})
+        binding_pr = operational_binding.get("pull_request", {})
+        if operational_binding.get("project_id") != candidate.get("project_id"):
+            raise OperationalReviewBriefError("operational binding project_id does not match candidate")
+        if operational_binding.get("candidate_id") != candidate.get("candidate_id"):
+            raise OperationalReviewBriefError("operational binding candidate_id does not match candidate")
+        if operational_binding.get("source_revision") != f"git:{head_oid}":
+            raise OperationalReviewBriefError("operational binding source_revision does not match candidate PR head")
+        if not isinstance(binding_repo, Mapping) or (
+            str(binding_repo.get("hostname", "")).lower() != str(hostname or "").lower()
+            or str(binding_repo.get("name_with_owner", "")).lower() != str(repo_name or "").lower()
+        ):
+            raise OperationalReviewBriefError("operational binding repository does not match candidate")
+        if not isinstance(binding_pr, Mapping) or (
+            binding_pr.get("number") != pr_number
+            or binding_pr.get("base_oid") != base_oid
+            or binding_pr.get("head_oid") != head_oid
+        ):
+            raise OperationalReviewBriefError("operational binding PR identity does not match candidate")
+        if _sorted_strings(operational_binding.get("changed_files", [])) != changed_files:
+            raise OperationalReviewBriefError("operational binding changed_files do not match candidate")
+
+    if review_packet is None:
+        if summary.get("status") != "WAITING_FOR_TRUST_INPUT":
+            raise OperationalReviewBriefError("review packet is required for READY_FOR_HUMAN_REVIEW")
+        return
+
+    github = review_packet.get("github", {})
+    if summary.get("status") != "READY_FOR_HUMAN_REVIEW":
+        raise OperationalReviewBriefError("review packet cannot be projected while pipeline is waiting")
+    if review_packet.get("project_id") != candidate.get("project_id"):
+        raise OperationalReviewBriefError("review packet project_id does not match candidate")
+    if review_packet.get("source_revision") != f"git:{head_oid}":
+        raise OperationalReviewBriefError("review packet source_revision does not match candidate PR head")
+    if review_packet.get("task_id") != candidate.get("task_id"):
+        raise OperationalReviewBriefError("review packet task_id does not match candidate")
+    if review_packet.get("assessment_id") != summary.get("assessment_id"):
+        raise OperationalReviewBriefError("review packet assessment_id does not match run summary")
+    if review_packet.get("packet_id") != summary.get("packet_id"):
+        raise OperationalReviewBriefError("review packet packet_id does not match run summary")
+    if isinstance(summary.get("risk_band"), str) and review_packet.get("predicted_risk_band") != summary.get("risk_band"):
+        raise OperationalReviewBriefError("review packet predicted risk does not match run summary")
+    if not isinstance(github, Mapping) or (
+        github.get("candidate_id") != candidate.get("candidate_id")
+        or str(github.get("hostname", "")).lower() != str(hostname or "").lower()
+        or str(github.get("repository", "")).lower() != str(repo_name or "").lower()
+        or github.get("pr_number") != pr_number
+        or github.get("base_oid") != base_oid
+        or github.get("head_oid") != head_oid
+    ):
+        raise OperationalReviewBriefError("review packet GitHub identity does not match candidate")
+    if _sorted_strings(review_packet.get("changed_files", [])) != changed_files:
+        raise OperationalReviewBriefError("review packet changed_files do not match candidate")
 
 
 def _policy_projection(binding: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -119,39 +206,23 @@ def _requirements_projection(binding: Mapping[str, Any] | None, impact: Mapping[
 
 
 def _trust_projection(packet: Mapping[str, Any] | None, binding: Mapping[str, Any] | None) -> dict[str, Any]:
-    if packet is None:
-        assessment_id = assessment_sha = trust_report_id = trust_report_sha = packet_id = packet_sha = None
-    else:
-        assessment_id = packet.get("assessment_id")
-        assessment_sha = packet.get("assessment_sha256")
-        trust_report_id = packet.get("trust_report_id")
-        trust_report_sha = packet.get("trust_report_sha256")
-        packet_id = packet.get("packet_id")
-        packet_sha = packet.get("packet_sha256")
     return {
-        "assessment_id": assessment_id,
-        "assessment_sha256": assessment_sha,
-        "trust_report_id": trust_report_id,
-        "trust_report_sha256": trust_report_sha,
-        "review_packet_id": packet_id,
-        "review_packet_sha256": packet_sha,
+        "assessment_id": packet.get("assessment_id") if packet else None,
+        "assessment_sha256": packet.get("assessment_sha256") if packet else None,
+        "trust_report_id": packet.get("trust_report_id") if packet else None,
+        "trust_report_sha256": packet.get("trust_report_sha256") if packet else None,
+        "review_packet_id": packet.get("packet_id") if packet else None,
+        "review_packet_sha256": packet.get("packet_sha256") if packet else None,
         "operational_policy": _policy_projection(binding),
     }
 
 
 def _risk_projection(summary: Mapping[str, Any], packet: Mapping[str, Any] | None) -> dict[str, Any]:
-    if packet is None:
-        return {
-            "predicted_risk_band": summary.get("risk_band") if isinstance(summary.get("risk_band"), str) else None,
-            "readiness": summary.get("readiness") if isinstance(summary.get("readiness"), str) else None,
-            "review_requirement": None,
-            "hard_gates": [],
-        }
     return {
-        "predicted_risk_band": packet.get("predicted_risk_band"),
+        "predicted_risk_band": packet.get("predicted_risk_band") if packet else (summary.get("risk_band") if isinstance(summary.get("risk_band"), str) else None),
         "readiness": summary.get("readiness") if isinstance(summary.get("readiness"), str) else None,
-        "review_requirement": packet.get("review_requirement"),
-        "hard_gates": _sorted_strings(packet.get("hard_gates", [])),
+        "review_requirement": packet.get("review_requirement") if packet else None,
+        "hard_gates": _sorted_strings(packet.get("hard_gates", [])) if packet else [],
     }
 
 
@@ -170,10 +241,14 @@ def build_operational_review_brief(
     operational_binding: Mapping[str, Any] | None = None,
     review_packet: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    repository = candidate.get("repository", {})
-    pull_request = candidate.get("pull_request", {})
-    if not isinstance(repository, Mapping) or not isinstance(pull_request, Mapping):
-        raise OperationalReviewBriefError("candidate repository and pull_request bindings are required")
+    _assert_source_closure(
+        summary=summary,
+        candidate=candidate,
+        operational_binding=operational_binding,
+        review_packet=review_packet,
+    )
+    repository = candidate["repository"]
+    pull_request = candidate["pull_request"]
     direct = impact.get("direct", {})
     direct = direct if isinstance(direct, Mapping) else {}
     review = impact.get("review", {})
@@ -211,11 +286,7 @@ def build_operational_review_brief(
         },
         "risk": _risk_projection(summary, review_packet),
         "required_verification": _requirements_projection(operational_binding, impact),
-        "history": {
-            "available": False,
-            "reason": _HISTORY_REASON,
-            "matches": [],
-        },
+        "history": {"available": False, "reason": _HISTORY_REASON, "matches": []},
         "trust": _trust_projection(review_packet, operational_binding),
         "authority": {field: False for field in _AUTHORITY_FIELDS},
         "brief_sha256": "",
@@ -236,19 +307,20 @@ def verify_operational_review_brief_data(value: Any) -> list[str]:
     trust = value.get("trust", {})
     policy = trust.get("operational_policy", {}) if isinstance(trust, dict) else {}
     authority = value.get("authority", {})
+    risk = value.get("risk", {})
 
     if source.get("source_revision") != pull_request.get("head_oid"):
         errors.append("source.source_revision must equal pull_request.head_oid")
     if value.get("status") == "READY_FOR_HUMAN_REVIEW":
         if not trust.get("assessment_id") or not trust.get("review_packet_id"):
             errors.append("READY_FOR_HUMAN_REVIEW requires exact assessment and review packet bindings")
-        if value.get("risk", {}).get("review_requirement") is None:
+        if risk.get("review_requirement") is None:
             errors.append("READY_FOR_HUMAN_REVIEW requires review_requirement")
     elif value.get("status") == "WAITING_FOR_TRUST_INPUT":
         for field in ("assessment_id", "assessment_sha256", "trust_report_id", "trust_report_sha256", "review_packet_id", "review_packet_sha256"):
             if trust.get(field) is not None:
                 errors.append(f"WAITING_FOR_TRUST_INPUT cannot bind trust.{field}")
-        if value.get("risk", {}).get("review_requirement") is not None:
+        if risk.get("review_requirement") is not None:
             errors.append("WAITING_FOR_TRUST_INPUT cannot claim review_requirement")
 
     if policy.get("enabled") is False:
