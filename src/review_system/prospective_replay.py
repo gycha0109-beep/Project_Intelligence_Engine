@@ -93,7 +93,7 @@ def build_deterministic_result(
 
 def verify_deterministic_result(value: Any) -> list[str]:
     if not isinstance(value, dict):
-        return ["deterministic result must contain an object"]
+        return ["deterministic result must be an object"]
     errors: list[str] = []
     if value.get("schema_version") != REPLAY_SCHEMA_VERSION:
         errors.append("deterministic result schema_version mismatch")
