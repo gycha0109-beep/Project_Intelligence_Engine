@@ -76,7 +76,7 @@ def _fixture(root: Path, *, with_outcome: bool) -> dict:
     trust_fixture, _report, report_path = build_r0_case(
         base_root,
         task_id="TASK-AUTO4C-001",
-        revision_char="c",
+        revision_char="1",
         generated_at="2026-08-18T01:00:00Z",
     )
     intake(base, trust_fixture, report_path, captured_at="2026-08-18T02:00:00Z")
@@ -265,6 +265,38 @@ class ProspectiveCampaignEventProjectionTests(unittest.TestCase):
             self.assertEqual("LINEAGE_MISMATCH", caught.exception.code)
             _, after = load_registry(registry_path)
             self.assertEqual(changed["registry_sha256"], after["registry_sha256"])
+
+    def test_destination_cannot_extend_beyond_governed_source_event_chain(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            fixture = _fixture(root, with_outcome=False)
+            project_governed_campaign_events(
+                fixture["destination"],
+                source_workspace=fixture["source"],
+                generated_at="2026-08-18T05:00:00Z",
+            )
+            registry_path = fixture["destination"] / "comparison-registry.json"
+            _, registry = load_registry(registry_path)
+            extended = record_decision(
+                registry,
+                assessment_id=fixture["assessment"]["assessment_id"],
+                review_level="WORKFLOW_ACCEPTED",
+                decision="HOLD",
+                actor="workflow:destination-only",
+                occurred_at="2026-08-18T03:30:00Z",
+                reason_codes=["DESTINATION_ONLY_EVENT"],
+            )
+            write_registry(registry_path, extended)
+
+            with self.assertRaises(ProspectiveCampaignEventProjectionError) as caught:
+                project_governed_campaign_events(
+                    fixture["destination"],
+                    source_workspace=fixture["source"],
+                    generated_at="2026-08-18T05:00:00Z",
+                )
+            self.assertEqual("LINEAGE_MISMATCH", caught.exception.code)
+            _, after = load_registry(registry_path)
+            self.assertEqual(extended["registry_sha256"], after["registry_sha256"])
 
 
 if __name__ == "__main__":
