@@ -70,6 +70,14 @@ def _signal(
     operational_binding: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     if operational_binding is None:
+        if summary.get("status") == "READY_FOR_HUMAN_REVIEW":
+            return {
+                "contract_version": SIGNAL_CONTRACT_VERSION,
+                "status": _ACTION_REQUIRED,
+                "reason": "HUMAN_REVIEW_REQUIRED",
+                "match_status": None,
+                "next": "READ_OPERATIONAL_BRIEF",
+            }
         return {
             "contract_version": SIGNAL_CONTRACT_VERSION,
             "status": _CLEAR,
