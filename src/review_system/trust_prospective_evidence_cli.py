@@ -12,6 +12,10 @@ from .github_prospective_capture import (
     load_github_prospective_capture_candidate,
     materialize_github_prospective_capture,
 )
+from .operational_review_action import (
+    OperationalReviewActionError,
+    OperationalReviewActionVerificationError,
+)
 from .prospective_automation_cli import add_prospective_automation_subparser
 from .trust_comparison import TrustComparisonError
 from .trust_outcome_declaration import (
@@ -302,6 +306,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         ProspectiveEvidenceVerificationError,
         GitHubProspectiveCaptureVerificationError,
+        OperationalReviewActionVerificationError,
         OutcomeDeclarationVerificationError,
         OutcomeTransportVerificationError,
     ) as exc:
@@ -310,6 +315,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         ProspectiveEvidenceError,
         GitHubProspectiveCaptureError,
+        OperationalReviewActionError,
         OutcomeDeclarationError,
         OutcomeTransportError,
         GitHubCLIError,
