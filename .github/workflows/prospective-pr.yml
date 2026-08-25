@@ -29,6 +29,11 @@ on:
         required: false
         default: .review/intelligence/config.yml
         type: string
+      operational_policy:
+        description: Optional project-relative Operational Policy path. Empty keeps the legacy report-only Trust-input path.
+        required: false
+        default: ""
+        type: string
     outputs:
       execution_id:
         description: Deterministic PIE prospective execution identity.
@@ -73,6 +78,7 @@ jobs:
           INPUT_PIE_REVISION: ${{ inputs.pie_revision }}
           INPUT_PROFILE: ${{ inputs.profile }}
           INPUT_CONFIG: ${{ inputs.config }}
+          INPUT_OPERATIONAL_POLICY: ${{ inputs.operational_policy }}
           CALLER_REPOSITORY: ${{ github.repository }}
           CALLER_EVENT_NAME: ${{ github.event_name }}
           CALLER_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -126,6 +132,14 @@ jobs:
               if not raw or path.is_absolute() or ".." in path.parts:
                   failures.append(f"INVALID_INPUT: {field.lower()} must be a safe repository-relative path")
 
+          operational_policy = os.environ["INPUT_OPERATIONAL_POLICY"].strip().replace("\\", "/")
+          if operational_policy:
+              policy_path = PurePosixPath(operational_policy)
+              if policy_path.is_absolute() or ".." in policy_path.parts:
+                  failures.append(
+                      "INVALID_INPUT: input_operational_policy must be a safe repository-relative path when provided"
+                  )
+
           if failures:
               raise SystemExit("\n".join(failures))
           PY
@@ -178,21 +192,27 @@ jobs:
           INPUT_PIE_REVISION: ${{ inputs.pie_revision }}
           INPUT_PROFILE: ${{ inputs.profile }}
           INPUT_CONFIG: ${{ inputs.config }}
+          INPUT_OPERATIONAL_POLICY: ${{ inputs.operational_policy }}
           WORKFLOW_RUN_ID: ${{ github.run_id }}
           WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
           WORKFLOW_REF: ${{ job.workflow_ref }}
         run: |
           set -euo pipefail
           result_file="${RUNNER_TEMP}/pie-result.json"
-          pie-trust-prospective run-github-pr "${INPUT_PR_NUMBER}" \
-            --event-head-sha "${INPUT_EVENT_HEAD}" \
-            --pie-revision "${INPUT_PIE_REVISION}" \
-            --repo "${INPUT_REPOSITORY}" \
-            --repository-root "${GITHUB_WORKSPACE}" \
-            --profile "${INPUT_PROFILE}" \
-            --config "${INPUT_CONFIG}" \
-            --output-root ".pie/automation" \
-            > "${result_file}"
+          args=(
+            run-github-pr "${INPUT_PR_NUMBER}"
+            --event-head-sha "${INPUT_EVENT_HEAD}"
+            --pie-revision "${INPUT_PIE_REVISION}"
+            --repo "${INPUT_REPOSITORY}"
+            --repository-root "${GITHUB_WORKSPACE}"
+            --profile "${INPUT_PROFILE}"
+            --config "${INPUT_CONFIG}"
+            --output-root ".pie/automation"
+          )
+          if [[ -n "${INPUT_OPERATIONAL_POLICY}" ]]; then
+            args+=(--operational-policy "${INPUT_OPERATIONAL_POLICY}")
+          fi
+          pie-trust-prospective "${args[@]}" > "${result_file}"
 
           python - <<'PY'
           import json
@@ -276,11 +296,13 @@ jobs:
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           risk = result.get("risk_band") or "NOT_ASSESSED"
           readiness = result.get("readiness") or "NOT_ASSESSED"
+          operational_binding = result.get("operational_binding_status") or "NOT_ENABLED"
           summary.write_text(
               "# PIE Prospective Assessment\n\n"
               f"- Status: `{result['status']}`\n"
               f"- Risk: `{risk}`\n"
               f"- Readiness: `{readiness}`\n"
+              f"- Operational binding: `{operational_binding}`\n"
               f"- Execution: `{result['execution_id']}`\n"
               f"- Source revision: `{result['source_revision']}`\n"
               f"- PIE revision: `{result['pie_revision']}`\n"

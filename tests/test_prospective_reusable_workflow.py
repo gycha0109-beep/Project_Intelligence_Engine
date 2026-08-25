@@ -34,9 +34,10 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
 
     def test_workflow_runs_only_read_only_orchestration_path(self):
         text = self.text
-        self.assertIn("pie-trust-prospective run-github-pr", text)
+        self.assertIn('pie-trust-prospective "${args[@]}"', text)
         self.assertNotIn("--request", text)
         self.assertNotIn("--workspace", text)
+        self.assertNotIn("--operational-trust-facts", text)
         for forbidden in (
             "pull_request_review",
             "record-prospective-outcome",
@@ -51,6 +52,19 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
             "mvn test",
         ):
             self.assertNotIn(forbidden, text)
+
+    def test_optional_operational_policy_is_fail_closed_and_report_only(self):
+        text = self.text
+        self.assertIn("operational_policy:", text)
+        self.assertIn('default: ""', text)
+        self.assertIn("INPUT_OPERATIONAL_POLICY: ${{ inputs.operational_policy }}", text)
+        self.assertIn('if operational_policy:', text)
+        self.assertIn("policy_path.is_absolute()", text)
+        self.assertIn('".." in policy_path.parts', text)
+        self.assertIn('if [[ -n "${INPUT_OPERATIONAL_POLICY}" ]]; then', text)
+        self.assertIn('args+=(--operational-policy "${INPUT_OPERATIONAL_POLICY}")', text)
+        self.assertNotIn("operational_trust_facts:", text)
+        self.assertNotIn("--operational-trust-facts", text)
 
     def test_transport_and_raw_observation_are_separate_from_replay_authority(self):
         text = self.text
@@ -71,6 +85,7 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
     def test_risk_result_is_not_a_failure_gate(self):
         text = self.text
         self.assertIn('risk = result.get("risk_band") or "NOT_ASSESSED"', text)
+        self.assertIn('operational_binding = result.get("operational_binding_status") or "NOT_ENABLED"', text)
         self.assertIn('f"- Status: `{result[\'status\']}`', text)
         self.assertIn("Human review: `NOT RECORDED`", text)
         self.assertIn("Merge / deploy / production effect authority: `NOT GRANTED`", text)
