@@ -1,0 +1,357 @@
+name: PIE Explicit Outcome Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_repository:
+        description: Exact target repository in owner/name form.
+        required: true
+        type: string
+      pull_request_number:
+        description: Target pull request number with an ORL-5 Outcome context.
+        required: true
+        type: number
+      authority_type:
+        description: Existing AUTO-3 source-reconcilable Outcome authority.
+        required: true
+        type: choice
+        options:
+          - PRODUCTION_DEFECT
+          - CONTROLLED_EVALUATION
+          - INDEPENDENT_AUDIT
+      verdict:
+        description: Explicit human Outcome verdict.
+        required: true
+        type: choice
+        options:
+          - SAFE
+          - UNSAFE
+          - INCONCLUSIVE
+      source_run_id:
+        description: Exact PIE authority workflow run containing the authority-source artifact.
+        required: true
+        type: number
+      source_artifact_name:
+        description: Exact artifact name in source_run_id containing authority evidence.
+        required: true
+        type: string
+      primary_source_path:
+        description: Relative path inside the source artifact to evaluation report, defect registry, or audit artifact.
+        required: true
+        type: string
+      secondary_source_path:
+        description: Relative path to ledger or audit authority registry; blank for controlled evaluation.
+        required: false
+        default: ""
+        type: string
+      defect_id:
+        description: Required only for PRODUCTION_DEFECT.
+        required: false
+        default: ""
+        type: string
+      evidence_refs:
+        description: Optional additional evidence references, one per line.
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pie-orl6-${{ inputs.target_repository }}-${{ inputs.pull_request_number }}
+  cancel-in-progress: false
+
+jobs:
+  outcome:
+    name: Record explicit governed Outcome
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate authority and explicit inputs
+        env:
+          AUTHORITY_REPOSITORY: gycha0109-beep/Project_Intelligence_Engine
+          EVENT_REPOSITORY: ${{ github.repository }}
+          EVENT_REF: ${{ github.ref }}
+          AUTHORITY_REVISION: ${{ github.sha }}
+          INPUT_REPOSITORY: ${{ inputs.target_repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pull_request_number }}
+          INPUT_AUTHORITY_TYPE: ${{ inputs.authority_type }}
+          INPUT_VERDICT: ${{ inputs.verdict }}
+          INPUT_SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          INPUT_SOURCE_ARTIFACT_NAME: ${{ inputs.source_artifact_name }}
+          INPUT_PRIMARY_SOURCE_PATH: ${{ inputs.primary_source_path }}
+          INPUT_SECONDARY_SOURCE_PATH: ${{ inputs.secondary_source_path }}
+          INPUT_DEFECT_ID: ${{ inputs.defect_id }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import re
+
+          sha40 = re.compile(r"^[0-9a-fA-F]{40}$")
+          failures = []
+          if os.environ["EVENT_REPOSITORY"].lower() != os.environ["AUTHORITY_REPOSITORY"].lower():
+              failures.append("AUTHORITY_BINDING_FAILED: workflow repository is not PIE authority")
+          if os.environ["EVENT_REF"] != "refs/heads/main":
+              failures.append("AUTHORITY_BINDING_FAILED: ORL-6 must be dispatched from PIE main")
+          if not sha40.fullmatch(os.environ["AUTHORITY_REVISION"]):
+              failures.append("AUTHORITY_BINDING_FAILED: authority revision is not an exact SHA")
+
+          repository = os.environ["INPUT_REPOSITORY"].strip()
+          if repository.count("/") != 1 or repository.startswith("/") or repository.endswith("/"):
+              failures.append("INVALID_INPUT: target_repository must be owner/name")
+          if not os.environ["INPUT_PR_NUMBER"].isdigit() or int(os.environ["INPUT_PR_NUMBER"]) < 1:
+              failures.append("INVALID_INPUT: pull_request_number must be positive")
+          if not os.environ["INPUT_SOURCE_RUN_ID"].isdigit() or int(os.environ["INPUT_SOURCE_RUN_ID"]) < 1:
+              failures.append("INVALID_INPUT: source_run_id must be positive")
+          if not os.environ["INPUT_SOURCE_ARTIFACT_NAME"].strip():
+              failures.append("INVALID_INPUT: source_artifact_name is required")
+          if not os.environ["INPUT_PRIMARY_SOURCE_PATH"].strip():
+              failures.append("INVALID_INPUT: primary_source_path is required")
+
+          authority = os.environ["INPUT_AUTHORITY_TYPE"]
+          verdict = os.environ["INPUT_VERDICT"]
+          secondary = os.environ["INPUT_SECONDARY_SOURCE_PATH"].strip()
+          defect_id = os.environ["INPUT_DEFECT_ID"].strip()
+          if authority == "PRODUCTION_DEFECT":
+              if verdict == "SAFE":
+                  failures.append("INVALID_VERDICT: PRODUCTION_DEFECT cannot prove SAFE")
+              if not secondary:
+                  failures.append("INVALID_INPUT: PRODUCTION_DEFECT requires secondary_source_path for ledger")
+              if not defect_id:
+                  failures.append("INVALID_INPUT: PRODUCTION_DEFECT requires defect_id")
+          elif authority == "CONTROLLED_EVALUATION":
+              if secondary:
+                  failures.append("INVALID_INPUT: CONTROLLED_EVALUATION must not use secondary_source_path")
+              if defect_id:
+                  failures.append("INVALID_INPUT: CONTROLLED_EVALUATION must not use defect_id")
+          elif authority == "INDEPENDENT_AUDIT":
+              if not secondary:
+                  failures.append("INVALID_INPUT: INDEPENDENT_AUDIT requires secondary_source_path for authority registry")
+              if defect_id:
+                  failures.append("INVALID_INPUT: INDEPENDENT_AUDIT must not use defect_id")
+          else:
+              failures.append("INVALID_INPUT: unsupported authority_type")
+
+          if failures:
+              raise SystemExit("\n".join(failures))
+          PY
+
+      - name: Checkout exact authority revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install exact authority revision
+        env:
+          AUTHORITY_REPOSITORY: gycha0109-beep/Project_Intelligence_Engine
+          AUTHORITY_REVISION: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            "git+https://github.com/${AUTHORITY_REPOSITORY}.git@${AUTHORITY_REVISION}"
+          pie-trust-prospective submit-operational-outcome --help >/dev/null
+
+      - name: Download exact authority-source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTHORITY_REPOSITORY: gycha0109-beep/Project_Intelligence_Engine
+          INPUT_SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          INPUT_SOURCE_ARTIFACT_NAME: ${{ inputs.source_artifact_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_root="${RUNNER_TEMP}/orl6-authority-source"
+          rm -rf "${source_root}"
+          mkdir -p "${source_root}"
+          gh run download "${INPUT_SOURCE_RUN_ID}" \
+            --repo "${AUTHORITY_REPOSITORY}" \
+            --name "${INPUT_SOURCE_ARTIFACT_NAME}" \
+            --dir "${source_root}"
+
+      - name: Resolve source files inside artifact boundary
+        id: source
+        env:
+          INPUT_PRIMARY_SOURCE_PATH: ${{ inputs.primary_source_path }}
+          INPUT_SECONDARY_SOURCE_PATH: ${{ inputs.secondary_source_path }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          root = (Path(os.environ["RUNNER_TEMP"]) / "orl6-authority-source").resolve(strict=True)
+
+          def resolve_inside(value: str, *, required: bool) -> str:
+              text = value.strip()
+              if not text:
+                  if required:
+                      raise SystemExit("AUTHORITY_SOURCE_MISSING: source path is required")
+                  return ""
+              relative = Path(text)
+              if relative.is_absolute() or ".." in relative.parts:
+                  raise SystemExit("UNSAFE_SOURCE_PATH: authority source path must be relative and non-escaping")
+              current = root
+              for part in relative.parts:
+                  current = current / part
+                  if current.is_symlink():
+                      raise SystemExit("UNSAFE_SOURCE_PATH: authority source path must not contain symlinks")
+              resolved = current.resolve(strict=True)
+              try:
+                  resolved.relative_to(root)
+              except ValueError as exc:
+                  raise SystemExit("UNSAFE_SOURCE_PATH: authority source escaped artifact root") from exc
+              if not resolved.is_file():
+                  raise SystemExit("AUTHORITY_SOURCE_MISSING: authority source must be a regular file")
+              return str(resolved)
+
+          primary = resolve_inside(os.environ["INPUT_PRIMARY_SOURCE_PATH"], required=True)
+          secondary = resolve_inside(os.environ["INPUT_SECONDARY_SOURCE_PATH"], required=False)
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              handle.write(f"primary={primary}\n")
+              handle.write(f"secondary={secondary}\n")
+          PY
+
+      - name: Submit explicit Outcome through AUTO-3A and AUTO-3B
+        id: outcome
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REPOSITORY: ${{ inputs.target_repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pull_request_number }}
+          INPUT_AUTHORITY_TYPE: ${{ inputs.authority_type }}
+          INPUT_VERDICT: ${{ inputs.verdict }}
+          INPUT_DEFECT_ID: ${{ inputs.defect_id }}
+          INPUT_EVIDENCE_REFS: ${{ inputs.evidence_refs }}
+          PRIMARY_SOURCE: ${{ steps.source.outputs.primary }}
+          SECONDARY_SOURCE: ${{ steps.source.outputs.secondary }}
+          OUTCOME_ACTOR: ${{ github.actor }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_file="${RUNNER_TEMP}/pie-orl6-result.json"
+          cache_root="${RUNNER_TEMP}/orl6-cache"
+          output_root="${RUNNER_TEMP}/orl6-output"
+
+          args=(
+            pie-trust-prospective submit-operational-outcome
+            --target-repository "${INPUT_REPOSITORY}"
+            --pull-request "${INPUT_PR_NUMBER}"
+            --repository-root "${GITHUB_WORKSPACE}"
+            --artifact-cache-root "${cache_root}"
+            --output-root "${output_root}"
+            --actor "${OUTCOME_ACTOR}"
+            --authority-type "${INPUT_AUTHORITY_TYPE}"
+            --verdict "${INPUT_VERDICT}"
+          )
+
+          if [[ -n "${INPUT_DEFECT_ID}" ]]; then
+            args+=(--defect-id "${INPUT_DEFECT_ID}")
+          fi
+          while IFS= read -r evidence_ref; do
+            if [[ -n "${evidence_ref}" ]]; then
+              args+=(--evidence-ref "${evidence_ref}")
+            fi
+          done <<< "${INPUT_EVIDENCE_REFS}"
+
+          case "${INPUT_AUTHORITY_TYPE}" in
+            PRODUCTION_DEFECT)
+              args+=(--defect-registry "${PRIMARY_SOURCE}" --ledger "${SECONDARY_SOURCE}")
+              ;;
+            CONTROLLED_EVALUATION)
+              args+=(--evaluation-report "${PRIMARY_SOURCE}")
+              ;;
+            INDEPENDENT_AUDIT)
+              args+=(--audit-artifact "${PRIMARY_SOURCE}" --audit-authority-registry "${SECONDARY_SOURCE}")
+              ;;
+          esac
+
+          "${args[@]}" > "${result_file}"
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+
+          result = json.loads((Path(os.environ["RUNNER_TEMP"]) / "pie-orl6-result.json").read_text(encoding="utf-8"))
+          if result.get("valid") is not True:
+              raise SystemExit("ORL6_INTERNAL_ERROR: action command did not return valid=true")
+          if result.get("status") != "EXPLICIT_OUTCOME_RECORDED":
+              raise SystemExit("ORL6_BOUNDARY_ERROR: invalid terminal status")
+          action = result.get("action", {})
+          if action.get("authority_type") != os.environ["INPUT_AUTHORITY_TYPE"]:
+              raise SystemExit("ORL6_BOUNDARY_ERROR: authority type changed during action")
+          if action.get("verdict") != os.environ["INPUT_VERDICT"]:
+              raise SystemExit("ORL6_BOUNDARY_ERROR: verdict changed during action")
+          authority = result.get("authority", {})
+          for field, expected in (
+              ("human_review_recorded", True),
+              ("human_outcome_declared", True),
+              ("outcome_recorded", True),
+              ("automatic_outcome_inference", False),
+              ("automation_authorized", False),
+              ("pilot_authorized", False),
+              ("merge_authorized", False),
+              ("deploy_authorized", False),
+              ("production_effect_authorized", False),
+          ):
+              if authority.get(field) is not expected:
+                  raise SystemExit(f"ORL6_AUTHORITY_VIOLATION: {field}={authority.get(field)!r}")
+          auto3 = result.get("auto3", {})
+          if auto3.get("reconciliation_status") != "RECONCILED":
+              raise SystemExit("ORL6_RECONCILIATION_ERROR: AUTO-3B did not reconcile")
+          if auto3.get("idempotent") is not False:
+              raise SystemExit("ORL6_DUPLICATE_ERROR: action was an idempotent replay")
+          digest = result.get("action_sha256")
+          if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+              raise SystemExit("ORL6_EVIDENCE_ERROR: action hash missing")
+
+          output_root = Path(result["output_root"]).resolve(strict=True)
+          runner_temp = Path(os.environ["RUNNER_TEMP"]).resolve(strict=True)
+          try:
+              output_root.relative_to(runner_temp)
+          except ValueError as exc:
+              raise SystemExit("ORL6_EVIDENCE_ERROR: output escaped runner temp") from exc
+
+          repo = result["source"]["repository"]["name_with_owner"]
+          pr = result["source"]["pull_request"]
+          safe_repo = repo.replace("/", "-")
+          artifact_name = f"pie-orl6-{safe_repo}-pr-{pr['number']}-{pr['head_oid'][:12]}-{digest[:12]}"
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              handle.write(f"artifact_name={artifact_name}\n")
+              handle.write(f"upload_path={output_root}\n")
+              handle.write(f"action_sha256={digest}\n")
+
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+              "# PIE ORL-6 Explicit Outcome Action\n\n"
+              f"- Target: `{repo}#{pr['number']}`\n"
+              f"- Source head: `{pr['head_oid']}`\n"
+              f"- Authority: `{action['authority_type']}`\n"
+              f"- Verdict: `{action['verdict']}`\n"
+              f"- Outcome event: `{auto3['event_id']}`\n"
+              f"- Action SHA-256: `{digest}`\n"
+              "- Human Outcome declaration: `RECORDED`\n"
+              "- AUTO-3B reconciliation: `RECONCILED`\n"
+              "- Automatic Outcome inference: `NO`\n"
+              "- Merge / deploy / production-effect authority: `NOT GRANTED`\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload ORL-6 Outcome evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.outcome.outputs.artifact_name }}
+          path: ${{ steps.outcome.outputs.upload_path }}
+          if-no-files-found: error
