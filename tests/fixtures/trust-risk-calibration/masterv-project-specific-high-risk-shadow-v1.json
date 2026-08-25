@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "TRUST_PROJECT_SPECIFIC_HIGH_RISK_BLIND_SPOT_SHADOW_V1",
+  "audit_kind": "MASTERV_POST_WAVE1_HIGH_RISK_SHADOW_AUDIT",
+  "pie_authority": {
+    "repository": "gycha0109-beep/Project_Intelligence_Engine",
+    "main_sha": "7aa435f1b5afd208a05b222f5bed55da77d4c6e8",
+    "risk_model_version": "1.3"
+  },
+  "authority_ceiling": {
+    "mode": "REPORT_ONLY",
+    "shadow_only": true,
+    "automation_authorized": false,
+    "pilot_authorized": false,
+    "authoritative_remediation_authorized": false,
+    "blind_holdout_claim": false
+  },
+  "source_policy": {
+    "wave1_cutoff": "2026-08-21T03:00:00Z",
+    "known_seen_anchor": "MV-3 is MasterV PR #3 and was already frozen in Wave 1 as R3 release_security/signing_authority.",
+    "post_wave1_cases": "Selected after source inspection for bounded shadow audit; independent from Wave 1 but not blinded.",
+    "replay_scope": "BOUNDED_EXACT_PATCH_EXCERPT_REPLAY",
+    "note": "Excerpts preserve exact source lines needed for the audited semantic boundary; they are not claims of complete original PR-diff replay."
+  },
+  "cases": [
+    {
+      "case_id": "MV-3-SEEN-SIGNING-TRUST-ROOT",
+      "source_exposure": "WAVE1_EXTERNAL_SEEN_ANCHOR",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 3,
+      "head_sha": "19ec1a0b08997cb6527a51cec9be2eb0363c81b0",
+      "scope": "PR_LEVEL",
+      "task_class": "routine_code",
+      "policy_expected_band": "R3",
+      "expected_current_band": "R2",
+      "expected_outcome": "UNDERCLASSIFIED",
+      "semantic_classes": ["release_security", "signing_authority", "trust_root_rotation"],
+      "rationale": "Wave 1 human label already froze this PR as R3 because it rotates the production updater signing public authority. The audit checks whether v1.3 can recognize that authority without relying on the project name.",
+      "files": [
+        {
+          "path": "docs/architecture/MV-REL-1A-PRODUCTION-UPDATER-SIGNING-KEY-BOOTSTRAP.md",
+          "excerpt": "# MV-REL-1A — Production Updater Signing Key Bootstrap\nProduction updater key ID: D72C34948864513E\nOnly the public key is allowed in source control."
+        },
+        {
+          "path": "scripts/desktop-rel-1-contract.mjs",
+          "excerpt": "const productionUpdaterKeyId = \"D72C34948864513E\";\nassert.equal(publicKeyLines[0], `untrusted comment: minisign public key: ${productionUpdaterKeyId}`, \"MV-REL-1A production updater key ID mismatch\");"
+        },
+        {
+          "path": "src-tauri/src/updater.rs",
+          "excerpt": "pub(crate) const UPDATE_PUBLIC_KEY: &str = \"dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3MkMzNDk0ODg2NDUxM0U=\";"
+        },
+        {
+          "path": "src-tauri/tauri.windows-independent-updater-release.conf.json",
+          "excerpt": "\"plugins\": { \"updater\": { \"pubkey\": \"D72C34948864513E\" } }"
+        },
+        {
+          "path": "src-tauri/tauri.windows-updater-bootstrap.conf.json",
+          "excerpt": "\"plugins\": { \"updater\": { \"pubkey\": \"D72C34948864513E\" } }"
+        },
+        {
+          "path": "src-tauri/tauri.windows-updater-rc.conf.json",
+          "excerpt": "\"plugins\": { \"updater\": { \"pubkey\": \"D72C34948864513E\" } }"
+        }
+      ]
+    },
+    {
+      "case_id": "MV-5-POST-WAVE1-RELEASE-CONTEXT-NEGATIVE",
+      "source_exposure": "POST_WAVE1_AUDIT_NEGATIVE_CONTROL",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 5,
+      "head_sha": "45e9599d8adf95b4908c9853eb1c1bb2097de314",
+      "scope": "PR_LEVEL",
+      "task_class": "routine_code",
+      "policy_expected_band": "R2",
+      "expected_current_band": "R2",
+      "expected_outcome": "MATCH",
+      "semantic_classes": ["compatibility_fix", "regression_contract"],
+      "rationale": "The change only normalizes workflow file line endings before a structural contract check. High-risk release vocabulary in surrounding context must not elevate this ordinary compatibility fix.",
+      "files": [
+        {
+          "path": "scripts/desktop-rel-1-contract.mjs",
+          "excerpt": "const workflow = read(\".github/workflows/desktop-production-release.yml\").replace(/\\r\\n?/g, \"\\n\");"
+        }
+      ]
+    },
+    {
+      "case_id": "MV-7-POST-WAVE1-PUBLISHED-UPDATER-ACCEPTANCE-VERIFIER",
+      "source_exposure": "POST_WAVE1_AUDIT_CASE_NOT_BLINDED",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 7,
+      "head_sha": "1651af7ffda64dcbe595a7c8f793f7e5c03e9b05",
+      "scope": "PR_LEVEL",
+      "task_class": "routine_code",
+      "policy_expected_band": "R4",
+      "expected_current_band": "R3",
+      "expected_outcome": "UNDERCLASSIFIED",
+      "semantic_classes": ["verifier_authority", "published_release_acceptance", "signature_acceptance"],
+      "rationale": "The PR product is the executable verifier that decides whether the real published updater path has accepted the signed release. Under the frozen Wave 1 band intent this is verifier authority itself, therefore R4.",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "excerpt": "jobs:\n  validate:\n    steps:\n      - name: Verify REL-1C verification-only harness contract\n        run: node scripts/desktop-rel-1c-contract.mjs\n      - name: Verify real published 0.1.3 to signed 0.1.4 updater acceptance\n        run: node scripts/desktop-rel-1c-published-updater-windows.mjs"
+        },
+        {
+          "path": ".github/workflows/desktop-rel-1c-published-updater-verification.yml",
+          "excerpt": "name: MV REL-1C Published Updater Verification\non:\n  workflow_dispatch:\npermissions:\n  contents: read\njobs:\n  verify-published-updater:\n    runs-on: windows-2025\n    steps:\n      - name: Verify REL-1C harness contract\n        run: node scripts/desktop-rel-1c-contract.mjs\n      - name: Verify real published updater acceptance\n        run: node scripts/desktop-rel-1c-published-updater-windows.mjs"
+        },
+        {
+          "path": "docs/MV-REL-1C-PUBLISHED-UPDATER-VERIFICATION.md",
+          "excerpt": "# MV-REL-1C — Published Updater Verification Harness Repair\nOnly a successful verification-only run that produces MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS may close the remaining production updater acceptance gate."
+        },
+        {
+          "path": "scripts/desktop-rel-1c-contract.mjs",
+          "excerpt": "function assert(condition, message) {\n  if (!condition) throw new Error(message);\n}\nassert(verifier.includes('MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS'), 'verifier contract marker missing');\nconsole.log(JSON.stringify({ status: \"MASTERV_REL_1C_VERIFICATION_HARNESS_CONTRACT_PASS\" }));"
+        },
+        {
+          "path": "scripts/desktop-rel-1c-published-updater-windows.mjs",
+          "excerpt": "const manifestResponse = await fetch(latestEndpoint, { redirect: \"follow\", cache: \"no-store\" });\nassert(manifestResponse.ok, `Published latest.json is unavailable`);\nassert(typeof platform?.signature === \"string\" && platform.signature.trim().length > 0, \"Published manifest signature is empty\");\nconst evidence = { status: \"MASTERV_REL_1C_PUBLISHED_UPDATER_SIGNATURE_ACCEPTANCE_PASS\", tauri_signature_verified_by_successful_install: true, release_mutation: false };\nmain().catch((error) => { console.error(error); process.exitCode = 1; });"
+        }
+      ]
+    },
+    {
+      "case_id": "MV-12-PATH-PRODUCTION-DEPLOYMENT-SURFACE",
+      "source_exposure": "POST_WAVE1_PATH_LEVEL_AUDIT_CASE_NOT_BLINDED",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 12,
+      "head_sha": "4f8f914d6b266f8aee762f799698ac9c0756c0ac",
+      "scope": "PATH_LEVEL",
+      "task_class": "routine_code",
+      "policy_expected_band": "R3",
+      "expected_current_band": "R2",
+      "expected_outcome": "UNDERCLASSIFIED",
+      "semantic_classes": ["production_control_plane", "deployment_surface", "fail_closed_boundary"],
+      "rationale": "This file changes the production execution surface from a selectable web/gateway mode into a fail-closed Gateway-only authority boundary. It is high-risk operational/control-plane semantics even though the filename is ordinary TypeScript.",
+      "files": [
+        {
+          "path": "lib/deployment-surface.ts",
+          "excerpt": "export type MasterVDeploymentSurface = \"gateway\" | \"web\";\nexport function resolveMasterVDeploymentSurface(env = process.env): MasterVDeploymentSurface {\n  const configured = env.MASTERV_DEPLOYMENT_SURFACE?.trim().toLowerCase();\n  if (env.NODE_ENV === \"production\") {\n    if (configured && configured !== \"gateway\") {\n      throw new Error(\"MasterV production deployment surface must be gateway\");\n    }\n    return \"gateway\";\n  }\n  return configured === \"gateway\" ? \"gateway\" : \"web\";\n}"
+        }
+      ]
+    },
+    {
+      "case_id": "MV-12-PATH-LEGACY-PROVIDER-ROUTE-GUARD",
+      "source_exposure": "POST_WAVE1_PATH_LEVEL_AUDIT_CASE_NOT_BLINDED",
+      "repository": "gycha0109-beep/MasterV",
+      "pull_request": 12,
+      "head_sha": "4f8f914d6b266f8aee762f799698ac9c0756c0ac",
+      "scope": "PATH_LEVEL",
+      "task_class": "routine_code",
+      "policy_expected_band": "R3",
+      "expected_current_band": "R2",
+      "expected_outcome": "UNDERCLASSIFIED",
+      "semantic_classes": ["production_access_boundary", "provider_execution_guard", "fail_closed_route"],
+      "rationale": "The route now rejects production legacy-provider execution before request parsing/provider invocation. This changes an authorization-like production execution boundary but is not named auth/security.",
+      "files": [
+        {
+          "path": "app/api/analyze/route.ts",
+          "excerpt": "import { legacyWebApiEnabled } from \"@/lib/deployment-surface\";\nexport async function POST(request: Request) {\n  if (!legacyWebApiEnabled()) {\n    return NextResponse.json({ error: \"Not found\", code: \"LEGACY_WEB_API_DISABLED\" }, { status: 404 });\n  }\n  const body = await request.json();\n}"
+        }
+      ]
+    }
+  ]
+}
