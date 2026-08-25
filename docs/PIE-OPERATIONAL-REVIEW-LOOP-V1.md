@@ -12,6 +12,7 @@ Current implementation:
 - ORL-3 Review Brief
 - ORL-4 Explicit Review Action
 - ORL-5 Outcome Declaration Context
+- ORL-6 Explicit Outcome Action
 Factory Intelligence authority: NONE
 ```
 
@@ -478,11 +479,65 @@ The unresolved explicit inputs remain `actor`, `authority_type`, `verdict`, and 
 
 Detailed contract and evidence behavior are documented in `docs/PIE-ORL-5-OUTCOME-DECLARATION-CONTEXT.md`.
 
+## ORL-6 — Explicit Outcome Action
+
+ORL-6 is the explicit human action surface that consumes a current ORL-5 context and reuses the already-governed AUTO-3 declaration and transport contracts.
+
+Conceptually:
+
+```text
+current ORL-5 context
++ explicit actor
++ explicit authority type
++ explicit verdict
++ exact authority-source file(s)
+→ existing AUTO-3A build_outcome_declaration(...)
+→ existing AUTO-3B transport_declared_outcome(...)
+→ governed OUTCOME event
+→ existing source reconciliation
+→ PIE_OPERATIONAL_OUTCOME_ACTION_V1 receipt
+```
+
+ORL-6 does not infer Outcome semantics. The actor, authority type, verdict, and authority source must be explicit. The workflow fixes the actor to `github.actor` and derives source IDs/hashes from the selected evidence files rather than requiring manual hash copy/paste.
+
+The authority vocabulary remains:
+
+```text
+PRODUCTION_DEFECT
+CONTROLLED_EVALUATION
+INDEPENDENT_AUDIT
+```
+
+The verdict vocabulary remains:
+
+```text
+SAFE
+UNSAFE
+INCONCLUSIVE
+```
+
+`PRODUCTION_DEFECT` still cannot establish `SAFE`.
+
+The action accepts completion only when the existing AUTO-3B transport records a new, source-reconciled Outcome:
+
+```text
+human_review_recorded = true
+human_outcome_declared = true
+automatic_outcome_inference = false
+outcome_recorded = true
+reconciliation_status = RECONCILED
+idempotent = false
+```
+
+The Outcome still grants no automation, pilot, merge, deploy, or production-effect authority. A source artifact's workflow status is not Outcome authority; the source itself must satisfy the existing authority-specific source contract and reconciliation rules.
+
+Detailed contract and evidence behavior are documented in `docs/PIE-ORL-6-EXPLICIT-OUTCOME-ACTION.md`.
+
 ## Authority ceiling
 
-ORL-1 through ORL-3 do not record human judgment. ORL-4 may record only an explicit, human-dispatched `HUMAN_DECISION` after exact source replay. ORL-5 may observe that decision and prepare an AUTO-3 declaration context, but it cannot declare or record an Outcome.
+ORL-1 through ORL-3 do not record human judgment. ORL-4 may record only an explicit, human-dispatched `HUMAN_DECISION` after exact source replay. ORL-5 may observe that decision and prepare an AUTO-3 declaration context, but it cannot declare or record an Outcome. ORL-6 may record only an explicit, source-reconciled Outcome through the pre-existing AUTO-3A/AUTO-3B contracts.
 
-ORL-1 through ORL-5 grant none of the following:
+ORL-1 through ORL-6 grant none of the following:
 
 ```text
 automatic human decision authority
@@ -496,7 +551,7 @@ Factory Intelligence authority
 cross-project promotion authority
 ```
 
-ORL-2 automates deterministic policy binding and safe request transport. ORL-3 adds a deterministic, source-bound review projection. ORL-4 adds only explicit human-review recording through the pre-existing governed mutation contract. ORL-5 adds only a source-bound Outcome declaration context and observation snapshot.
+ORL-2 automates deterministic policy binding and safe request transport. ORL-3 adds a deterministic, source-bound review projection. ORL-4 adds only explicit human-review recording through the pre-existing governed mutation contract. ORL-5 adds only a source-bound Outcome declaration context and observation snapshot. ORL-6 adds only explicit human Outcome declaration/transport through existing AUTO-3 authority and reconciliation contracts.
 
 ## Planned sequence
 
@@ -506,7 +561,7 @@ ORL-2  Operational Policy Binder            IMPLEMENTED
 ORL-3  Review Brief                          IMPLEMENTED
 ORL-4  Explicit Review Action                IMPLEMENTED
 ORL-5  Outcome Declaration Context           IMPLEMENTED
-ORL-6  Explicit Outcome Action               NEXT
+ORL-6  Explicit Outcome Action               IMPLEMENTED
 ORL-7  Historical Recall                     DEFERRED FOR REAL CAMPAIGN CALIBRATION
 ORL-8  Seven-repository rollout              NOT IMPLEMENTED
 ```
