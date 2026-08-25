@@ -95,10 +95,10 @@ def _signal(
         status, reason, next_step = _ACTION_REQUIRED, "AMBIGUOUS_POLICY_MATCH", "READ_POLICY_MATCH_DETAILS"
     elif binding_status == "MISSING_TRUST_FIELDS":
         status, reason, next_step = _ACTION_REQUIRED, "MISSING_TRUST_FIELDS", "READ_TRUST_GAPS"
-    elif summary.get("status") == "READY_FOR_HUMAN_REVIEW":
-        status, reason, next_step = _ACTION_REQUIRED, "HUMAN_REVIEW_REQUIRED", "READ_OPERATIONAL_BRIEF"
     elif match_status == "UNIQUE_POLICY_MATCH":
         status, reason, next_step = _ACTION_REQUIRED, "UNIQUE_POLICY_MATCH", "READ_OPERATIONAL_BRIEF"
+    elif summary.get("status") == "READY_FOR_HUMAN_REVIEW":
+        status, reason, next_step = _ACTION_REQUIRED, "HUMAN_REVIEW_REQUIRED", "READ_OPERATIONAL_BRIEF"
     else:
         status, reason, next_step = _ACTION_REQUIRED, str(binding_status or "UNKNOWN_OPERATIONAL_STATE"), "READ_OPERATIONAL_BRIEF"
 
