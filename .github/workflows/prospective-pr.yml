@@ -41,6 +41,15 @@ on:
       status:
         description: PIE prospective terminal status.
         value: ${{ jobs.prospective.outputs.status }}
+      pie_signal_status:
+        description: GPT-facing Level 0 PIE signal status.
+        value: ${{ jobs.prospective.outputs.pie_signal_status }}
+      pie_signal_reason:
+        description: GPT-facing Level 0 PIE signal reason.
+        value: ${{ jobs.prospective.outputs.pie_signal_reason }}
+      pie_signal_next:
+        description: GPT-facing Level 0 PIE signal next step.
+        value: ${{ jobs.prospective.outputs.pie_signal_next }}
       deterministic_result_sha256:
         description: Stable semantic result hash for same-input replay comparison.
         value: ${{ jobs.prospective.outputs.deterministic_result_sha256 }}
@@ -48,8 +57,11 @@ on:
         description: Raw observation evidence-bundle manifest hash; may vary as provider observation metadata changes.
         value: ${{ jobs.prospective.outputs.manifest_sha256 }}
       artifact_name:
-        description: Uploaded evidence artifact name.
+        description: Uploaded full evidence artifact name.
         value: ${{ jobs.prospective.outputs.artifact_name }}
+      interface_artifact_name:
+        description: Uploaded compact GPT operational interface artifact name.
+        value: ${{ jobs.prospective.outputs.interface_artifact_name }}
 
 permissions:
   contents: read
@@ -66,9 +78,13 @@ jobs:
     outputs:
       execution_id: ${{ steps.result.outputs.execution_id }}
       status: ${{ steps.result.outputs.status }}
+      pie_signal_status: ${{ steps.result.outputs.pie_signal_status }}
+      pie_signal_reason: ${{ steps.result.outputs.pie_signal_reason }}
+      pie_signal_next: ${{ steps.result.outputs.pie_signal_next }}
       deterministic_result_sha256: ${{ steps.result.outputs.deterministic_result_sha256 }}
       manifest_sha256: ${{ steps.result.outputs.manifest_sha256 }}
       artifact_name: ${{ steps.result.outputs.artifact_name }}
+      interface_artifact_name: ${{ steps.result.outputs.interface_artifact_name }}
     steps:
       - name: Validate caller and workflow binding
         env:
@@ -221,6 +237,11 @@ jobs:
           import re
           import shutil
 
+          from review_system.operational_lazy_interface import (
+              build_operational_lazy_interface,
+              write_operational_lazy_interface,
+          )
+
           result_path = Path(os.environ["RUNNER_TEMP"]) / "pie-result.json"
           result = json.loads(result_path.read_text(encoding="utf-8"))
           if result.get("valid") is not True:
@@ -241,6 +262,21 @@ jobs:
               raise SystemExit("EVIDENCE_HASH_MISMATCH: raw observation manifest is missing")
           if not (bundle / "deterministic-result.json").is_file():
               raise SystemExit("NON_DETERMINISTIC_REPLAY: deterministic-result.json is missing")
+
+          operational_binding = None
+          binding_path = bundle / "operational" / "binding.json"
+          if binding_path.is_file():
+              operational_binding = json.loads(binding_path.read_text(encoding="utf-8"))
+
+          interface = build_operational_lazy_interface(
+              summary=result,
+              operational_binding=operational_binding,
+          )
+          interface_staging = Path(os.environ["RUNNER_TEMP"]) / "pie-interface"
+          if interface_staging.exists():
+              shutil.rmtree(interface_staging)
+          write_operational_lazy_interface(interface_staging, interface)
+          signal = interface["signal"]
 
           staging = Path(os.environ["RUNNER_TEMP"]) / "pie-upload"
           if staging.exists():
@@ -281,13 +317,19 @@ jobs:
               f"pie-{safe_repo}-pr-{result['pull_request']}-"
               f"{result['source_revision'][:12]}-{result['execution_id'][-12:]}"
           )
+          interface_artifact_name = f"{artifact_name}-interface"
           outputs = {
               "execution_id": result["execution_id"],
               "status": result["status"],
+              "pie_signal_status": signal["status"],
+              "pie_signal_reason": signal["reason"],
+              "pie_signal_next": signal["next"],
               "deterministic_result_sha256": deterministic_hash,
               "manifest_sha256": result["manifest_sha256"],
               "artifact_name": artifact_name,
+              "interface_artifact_name": interface_artifact_name,
               "upload_path": str(staging),
+              "interface_upload_path": str(interface_staging),
           }
           with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
               for key, value in outputs.items():
@@ -296,13 +338,18 @@ jobs:
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           risk = result.get("risk_band") or "NOT_ASSESSED"
           readiness = result.get("readiness") or "NOT_ASSESSED"
-          operational_binding = result.get("operational_binding_status") or "NOT_ENABLED"
+          operational_binding_status = result.get("operational_binding_status") or "NOT_ENABLED"
           summary.write_text(
+              "# PIE Signal\n\n"
+              f"`PIE_SIGNAL_V1` · **{signal['status']}** · `{signal['reason']}`\n\n"
+              f"Next: `{signal['next']}`  \n"
+              f"Compact interface artifact: `{interface_artifact_name}`\n\n"
+              "---\n\n"
               "# PIE Prospective Assessment\n\n"
               f"- Status: `{result['status']}`\n"
               f"- Risk: `{risk}`\n"
               f"- Readiness: `{readiness}`\n"
-              f"- Operational binding: `{operational_binding}`\n"
+              f"- Operational binding: `{operational_binding_status}`\n"
               f"- Execution: `{result['execution_id']}`\n"
               f"- Source revision: `{result['source_revision']}`\n"
               f"- PIE revision: `{result['pie_revision']}`\n"
@@ -314,6 +361,13 @@ jobs:
               encoding="utf-8",
           )
           PY
+
+      - name: Upload compact GPT operational interface
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.result.outputs.interface_artifact_name }}
+          path: ${{ steps.result.outputs.interface_upload_path }}
+          if-no-files-found: error
 
       - name: Upload replayable evidence capsule
         uses: actions/upload-artifact@v4
