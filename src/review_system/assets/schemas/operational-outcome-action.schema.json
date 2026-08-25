@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pie.local/schemas/operational-outcome-action.schema.json",
+  "title": "PIE Operational Review Loop v1 Explicit Outcome Action",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "status",
+    "source",
+    "action",
+    "auto3",
+    "authority",
+    "action_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_version": {"const": "PIE_OPERATIONAL_OUTCOME_ACTION_V1"},
+    "status": {"const": "EXPLICIT_OUTCOME_RECORDED"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_repository",
+        "context_sha256",
+        "project_id",
+        "repository",
+        "pull_request",
+        "assessment_id",
+        "review_event_id",
+        "review_action_sha256",
+        "review_packet_id",
+        "review_packet_sha256"
+      ],
+      "properties": {
+        "authority_repository": {"const": "gycha0109-beep/Project_Intelligence_Engine"},
+        "context_sha256": {"$ref": "#/$defs/sha256"},
+        "project_id": {"type": "string", "minLength": 1},
+        "repository": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hostname", "name_with_owner"],
+          "properties": {
+            "hostname": {"type": "string", "minLength": 1},
+            "name_with_owner": {"type": "string", "minLength": 3}
+          }
+        },
+        "pull_request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["number", "base_oid", "head_oid"],
+          "properties": {
+            "number": {"type": "integer", "minimum": 1},
+            "base_oid": {"$ref": "#/$defs/sha40"},
+            "head_oid": {"$ref": "#/$defs/sha40"}
+          }
+        },
+        "assessment_id": {"type": "string", "pattern": "^assessment-[0-9a-f]{32}$"},
+        "review_event_id": {"type": "string", "pattern": "^event-[0-9a-f]{32}$"},
+        "review_action_sha256": {"$ref": "#/$defs/sha256"},
+        "review_packet_id": {"type": "string", "pattern": "^prospective-review-packet-[0-9a-f]{32}$"},
+        "review_packet_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "authority_type",
+        "verdict",
+        "defect_id",
+        "evidence_refs",
+        "authority_source"
+      ],
+      "properties": {
+        "actor": {"type": "string", "minLength": 1},
+        "authority_type": {"enum": ["PRODUCTION_DEFECT", "CONTROLLED_EVALUATION", "INDEPENDENT_AUDIT"]},
+        "verdict": {"enum": ["SAFE", "UNSAFE", "INCONCLUSIVE"]},
+        "defect_id": {"type": ["string", "null"], "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "authority_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_binding", "files"],
+          "properties": {
+            "source_binding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "defect_registry_sha256",
+                "ledger_sha256",
+                "evaluation_id",
+                "evaluation_report_sha256",
+                "audit_id",
+                "audit_artifact_sha256",
+                "audit_authority_registry_sha256"
+              ],
+              "properties": {
+                "defect_registry_sha256": {"$ref": "#/$defs/nullableSha256"},
+                "ledger_sha256": {"$ref": "#/$defs/nullableSha256"},
+                "evaluation_id": {"type": ["string", "null"], "minLength": 1},
+                "evaluation_report_sha256": {"$ref": "#/$defs/nullableSha256"},
+                "audit_id": {"type": ["string", "null"], "minLength": 1},
+                "audit_artifact_sha256": {"$ref": "#/$defs/nullableSha256"},
+                "audit_authority_registry_sha256": {"$ref": "#/$defs/nullableSha256"}
+              }
+            },
+            "files": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["role", "file_sha256"],
+                "properties": {
+                  "role": {
+                    "enum": [
+                      "defect_registry",
+                      "ledger",
+                      "evaluation_report",
+                      "audit_artifact",
+                      "audit_authority_registry"
+                    ]
+                  },
+                  "file_sha256": {"$ref": "#/$defs/sha256"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "auto3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declaration_id",
+        "declaration_sha256",
+        "transport_sha256",
+        "event_id",
+        "registry_sha256",
+        "reconciliation_status",
+        "authority_key",
+        "idempotent"
+      ],
+      "properties": {
+        "declaration_id": {"type": "string", "pattern": "^outcome-declaration-[0-9a-f]{32}$"},
+        "declaration_sha256": {"$ref": "#/$defs/sha256"},
+        "transport_sha256": {"$ref": "#/$defs/sha256"},
+        "event_id": {"type": "string", "pattern": "^event-[0-9a-f]{32}$"},
+        "registry_sha256": {"$ref": "#/$defs/sha256"},
+        "reconciliation_status": {"const": "RECONCILED"},
+        "authority_key": {"type": ["string", "null"], "minLength": 1},
+        "idempotent": {"type": "boolean"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_recorded",
+        "human_outcome_declared",
+        "automatic_outcome_inference",
+        "outcome_recorded",
+        "automation_authorized",
+        "pilot_authorized",
+        "merge_authorized",
+        "deploy_authorized",
+        "production_effect_authorized"
+      ],
+      "properties": {
+        "human_review_recorded": {"const": true},
+        "human_outcome_declared": {"const": true},
+        "automatic_outcome_inference": {"const": false},
+        "outcome_recorded": {"const": true},
+        "automation_authorized": {"const": false},
+        "pilot_authorized": {"const": false},
+        "merge_authorized": {"const": false},
+        "deploy_authorized": {"const": false},
+        "production_effect_authorized": {"const": false}
+      }
+    },
+    "action_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableSha256": {
+      "oneOf": [
+        {"$ref": "#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    }
+  }
+}
