@@ -59,7 +59,7 @@ class OperationalOutcomeContextWorkflowTests(unittest.TestCase):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn('shutil.copyfile(context_file, staging / "context.json")', text)
         self.assertIn('shutil.copytree(selected, staging / "review-action-source")', text)
-        self.assertIn("pie-orl5-${safe_repo}-pr-", text)
+        self.assertIn('f"pie-orl5-{safe_repo}-pr-', text)
 
 
 if __name__ == "__main__":
