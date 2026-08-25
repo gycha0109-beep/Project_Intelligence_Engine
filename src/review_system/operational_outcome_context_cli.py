@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 from typing import Callable
 
-from .github_connector import GitHubCLI
+from .github_connector import GitHubCLI, GitHubCLIError
 from .operational_outcome_context import (
+    OperationalOutcomeContextError,
     OperationalOutcomeContextRequest,
+    OperationalOutcomeContextVerificationError,
     run_operational_outcome_context,
 )
 
@@ -15,19 +17,32 @@ def cmd_prepare_operational_outcome_context(
     *,
     emit: Callable[[object], None],
 ) -> int:
-    result = run_operational_outcome_context(
-        OperationalOutcomeContextRequest(
-            target_repository=args.target_repository,
-            pull_request=args.pull_request,
-            repository_root=args.repository_root,
-            artifact_cache_root=args.artifact_cache_root,
-            output=args.output,
-        ),
-        github_cli=GitHubCLI(
-            executable=args.gh_executable,
-            timeout_seconds=args.timeout,
-        ),
-    )
+    try:
+        result = run_operational_outcome_context(
+            OperationalOutcomeContextRequest(
+                target_repository=args.target_repository,
+                pull_request=args.pull_request,
+                repository_root=args.repository_root,
+                artifact_cache_root=args.artifact_cache_root,
+                output=args.output,
+            ),
+            github_cli=GitHubCLI(
+                executable=args.gh_executable,
+                timeout_seconds=args.timeout,
+            ),
+        )
+    except OperationalOutcomeContextVerificationError as exc:
+        emit({"valid": False, "error_code": exc.code, "errors": list(exc.errors)})
+        return 4
+    except (OperationalOutcomeContextError, GitHubCLIError, OSError, ValueError) as exc:
+        emit(
+            {
+                "valid": False,
+                "error_code": getattr(exc, "code", "ORL5_CONTEXT_FAILED"),
+                "error": str(exc),
+            }
+        )
+        return 3
     emit({"valid": True, **result})
     return 0
 
