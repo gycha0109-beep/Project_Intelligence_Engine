@@ -11,6 +11,7 @@ Current implementation:
 - ORL-2 Operational Policy Binder
 - ORL-3 Review Brief
 - ORL-4 Explicit Review Action
+- ORL-5 Outcome Declaration Context
 Factory Intelligence authority: NONE
 ```
 
@@ -425,15 +426,67 @@ ORL-4 fails closed on missing current packets, multiple distinct valid packets, 
 
 Detailed contract and evidence behavior are documented in `docs/PIE-ORL-4-EXPLICIT-REVIEW-ACTION.md`.
 
+## ORL-5 — Outcome Declaration Context
+
+ORL-5 prepares a deterministic, source-bound context for the existing AUTO-3A explicit Outcome declaration contract after ORL-4 has recorded a governed human decision.
+
+Conceptually:
+
+```text
+ORL-4 action artifact
++ governed assessment / HUMAN_DECISION event
++ exact review packet / Review Brief / optional ORL-2 binding
++ current GitHub PR observations
+→ PIE_OPERATIONAL_OUTCOME_CONTEXT_V1
+→ explicit AUTO-3A human declaration still required
+```
+
+ORL-5 reuses the existing AUTO-3 authority vocabulary:
+
+```text
+PRODUCTION_DEFECT
+CONTROLLED_EVALUATION
+INDEPENDENT_AUDIT
+```
+
+and the existing verdict vocabulary:
+
+```text
+SAFE
+UNSAFE
+INCONCLUSIVE
+```
+
+`PRODUCTION_DEFECT` still cannot establish `SAFE`.
+
+The context binds the exact assessment, Trust report, review event, governed packet, ORL-4 action, and source revision. GitHub merge state and status-check rollup are captured only as observations.
+
+Even if a PR is merged and every observed check is successful, ORL-5 requires:
+
+```text
+selected_authority_type = null
+selected_verdict = null
+declaration_materialized = false
+human_outcome_declared = false
+automatic_outcome_inference = false
+outcome_recorded = false
+merge_observation_is_outcome_authority = false
+ci_observation_is_outcome_authority = false
+```
+
+The unresolved explicit inputs remain `actor`, `authority_type`, `verdict`, and the authority-specific evidence source. ORL-5 does not call AUTO-3A declaration construction or AUTO-3B Outcome transport.
+
+Detailed contract and evidence behavior are documented in `docs/PIE-ORL-5-OUTCOME-DECLARATION-CONTEXT.md`.
+
 ## Authority ceiling
 
-ORL-1 through ORL-3 do not record human judgment. ORL-4 may record only an explicit, human-dispatched `HUMAN_DECISION` after exact source replay.
+ORL-1 through ORL-3 do not record human judgment. ORL-4 may record only an explicit, human-dispatched `HUMAN_DECISION` after exact source replay. ORL-5 may observe that decision and prepare an AUTO-3 declaration context, but it cannot declare or record an Outcome.
 
-ORL-1 through ORL-4 grant none of the following:
+ORL-1 through ORL-5 grant none of the following:
 
 ```text
 automatic human decision authority
-Outcome authority
+automatic Outcome authority
 merge authority
 deploy authority
 production effect authority
@@ -443,7 +496,7 @@ Factory Intelligence authority
 cross-project promotion authority
 ```
 
-ORL-2 automates deterministic policy binding and safe request transport. ORL-3 adds a deterministic, source-bound review projection. ORL-4 adds only explicit human-review recording through the pre-existing governed mutation contract.
+ORL-2 automates deterministic policy binding and safe request transport. ORL-3 adds a deterministic, source-bound review projection. ORL-4 adds only explicit human-review recording through the pre-existing governed mutation contract. ORL-5 adds only a source-bound Outcome declaration context and observation snapshot.
 
 ## Planned sequence
 
@@ -452,8 +505,8 @@ ORL-1  Operational Policy Contract          IMPLEMENTED
 ORL-2  Operational Policy Binder            IMPLEMENTED
 ORL-3  Review Brief                          IMPLEMENTED
 ORL-4  Explicit Review Action                IMPLEMENTED
-ORL-5  Outcome Declaration Context           NEXT
-ORL-6  Explicit Outcome Action               NOT IMPLEMENTED
+ORL-5  Outcome Declaration Context           IMPLEMENTED
+ORL-6  Explicit Outcome Action               NEXT
 ORL-7  Historical Recall                     DEFERRED FOR REAL CAMPAIGN CALIBRATION
 ORL-8  Seven-repository rollout              NOT IMPLEMENTED
 ```
