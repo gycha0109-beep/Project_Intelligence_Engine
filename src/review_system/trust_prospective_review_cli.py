@@ -4,6 +4,7 @@ import argparse
 from typing import Callable
 
 from .github_connector import GitHubCLI
+from .operational_outcome_context_cli import add_operational_outcome_context_subparser
 from .operational_review_action import (
     OperationalReviewActionRequest,
     run_operational_review_action,
@@ -195,3 +196,5 @@ def add_prospective_review_subparsers(
     )
     command.set_defaults(_emit=emit)
     _add_operational_submit_args(command)
+
+    add_operational_outcome_context_subparser(sub, emit=emit)
