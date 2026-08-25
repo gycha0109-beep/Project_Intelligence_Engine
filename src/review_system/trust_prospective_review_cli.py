@@ -4,6 +4,10 @@ import argparse
 from typing import Callable
 
 from .github_connector import GitHubCLI
+from .operational_review_action import (
+    OperationalReviewActionRequest,
+    run_operational_review_action,
+)
 from .trust_prospective_review import (
     ProspectiveReviewVerificationError,
     load_review_packet,
@@ -92,6 +96,26 @@ def cmd_submit_prospective_review(args: argparse.Namespace, *, emit: Callable[[o
     return 0
 
 
+def cmd_submit_operational_review(args: argparse.Namespace, *, emit: Callable[[object], None]) -> int:
+    result = run_operational_review_action(
+        OperationalReviewActionRequest(
+            target_repository=args.target_repository,
+            pull_request=args.pull_request,
+            decision=args.decision,
+            reason=args.reason,
+            actor=args.actor,
+            repository_root=args.repository_root,
+            artifact_cache_root=args.artifact_cache_root,
+            confirmed_risk_band=args.confirmed_risk_band,
+            occurred_at=args.occurred_at,
+            output=args.output,
+        ),
+        github_cli=_github_cli(args),
+    )
+    emit({"valid": True, **result})
+    return 0
+
+
 def _add_live_source_args(command: argparse.ArgumentParser) -> None:
     command.add_argument("--workspace", required=True)
     command.add_argument("--github-candidate", required=True)
@@ -115,6 +139,26 @@ def _add_submit_args(command: argparse.ArgumentParser) -> None:
     command.add_argument("--actor", required=True)
     command.add_argument("--occurred-at")
     command.set_defaults(func=lambda args: cmd_submit_prospective_review(args, emit=args._emit))
+
+
+def _add_operational_submit_args(command: argparse.ArgumentParser) -> None:
+    command.add_argument("--target-repository", required=True)
+    command.add_argument("--pull-request", type=int, required=True)
+    command.add_argument("--repository-root", required=True)
+    command.add_argument("--artifact-cache-root", required=True)
+    command.add_argument(
+        "--decision",
+        choices=["APPROVE", "REQUEST_CHANGES", "HOLD", "REJECT", "RECLASSIFY"],
+        required=True,
+    )
+    command.add_argument("--reason", required=True)
+    command.add_argument("--actor", required=True)
+    command.add_argument("--confirmed-risk-band", choices=["R0", "R1", "R2", "R3", "R4"])
+    command.add_argument("--occurred-at")
+    command.add_argument("--output", required=True)
+    command.add_argument("--timeout", type=int, default=120)
+    command.add_argument("--gh-executable", help=argparse.SUPPRESS)
+    command.set_defaults(func=lambda args: cmd_submit_operational_review(args, emit=args._emit))
 
 
 def add_prospective_review_subparsers(
@@ -144,3 +188,10 @@ def add_prospective_review_subparsers(
         command = sub.add_parser(name)
         command.set_defaults(_emit=emit)
         _add_submit_args(command)
+
+    command = sub.add_parser(
+        "submit-operational-review",
+        help="Resolve the current governed packet for a PR and record one explicit REVIEWED human decision.",
+    )
+    command.set_defaults(_emit=emit)
+    _add_operational_submit_args(command)
