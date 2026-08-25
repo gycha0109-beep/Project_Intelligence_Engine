@@ -10,6 +10,7 @@ Current implementation:
 - ORL-1 Operational Policy Contract
 - ORL-2 Operational Policy Binder
 - ORL-3 Review Brief
+- ORL-4 Explicit Review Action
 Factory Intelligence authority: NONE
 ```
 
@@ -368,12 +369,70 @@ ORL-2 rejects or stops on:
 
 These conditions do not create review authority or an Outcome.
 
-## Authority ceiling
+## ORL-4 — Explicit Review Action
 
-ORL-1 through ORL-3 grant none of the following:
+ORL-4 records one deliberate human decision through the existing governed prospective review mutation path.
+
+The high-level action is:
 
 ```text
-human review authority
+workflow_dispatch
+→ target repository + PR + decision + reason
+→ live PR head/base resolution
+→ current-head AUTO-2 artifact discovery
+→ governed packet / ORL-3 brief / optional ORL-2 policy replay
+→ existing submit_review_packet(...)
+→ existing HUMAN_DECISION event
+→ ORL-4 action artifact
+```
+
+The action surface does not ask the reviewer to copy an assessment ID, packet hash, candidate hash, or PR revision. Those identities are resolved from governed evidence and checked against live GitHub state.
+
+The canonical decisions are:
+
+```text
+APPROVE
+REQUEST_CHANGES
+HOLD
+REJECT
+RECLASSIFY
+```
+
+`review_level` is fixed to `REVIEWED`, and the workflow actor is `github.actor`.
+
+`RECLASSIFY` requires an explicit `R0`-`R4` confirmed risk band. No other decision may carry a confirmed risk band.
+
+A successful ORL-4 result sets:
+
+```text
+human_review_recorded = true
+```
+
+but keeps:
+
+```text
+outcome_recorded = false
+automation_authorized = false
+pilot_authorized = false
+merge_authorized = false
+deploy_authorized = false
+production_effect_authorized = false
+```
+
+`APPROVE` is therefore a PIE human decision only. It is not a GitHub PR approval and it does not authorize merge or deployment.
+
+ORL-4 fails closed on missing current packets, multiple distinct valid packets, replay mismatch, stale base-policy binding, repeated review of the same current assessment, or a PR head/base move during submission.
+
+Detailed contract and evidence behavior are documented in `docs/PIE-ORL-4-EXPLICIT-REVIEW-ACTION.md`.
+
+## Authority ceiling
+
+ORL-1 through ORL-3 do not record human judgment. ORL-4 may record only an explicit, human-dispatched `HUMAN_DECISION` after exact source replay.
+
+ORL-1 through ORL-4 grant none of the following:
+
+```text
+automatic human decision authority
 Outcome authority
 merge authority
 deploy authority
@@ -384,7 +443,7 @@ Factory Intelligence authority
 cross-project promotion authority
 ```
 
-ORL-2 automates deterministic policy binding and safe request transport only. ORL-3 adds a deterministic, source-bound review projection only.
+ORL-2 automates deterministic policy binding and safe request transport. ORL-3 adds a deterministic, source-bound review projection. ORL-4 adds only explicit human-review recording through the pre-existing governed mutation contract.
 
 ## Planned sequence
 
@@ -392,8 +451,8 @@ ORL-2 automates deterministic policy binding and safe request transport only. OR
 ORL-1  Operational Policy Contract          IMPLEMENTED
 ORL-2  Operational Policy Binder            IMPLEMENTED
 ORL-3  Review Brief                          IMPLEMENTED
-ORL-4  Explicit Review Action                NEXT
-ORL-5  Outcome Declaration Context           NOT IMPLEMENTED
+ORL-4  Explicit Review Action                IMPLEMENTED
+ORL-5  Outcome Declaration Context           NEXT
 ORL-6  Explicit Outcome Action               NOT IMPLEMENTED
 ORL-7  Historical Recall                     DEFERRED FOR REAL CAMPAIGN CALIBRATION
 ORL-8  Seven-repository rollout              NOT IMPLEMENTED
