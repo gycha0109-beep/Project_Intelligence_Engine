@@ -85,7 +85,7 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
     def test_risk_result_is_not_a_failure_gate(self):
         text = self.text
         self.assertIn('risk = result.get("risk_band") or "NOT_ASSESSED"', text)
-        self.assertIn('operational_binding = result.get("operational_binding_status") or "NOT_ENABLED"', text)
+        self.assertIn('result.get("operational_binding_status") or "NOT_ENABLED"', text)
         self.assertIn('f"- Status: `{result[\'status\']}`', text)
         self.assertIn("Human review: `NOT RECORDED`", text)
         self.assertIn("Merge / deploy / production effect authority: `NOT GRANTED`", text)
