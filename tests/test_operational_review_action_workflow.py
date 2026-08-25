@@ -74,7 +74,7 @@ class OperationalReviewActionWorkflowTests(unittest.TestCase):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("refs/pull/${{ inputs.pull_request_number }}/head", text)
         self.assertIn('actual_head="$(git rev-parse HEAD)"', text)
-        self.assertIn("pie-orl4-${safe_repo}-pr-", text)
+        self.assertIn("pie-orl4-{safe_repo}-pr-", text)
         self.assertIn("shutil.copyfile(action_file, staging / \"action.json\")", text)
         self.assertIn("shutil.copytree(bridge_root, staging / \"bridge\")", text)
         self.assertIn("Human review: `RECORDED`", text)
