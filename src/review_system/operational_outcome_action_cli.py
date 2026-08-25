@@ -10,6 +10,7 @@ from .operational_outcome_action import (
     OperationalOutcomeActionVerificationError,
     run_operational_outcome_action,
 )
+from .operational_review_action import OperationalReviewActionError
 
 
 def cmd_submit_operational_outcome(
@@ -45,7 +46,13 @@ def cmd_submit_operational_outcome(
     except OperationalOutcomeActionVerificationError as exc:
         emit({"valid": False, "error_code": exc.code, "errors": list(exc.errors)})
         return 4
-    except (OperationalOutcomeActionError, GitHubCLIError, OSError, ValueError) as exc:
+    except (
+        OperationalOutcomeActionError,
+        OperationalReviewActionError,
+        GitHubCLIError,
+        OSError,
+        ValueError,
+    ) as exc:
         emit(
             {
                 "valid": False,
