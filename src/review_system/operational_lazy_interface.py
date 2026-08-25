@@ -51,24 +51,22 @@ class OperationalLazyInterfaceError(RuntimeError):
 
 
 def _json_bytes(value: Mapping[str, Any]) -> int:
-    return len(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return len(payload.encode("utf-8"))
 
 
 def _strings(value: Any) -> list[str]:
     if not isinstance(value, (list, tuple, set)):
         return []
-    return sorted({item for item in value if isinstance(item, str) and item})
+    values = {item for item in value if isinstance(item, str) and item}
+    return sorted(values, key=lambda item: item.encode("utf-8"))
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
 
-def _signal(
-    *,
-    summary: Mapping[str, Any],
-    operational_binding: Mapping[str, Any] | None,
-) -> dict[str, Any]:
+def _signal(*, summary: Mapping[str, Any], operational_binding: Mapping[str, Any] | None) -> dict[str, Any]:
     if operational_binding is None:
         if summary.get("status") == "READY_FOR_HUMAN_REVIEW":
             return {
@@ -88,7 +86,6 @@ def _signal(
 
     binding_status = operational_binding.get("status")
     match_status = operational_binding.get("match_status")
-
     if binding_status == "NO_POLICY_MATCH":
         status, reason, next_step = _CLEAR, "NO_POLICY_MATCH", _NONE
     elif binding_status == "AMBIGUOUS_POLICY_MATCH" or match_status == "AMBIGUOUS_POLICY_MATCH":
@@ -100,7 +97,9 @@ def _signal(
     elif summary.get("status") == "READY_FOR_HUMAN_REVIEW":
         status, reason, next_step = _ACTION_REQUIRED, "HUMAN_REVIEW_REQUIRED", "READ_OPERATIONAL_BRIEF"
     else:
-        status, reason, next_step = _ACTION_REQUIRED, str(binding_status or "UNKNOWN_OPERATIONAL_STATE"), "READ_OPERATIONAL_BRIEF"
+        status = _ACTION_REQUIRED
+        reason = str(binding_status or "UNKNOWN_OPERATIONAL_STATE")
+        next_step = "READ_OPERATIONAL_BRIEF"
 
     return {
         "contract_version": SIGNAL_CONTRACT_VERSION,
@@ -135,23 +134,15 @@ def _directive(reason: str, *, human_action_required: bool) -> dict[str, str]:
 
 def _target_ids(binding: Mapping[str, Any]) -> list[str]:
     requirements = _mapping(binding.get("requirements"))
-    missing = _strings(binding.get("missing_inputs"))
-    output: list[str] = []
-
+    output: set[str] = set()
     if binding.get("match_status") == "AMBIGUOUS_POLICY_MATCH":
-        output.append("policy-match-details")
-
-    for item in _strings(requirements.get("required_scenarios")):
-        output.append(f"scenario:{item}")
-    for item in _strings(requirements.get("required_evidence")):
-        output.append(f"evidence:{item}")
-    for item in missing:
-        if item == "rollback_evidence":
-            output.append("control:rollback_evidence")
-        elif item == "replay_evidence":
-            output.append("control:replay_evidence")
-
-    return sorted(set(output))
+        output.add("policy-match-details")
+    output.update(f"scenario:{item}" for item in _strings(requirements.get("required_scenarios")))
+    output.update(f"evidence:{item}" for item in _strings(requirements.get("required_evidence")))
+    for item in _strings(binding.get("missing_inputs")):
+        if item in {"rollback_evidence", "replay_evidence"}:
+            output.add(f"control:{item}")
+    return sorted(output, key=lambda item: item.encode("utf-8"))
 
 
 def _compact_brief(
@@ -165,6 +156,9 @@ def _compact_brief(
 
     binding = _mapping(operational_binding)
     requirements = _mapping(binding.get("requirements"))
+    required_scenarios = _strings(requirements.get("required_scenarios"))
+    required_evidence = _strings(requirements.get("required_evidence"))
+    missing = _strings(binding.get("missing_inputs"))
     human_action_required = summary.get("status") == "READY_FOR_HUMAN_REVIEW"
     reason = str(signal["reason"])
 
@@ -183,11 +177,8 @@ def _compact_brief(
         "match_status": signal.get("match_status"),
         "operational_class": binding.get("selected_operational_class"),
         "trust_task_class": requirements.get("trust_task_class"),
-        "required": {
-            "scenarios": _strings(requirements.get("required_scenarios")),
-            "evidence": _strings(requirements.get("required_evidence")),
-        },
-        "missing": _strings(binding.get("missing_inputs")),
+        "required": {"scenarios": required_scenarios, "evidence": required_evidence},
+        "missing": missing,
         "read_evidence": _target_ids(binding),
         "next": next_step,
         "human_action_required": human_action_required,
@@ -203,9 +194,12 @@ def _targeted_evidence(operational_binding: Mapping[str, Any] | None) -> dict[st
     requirements = _mapping(binding.get("requirements"))
     facts = _mapping(binding.get("facts"))
     policy = _mapping(binding.get("policy"))
-    completed = set(_strings(facts.get("completed_scenarios")))
-    verified = set(_strings(facts.get("verified_evidence")))
     supplied = facts.get("supplied") is True
+
+    # No supplied Trust Facts means no evidence may be treated as observed or verified,
+    # even if a malformed/non-authoritative projection happens to contain fact-like lists.
+    completed = set(_strings(facts.get("completed_scenarios"))) if supplied else set()
+    verified = set(_strings(facts.get("verified_evidence"))) if supplied else set()
 
     provenance = {
         "policy_revision": policy.get("policy_revision"),
@@ -227,25 +221,27 @@ def _targeted_evidence(operational_binding: Mapping[str, Any] | None) -> dict[st
 
     for scenario in _strings(requirements.get("required_scenarios")):
         item_id = f"scenario:{scenario}"
+        is_verified = supplied and scenario in completed
         output[item_id] = {
             "contract_version": TARGETED_EVIDENCE_CONTRACT_VERSION,
             "id": item_id,
             "kind": "scenario",
             "requirement": scenario,
-            "state": "VERIFIED" if scenario in completed else "MISSING",
-            "observed": scenario in completed if supplied else None,
+            "state": "VERIFIED" if is_verified else "MISSING",
+            "observed": is_verified if supplied else None,
             "provenance": deepcopy(provenance),
         }
 
     for evidence in _strings(requirements.get("required_evidence")):
         item_id = f"evidence:{evidence}"
+        is_verified = supplied and evidence in verified
         output[item_id] = {
             "contract_version": TARGETED_EVIDENCE_CONTRACT_VERSION,
             "id": item_id,
             "kind": "required_evidence",
             "requirement": evidence,
-            "state": "VERIFIED" if evidence in verified else "MISSING",
-            "observed": evidence in verified if supplied else None,
+            "state": "VERIFIED" if is_verified else "MISSING",
+            "observed": is_verified if supplied else None,
             "provenance": deepcopy(provenance),
         }
 
@@ -270,6 +266,7 @@ def _verify_compact_payload(value: Mapping[str, Any], *, max_bytes: int, label: 
     size = _json_bytes(value)
     if size > max_bytes:
         raise OperationalLazyInterfaceError(f"{label} exceeds compact size limit: {size} > {max_bytes}")
+
     stack: list[tuple[str, Any]] = [("", value)]
     while stack:
         path, item = stack.pop()
@@ -282,6 +279,7 @@ def _verify_compact_payload(value: Mapping[str, Any], *, max_bytes: int, label: 
         elif isinstance(item, list):
             for index, child in enumerate(item):
                 stack.append((f"{path}[{index}]", child))
+
     if label == "Level 0 signal":
         serialized = json.dumps(value, ensure_ascii=False)
         for word in _AUTHORITY_WORDS:
@@ -302,17 +300,15 @@ def build_operational_lazy_interface(
     if brief is not None:
         _verify_compact_payload(brief, max_bytes=LEVEL1_MAX_BYTES, label="Level 1 brief")
 
+    targeted_ids = sorted(targeted, key=lambda item: item.encode("utf-8"))
     body = {
         "contract_version": INTERFACE_CONTRACT_VERSION,
         "signal": signal,
         "brief": brief,
-        "targeted_evidence_ids": sorted(targeted),
+        "targeted_evidence_ids": targeted_ids,
         "targeted_evidence": targeted,
     }
-    return {
-        **body,
-        "interface_sha256": canonical_json_sha256(body),
-    }
+    return {**body, "interface_sha256": canonical_json_sha256(body)}
 
 
 def _slug(value: str) -> str:
@@ -350,7 +346,7 @@ def write_operational_lazy_interface(root: str | Path, interface: Mapping[str, A
     targeted_dir = target / "targeted"
     targeted_dir.mkdir(exist_ok=True)
     index: dict[str, str] = {}
-    for ordinal, item_id in enumerate(sorted(targeted), start=1):
+    for ordinal, item_id in enumerate(sorted(targeted, key=lambda item: item.encode("utf-8")), start=1):
         payload = targeted[item_id]
         if not isinstance(payload, Mapping):
             raise OperationalLazyInterfaceError(f"targeted evidence must be an object: {item_id}")
