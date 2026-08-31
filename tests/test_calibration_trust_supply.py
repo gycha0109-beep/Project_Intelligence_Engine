@@ -8,8 +8,11 @@ import unittest
 from review_system.calibration_observation import build_calibration_record
 from review_system.calibration_trust_supply import (
     CONTRACT_VERSION,
+    LEDGER_CONTRACT_VERSION,
     CalibrationTrustSupplyError,
+    build_calibration_trust_supply_ledger,
     build_calibration_trust_supply_sidecar,
+    verify_calibration_trust_supply_binding,
     verify_calibration_trust_supply_sidecar,
     write_calibration_trust_supply_sidecar,
 )
@@ -84,6 +87,7 @@ class CalibrationTrustSupplyTests(unittest.TestCase):
         self.assertFalse(sidecar["authority"]["deploy_authorized"])
         self.assertFalse(sidecar["authority"]["production_effect_authorized"])
         self.assertEqual([], verify_calibration_trust_supply_sidecar(sidecar))
+        self.assertEqual([], verify_calibration_trust_supply_binding(record, sidecar))
         self.assertEqual(original_record_hash, record["record_sha256"])
 
     def test_consumed_explicit_input_is_projected_without_creating_authority(self):
@@ -134,6 +138,41 @@ class CalibrationTrustSupplyTests(unittest.TestCase):
             path = write_calibration_trust_supply_sidecar(tmp, sidecar)
             self.assertEqual(Path(tmp).resolve() / "trust-facts-supply.json", path)
             self.assertEqual(sidecar, json.loads(path.read_text(encoding="utf-8")))
+
+    def test_ledger_deduplicates_same_supply_observation_and_emits_histograms(self):
+        sidecar = build_calibration_trust_supply_sidecar(
+            calibration_record=_record(),
+            trust_supply_observation=_absent_observation(),
+        )
+        ledger = build_calibration_trust_supply_ledger([sidecar, sidecar])
+        self.assertEqual(LEDGER_CONTRACT_VERSION, ledger["contract_version"])
+        self.assertEqual(2, ledger["input_sidecar_count"])
+        self.assertEqual(1, ledger["unique_calibration_count"])
+        self.assertEqual(1, ledger["duplicate_observation_count"])
+        self.assertEqual({"EXPLICIT_INPUT_ABSENT": 1}, ledger["histograms"]["status"])
+        self.assertEqual({"true": 1}, ledger["histograms"]["operational_policy_requested"])
+        self.assertEqual({"false": 1}, ledger["histograms"]["explicit_input_declared"])
+        self.assertEqual({"false": 1}, ledger["histograms"]["facts_consumed"])
+        self.assertTrue(ledger["authority"]["calibration_only"])
+        self.assertFalse(ledger["authority"]["trust_fact_inferred"])
+
+    def test_ledger_fails_closed_when_same_calibration_key_changes_supply_semantics(self):
+        record = _record()
+        absent = build_calibration_trust_supply_sidecar(
+            calibration_record=record,
+            trust_supply_observation=_absent_observation(),
+        )
+        disabled = build_calibration_trust_supply_sidecar(
+            calibration_record=record,
+            trust_supply_observation=build_operational_trust_supply_observation(
+                operational_policy_requested=False,
+                explicit_input_declared=False,
+                explicit_input_available=False,
+                operational_binding=None,
+            ),
+        )
+        with self.assertRaisesRegex(CalibrationTrustSupplyError, "conflicting Trust supply observations"):
+            build_calibration_trust_supply_ledger([absent, disabled])
 
 
 if __name__ == "__main__":
