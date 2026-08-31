@@ -1,0 +1,45 @@
+name: Calibration Historical Backfill
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/calibration-backfill.yml"
+      - "src/review_system/calibration_backfill.py"
+      - "src/review_system/calibration_backfill_cli.py"
+      - "tests/test_calibration_backfill.py"
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  historical-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      - name: Backfill legacy lazy-interface observations
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          pie-calibration-backfill \
+            --repository gycha0109-beep/BuildMap \
+            --repository gycha0109-beep/K_beauty \
+            --repository gycha0109-beep/Saju \
+            --repository gycha0109-beep/AnnoyingRadar \
+            --repository gycha0109-beep/ranking \
+            --repository gycha0109-beep/thought-drawer \
+            --repository gycha0109-beep/journey-connect-backend \
+            --pie-revision 96f9061d7538e92dbb8fdc8567147b3d6c01744e \
+            --output calibration-backfill
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pie-calibration-historical-backfill-${{ github.event.pull_request.head.sha }}
+          path: calibration-backfill/
+          if-no-files-found: error
+          retention-days: 90
