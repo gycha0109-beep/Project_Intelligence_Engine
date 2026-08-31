@@ -47,9 +47,24 @@ on:
       pie_signal_reason:
         description: GPT-facing Level 0 PIE signal reason.
         value: ${{ jobs.prospective.outputs.pie_signal_reason }}
+      pie_signal_match_status:
+        description: GPT-facing Level 0 PIE policy-match status, or NONE.
+        value: ${{ jobs.prospective.outputs.pie_signal_match_status }}
       pie_signal_next:
         description: GPT-facing Level 0 PIE signal next step.
         value: ${{ jobs.prospective.outputs.pie_signal_next }}
+      pie_level1_materialized:
+        description: Whether the compact Level 1 operational brief was materialized.
+        value: ${{ jobs.prospective.outputs.pie_level1_materialized }}
+      pie_level2_item_count:
+        description: Count of targeted Level 2 evidence items materialized.
+        value: ${{ jobs.prospective.outputs.pie_level2_item_count }}
+      calibration_key_sha256:
+        description: Stable calibration identity for repository, PR, source head, and PIE revision.
+        value: ${{ jobs.prospective.outputs.calibration_key_sha256 }}
+      calibration_record_sha256:
+        description: Hash of this run-specific read-only calibration observation.
+        value: ${{ jobs.prospective.outputs.calibration_record_sha256 }}
       deterministic_result_sha256:
         description: Stable semantic result hash for same-input replay comparison.
         value: ${{ jobs.prospective.outputs.deterministic_result_sha256 }}
@@ -62,6 +77,9 @@ on:
       interface_artifact_name:
         description: Uploaded compact GPT operational interface artifact name.
         value: ${{ jobs.prospective.outputs.interface_artifact_name }}
+      calibration_artifact_name:
+        description: Uploaded aggregate-ready calibration observation artifact name.
+        value: ${{ jobs.prospective.outputs.calibration_artifact_name }}
 
 permissions:
   contents: read
@@ -80,11 +98,17 @@ jobs:
       status: ${{ steps.result.outputs.status }}
       pie_signal_status: ${{ steps.result.outputs.pie_signal_status }}
       pie_signal_reason: ${{ steps.result.outputs.pie_signal_reason }}
+      pie_signal_match_status: ${{ steps.result.outputs.pie_signal_match_status }}
       pie_signal_next: ${{ steps.result.outputs.pie_signal_next }}
+      pie_level1_materialized: ${{ steps.result.outputs.pie_level1_materialized }}
+      pie_level2_item_count: ${{ steps.result.outputs.pie_level2_item_count }}
+      calibration_key_sha256: ${{ steps.result.outputs.calibration_key_sha256 }}
+      calibration_record_sha256: ${{ steps.result.outputs.calibration_record_sha256 }}
       deterministic_result_sha256: ${{ steps.result.outputs.deterministic_result_sha256 }}
       manifest_sha256: ${{ steps.result.outputs.manifest_sha256 }}
       artifact_name: ${{ steps.result.outputs.artifact_name }}
       interface_artifact_name: ${{ steps.result.outputs.interface_artifact_name }}
+      calibration_artifact_name: ${{ steps.result.outputs.calibration_artifact_name }}
     steps:
       - name: Validate caller and workflow binding
         env:
@@ -237,6 +261,11 @@ jobs:
           import re
           import shutil
 
+          from review_system.calibration_observation import (
+              build_calibration_record,
+              calibration_artifact_name,
+              write_calibration_record,
+          )
           from review_system.operational_lazy_interface import (
               build_operational_lazy_interface,
               write_operational_lazy_interface,
@@ -278,6 +307,22 @@ jobs:
           write_operational_lazy_interface(interface_staging, interface)
           signal = interface["signal"]
 
+          calibration_record = build_calibration_record(
+              repository=result["repository"],
+              pull_request=int(result["pull_request"]),
+              source_revision=result["source_revision"],
+              pie_revision=result["pie_revision"],
+              execution_id=result["execution_id"],
+              workflow_run_id=os.environ["WORKFLOW_RUN_ID"],
+              workflow_run_attempt=int(os.environ["WORKFLOW_RUN_ATTEMPT"]),
+              interface=interface,
+          )
+          calibration_staging = Path(os.environ["RUNNER_TEMP"]) / "pie-calibration"
+          if calibration_staging.exists():
+              shutil.rmtree(calibration_staging)
+          write_calibration_record(calibration_staging, calibration_record)
+          calibration_name = calibration_artifact_name(calibration_record)
+
           staging = Path(os.environ["RUNNER_TEMP"]) / "pie-upload"
           if staging.exists():
               shutil.rmtree(staging)
@@ -318,22 +363,35 @@ jobs:
               f"{result['source_revision'][:12]}-{result['execution_id'][-12:]}"
           )
           interface_artifact_name = f"{artifact_name}-interface"
+          lazy_interface = calibration_record["lazy_interface"]
           outputs = {
               "execution_id": result["execution_id"],
               "status": result["status"],
               "pie_signal_status": signal["status"],
               "pie_signal_reason": signal["reason"],
+              "pie_signal_match_status": signal.get("match_status") or "NONE",
               "pie_signal_next": signal["next"],
+              "pie_level1_materialized": "true" if lazy_interface["level1_materialized"] else "false",
+              "pie_level2_item_count": str(lazy_interface["level2_item_count"]),
+              "calibration_key_sha256": calibration_record["calibration_key_sha256"],
+              "calibration_record_sha256": calibration_record["record_sha256"],
               "deterministic_result_sha256": deterministic_hash,
               "manifest_sha256": result["manifest_sha256"],
               "artifact_name": artifact_name,
               "interface_artifact_name": interface_artifact_name,
+              "calibration_artifact_name": calibration_name,
               "upload_path": str(staging),
               "interface_upload_path": str(interface_staging),
+              "calibration_upload_path": str(calibration_staging),
           }
           with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
               for key, value in outputs.items():
                   handle.write(f"{key}={value}\n")
+
+          print(
+              "PIE_CALIBRATION_RECORD_V1 "
+              + json.dumps(calibration_record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+          )
 
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           risk = result.get("risk_band") or "NOT_ASSESSED"
@@ -343,7 +401,9 @@ jobs:
               "# PIE Signal\n\n"
               f"`PIE_SIGNAL_V1` · **{signal['status']}** · `{signal['reason']}`\n\n"
               f"Next: `{signal['next']}`  \n"
-              f"Compact interface artifact: `{interface_artifact_name}`\n\n"
+              f"Compact interface artifact: `{interface_artifact_name}`  \n"
+              f"Calibration artifact: `{calibration_name}`  \n"
+              f"Calibration key: `{calibration_record['calibration_key_sha256']}`\n\n"
               "---\n\n"
               "# PIE Prospective Assessment\n\n"
               f"- Status: `{result['status']}`\n"
@@ -374,4 +434,11 @@ jobs:
         with:
           name: ${{ steps.result.outputs.artifact_name }}
           path: ${{ steps.result.outputs.upload_path }}
+          if-no-files-found: error
+
+      - name: Upload aggregate-ready calibration observation
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.result.outputs.calibration_artifact_name }}
+          path: ${{ steps.result.outputs.calibration_upload_path }}
           if-no-files-found: error
