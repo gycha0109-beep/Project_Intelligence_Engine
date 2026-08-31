@@ -12,7 +12,9 @@ from .calibration_observation import build_calibration_record
 BACKFILL_SOURCE_CONTRACT_VERSION = "PIE_CALIBRATION_BACKFILL_SOURCE_V1"
 LEGACY_INTERFACE_CONTRACT_VERSION = "PIE_GPT_OPERATIONAL_INTERFACE_V1"
 _SIGNAL_CONTRACT_VERSION = "PIE_SIGNAL_V1"
-_PR_FROM_ARTIFACT = re.compile(r"-pr-(?P<pr>[1-9][0-9]*)-[0-9a-f]{12}-[0-9a-f]{12}-interface$")
+_PR_FROM_ARTIFACT = re.compile(
+    r"-pr-(?P<pr>[1-9][0-9]*)-(?P<head>[0-9a-f]{12})-(?P<execution>[0-9a-f]{12})-interface$"
+)
 
 
 class CalibrationBackfillError(RuntimeError):
@@ -161,8 +163,13 @@ def build_historical_calibration_record(
     if artifact_run.get("id") != run_id or artifact_run.get("head_sha") != head_sha:
         raise CalibrationBackfillError("artifact workflow identity does not match workflow run")
 
+    match = _PR_FROM_ARTIFACT.search(artifact_name)
+    if match is None:
+        raise CalibrationBackfillError("legacy compact artifact name does not encode a PR identity")
+    if match.group("head") != head_sha.lower()[:12]:
+        raise CalibrationBackfillError("legacy compact artifact head prefix does not match workflow run")
     interface = parse_legacy_interface_artifact(artifact_zip)
-    pull_request = parse_pull_request_from_interface_artifact_name(artifact_name)
+    pull_request = int(match.group("pr"))
     record = build_calibration_record(
         repository=repository,
         pull_request=pull_request,
