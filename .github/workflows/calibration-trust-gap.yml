@@ -1,0 +1,67 @@
+name: Calibration Historical Trust Gap Diagnostic
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        required: true
+        type: string
+      source_pie_revision:
+        required: true
+        type: string
+      diagnostic_revision:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  historical-trust-gap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Validate caller-local diagnostic binding
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+          CALLER_REPOSITORY: ${{ github.repository }}
+          SOURCE_PIE_REVISION: ${{ inputs.source_pie_revision }}
+          DIAGNOSTIC_REVISION: ${{ inputs.diagnostic_revision }}
+        shell: bash
+        run: |
+          [[ "$REPOSITORY" == "$CALLER_REPOSITORY" ]] || {
+            echo "Historical trust-gap diagnostic must read artifacts from the caller repository only."
+            exit 1
+          }
+          [[ "$SOURCE_PIE_REVISION" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "source_pie_revision must be an exact Git SHA."
+            exit 1
+          }
+          [[ "$DIAGNOSTIC_REVISION" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "diagnostic_revision must be an exact Git SHA."
+            exit 1
+          }
+      - name: Install exact diagnostic implementation
+        env:
+          DIAGNOSTIC_REVISION: ${{ inputs.diagnostic_revision }}
+        run: pip install "git+https://github.com/gycha0109-beep/Project_Intelligence_Engine.git@${DIAGNOSTIC_REVISION}"
+      - name: Extract caller-local historical trust gaps
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ inputs.repository }}
+          SOURCE_PIE_REVISION: ${{ inputs.source_pie_revision }}
+        run: |
+          pie-calibration-trust-gap \
+            --repository "$REPOSITORY" \
+            --pie-revision "$SOURCE_PIE_REVISION" \
+            --output calibration-trust-gap
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pie-calibration-trust-gap-${{ github.event.repository.name }}-${{ inputs.source_pie_revision }}
+          path: calibration-trust-gap/
+          if-no-files-found: error
+          retention-days: 90
