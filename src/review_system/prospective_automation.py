@@ -22,6 +22,10 @@ from .operational_review_brief import (
     write_operational_review_brief,
     write_operational_review_brief_markdown,
 )
+from .operational_trust_supply import (
+    build_operational_trust_supply_observation,
+    write_operational_trust_supply_observation,
+)
 from .prospective_evidence_bundle import verify_evidence_bundle, write_evidence_bundle
 from .prospective_execution_identity import build_prospective_execution_identity
 from .prospective_replay import build_deterministic_result
@@ -209,6 +213,17 @@ def run_github_pr(
         if operational_binding["trust_request"]["materialized"]:
             request_path = generated_request
 
+    trust_supply_observation = build_operational_trust_supply_observation(
+        operational_policy_requested=request.operational_policy is not None,
+        explicit_input_declared=request.operational_trust_facts is not None,
+        explicit_input_available=operational_facts_path is not None,
+        operational_binding=operational_binding,
+    )
+    trust_supply_path = write_operational_trust_supply_observation(
+        analysis.output_dir / "operational-trust-facts-supply.json",
+        trust_supply_observation,
+    )
+
     trust_request_sha256 = file_sha256(request_path) if request_path is not None else None
     identity = build_prospective_execution_identity(
         repository=repository,
@@ -227,6 +242,7 @@ def run_github_pr(
         "analysis/impact.json": analysis.impact_path,
         "analysis/REPORT.md": analysis.report_path,
         "prospective/candidate.json": candidate_path,
+        "operational/trust-facts-supply.json": trust_supply_path,
     }
     if analysis.diff_path is not None:
         evidence_files["source/pull-request.diff"] = analysis.diff_path
@@ -353,7 +369,10 @@ def run_github_pr(
             review_packet=review_packet,
         )
         review_brief_path = write_operational_review_brief(analysis.output_dir / "operational-review-brief.json", review_brief)
-        review_brief_markdown = write_operational_review_brief_markdown(analysis.output_dir / "OPERATIONAL-REVIEW-BRIEF.md", review_brief)
+        review_brief_markdown = write_operational_review_brief_markdown(
+            analysis.output_dir / "OPERATIONAL-REVIEW-BRIEF.md",
+            review_brief,
+        )
     except OperationalReviewBriefError as exc:
         raise ProspectiveAutomationError("REVIEW_BRIEF_INVALID", str(exc)) from exc
     summary["review_brief_sha256"] = review_brief["brief_sha256"]
