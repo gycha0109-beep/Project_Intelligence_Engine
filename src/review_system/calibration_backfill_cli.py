@@ -7,8 +7,8 @@ from pathlib import Path
 import sys
 from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlencode, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from review_system.calibration_backfill import (
     CalibrationBackfillError,
@@ -26,9 +26,20 @@ class GitHubBackfillError(RuntimeError):
     pass
 
 
+class _StripAuthorizationCrossHostRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        if urlparse(req.full_url).netloc.lower() != urlparse(newurl).netloc.lower():
+            redirected.remove_header("Authorization")
+        return redirected
+
+
 class GitHubClient:
     def __init__(self, token: str | None) -> None:
         self._token = token.strip() if isinstance(token, str) and token.strip() else None
+        self._opener = build_opener(_StripAuthorizationCrossHostRedirect())
 
     def _request(self, url: str) -> Request:
         headers = {
@@ -43,14 +54,14 @@ class GitHubClient:
     def json(self, path: str) -> dict[str, Any]:
         url = path if path.startswith("https://") else f"{_API}{path}"
         try:
-            with urlopen(self._request(url), timeout=60) as response:
+            with self._opener.open(self._request(url), timeout=60) as response:
                 return json.loads(response.read().decode("utf-8"))
         except (HTTPError, URLError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise GitHubBackfillError(f"GitHub API JSON request failed: {url}: {exc}") from exc
 
     def bytes(self, url: str) -> bytes:
         try:
-            with urlopen(self._request(url), timeout=120) as response:
+            with self._opener.open(self._request(url), timeout=120) as response:
                 return response.read()
         except (HTTPError, URLError) as exc:
             raise GitHubBackfillError(f"GitHub artifact download failed: {url}: {exc}") from exc
