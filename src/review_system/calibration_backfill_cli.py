@@ -123,20 +123,26 @@ def _find_interface_artifact(
     client: GitHubClient,
     repository: str,
     run: dict[str, Any],
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     run_id = run["id"]
-    candidates = [
+    interfaces = [
         artifact
         for artifact in client.artifacts(repository, run_id)
         if isinstance(artifact.get("name"), str)
         and artifact["name"].endswith("-interface")
-        and artifact.get("expired") is False
     ]
-    if len(candidates) != 1:
+    if not interfaces:
+        return None
+    if len(interfaces) != 1:
         raise GitHubBackfillError(
-            f"{repository} run {run_id}: expected exactly one unexpired legacy interface artifact, found {len(candidates)}"
+            f"{repository} run {run_id}: expected at most one legacy interface artifact, found {len(interfaces)}"
         )
-    return candidates[0]
+    artifact = interfaces[0]
+    if artifact.get("expired") is not False:
+        raise GitHubBackfillError(
+            f"{repository} run {run_id}: legacy interface artifact is expired or unavailable"
+        )
+    return artifact
 
 
 def _write_outputs(
@@ -147,6 +153,7 @@ def _write_outputs(
     records: list[dict[str, Any]],
     sources: list[dict[str, Any]],
     ledger: dict[str, Any],
+    excluded_runs: list[dict[str, Any]],
 ) -> None:
     output.mkdir(parents=True, exist_ok=True)
     records_path = output / "records.ndjson"
@@ -161,6 +168,11 @@ def _write_outputs(
     )
     ledger_path = output / "ledger.json"
     ledger_path.write_text(json.dumps(ledger, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    exclusions_path = output / "excluded-runs.ndjson"
+    exclusions_path.write_text(
+        "".join(json.dumps(item, sort_keys=True, ensure_ascii=False) + "\n" for item in excluded_runs),
+        encoding="utf-8",
+    )
 
     manifest_body = {
         "contract_version": BACKFILL_MANIFEST_CONTRACT_VERSION,
@@ -168,6 +180,7 @@ def _write_outputs(
         "repositories": sorted(repository.lower() for repository in repositories),
         "input_record_count": len(records),
         "source_artifact_count": len(sources),
+        "excluded_nonsemantic_run_count": len(excluded_runs),
         "unique_calibration_count": ledger["unique_calibration_count"],
         "duplicate_observation_count": ledger["duplicate_observation_count"],
         "ledger_sha256": canonical_json_sha256(ledger),
@@ -175,6 +188,7 @@ def _write_outputs(
             "records": "records.ndjson",
             "sources": "sources.ndjson",
             "ledger": "ledger.json",
+            "excluded_runs": "excluded-runs.ndjson",
         },
         "authority": {
             "historical_observation_only": True,
@@ -208,6 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     client = GitHubClient(os.environ.get("GITHUB_TOKEN"))
     records: list[dict[str, Any]] = []
     sources: list[dict[str, Any]] = []
+    excluded_runs: list[dict[str, Any]] = []
 
     try:
         for repository in repositories:
@@ -218,6 +233,18 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 matched_runs += 1
                 artifact = _find_interface_artifact(client, repository, run)
+                if artifact is None:
+                    excluded_runs.append(
+                        {
+                            "repository": repository.lower(),
+                            "workflow_run_id": run["id"],
+                            "workflow_run_attempt": run.get("run_attempt"),
+                            "head_sha": run.get("head_sha"),
+                            "pie_revision": args.pie_revision.lower(),
+                            "reason": "NO_LEGACY_INTERFACE_ARTIFACT",
+                        }
+                    )
+                    continue
                 archive_url = artifact.get("archive_download_url")
                 if not isinstance(archive_url, str) or not archive_url:
                     raise GitHubBackfillError(
@@ -233,7 +260,16 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 records.append(record)
                 sources.append(source)
-            print(f"{repository}: matched legacy PIE runs={matched_runs}", flush=True)
+            semantic = sum(
+                1 for record in records if record["identity"]["repository"] == repository.lower()
+            )
+            excluded = sum(
+                1 for item in excluded_runs if item["repository"] == repository.lower()
+            )
+            print(
+                f"{repository}: matched legacy PIE runs={matched_runs} semantic={semantic} excluded={excluded}",
+                flush=True,
+            )
 
         if not records:
             raise GitHubBackfillError("no legacy calibration observations matched the requested PIE revision")
@@ -258,6 +294,7 @@ def main(argv: list[str] | None = None) -> int:
             records=records,
             sources=sources,
             ledger=ledger,
+            excluded_runs=excluded_runs,
         )
     except (CalibrationBackfillError, GitHubBackfillError, RuntimeError) as exc:
         print(f"calibration backfill failed: {exc}", file=sys.stderr)
@@ -268,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
             "input_record_count": ledger["input_record_count"],
             "unique_calibration_count": ledger["unique_calibration_count"],
             "duplicate_observation_count": ledger["duplicate_observation_count"],
+            "excluded_nonsemantic_run_count": len(excluded_runs),
             "histograms": ledger["histograms"],
             "lazy_interface": ledger["lazy_interface"],
         },
