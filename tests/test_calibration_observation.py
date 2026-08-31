@@ -18,6 +18,7 @@ from review_system.calibration_observation import (
 
 HEAD = "a" * 40
 PIE = "b" * 40
+INTERFACE = "d" * 64
 
 
 def _interface(
@@ -40,6 +41,7 @@ def _interface(
         "brief": {"contract_version": "PIE_OPERATIONAL_BRIEF_V1"} if level1 else None,
         "targeted_evidence_ids": [f"scenario:item-{index}" for index in range(level2)],
         "targeted_evidence": {},
+        "interface_sha256": INTERFACE,
     }
 
 
@@ -72,6 +74,7 @@ class CalibrationObservationTests(unittest.TestCase):
         )
         self.assertEqual(CALIBRATION_RECORD_CONTRACT_VERSION, first["contract_version"])
         self.assertEqual("gycha0109-beep/buildmap", first["identity"]["repository"])
+        self.assertEqual(INTERFACE, first["interface_sha256"])
         self.assertEqual("CLEAR", first["signal"]["status"])
         self.assertEqual("NO_POLICY_MATCH", first["signal"]["reason"])
         self.assertFalse(first["lazy_interface"]["level1_materialized"])
@@ -119,6 +122,14 @@ class CalibrationObservationTests(unittest.TestCase):
         self.assertIn("--m-UNIQUE_POLICY_MATCH", name)
         self.assertTrue(name.endswith("--l1-1--l2-7"))
         self.assertNotIn("/", name)
+        self.assertLessEqual(len(name), 255)
+
+    def test_artifact_name_bounds_unexpected_long_signal_tokens(self):
+        record = _record(interface=_interface(reason="X" * 500, match_status="Y" * 500))
+        name = calibration_artifact_name(record)
+        self.assertLessEqual(len(name), 255)
+        self.assertTrue(name.startswith(f"pie-cal-v1--k-{record['calibration_key_sha256']}"))
+        self.assertTrue(name.endswith("--l1-0--l2-0"))
 
     def test_writer_materializes_single_machine_readable_record(self):
         record = _record()
@@ -193,11 +204,23 @@ class CalibrationObservationTests(unittest.TestCase):
         with self.assertRaisesRegex(CalibrationObservationError, "conflicting semantic observations"):
             build_calibration_ledger([clear, changed])
 
-    def test_tampered_record_is_rejected_before_aggregation(self):
+    def test_tampered_semantics_are_rejected_before_aggregation(self):
         record = _record()
         record["signal"]["reason"] = "MISSING_TRUST_FIELDS"
         with self.assertRaisesRegex(CalibrationObservationError, "semantic hash"):
             build_calibration_ledger([record])
+
+    def test_tampered_authority_is_rejected_even_with_observation_payload_present(self):
+        record = _record()
+        record["authority"]["merge_authorized"] = True
+        with self.assertRaisesRegex(CalibrationObservationError, "authority boundary"):
+            build_calibration_ledger([record])
+
+    def test_non_signal_interface_is_rejected(self):
+        interface = _interface()
+        interface["signal"]["contract_version"] = "OTHER_SIGNAL"
+        with self.assertRaisesRegex(CalibrationObservationError, "PIE_SIGNAL_V1"):
+            _record(interface=interface)
 
 
 if __name__ == "__main__":
