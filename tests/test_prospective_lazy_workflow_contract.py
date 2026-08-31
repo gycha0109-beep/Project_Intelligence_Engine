@@ -14,20 +14,41 @@ class ProspectiveLazyWorkflowContractTests(unittest.TestCase):
         for output in (
             "pie_signal_status",
             "pie_signal_reason",
+            "pie_signal_match_status",
             "pie_signal_next",
+            "pie_level1_materialized",
+            "pie_level2_item_count",
             "interface_artifact_name",
         ):
             self.assertIn(f"      {output}:", text)
         self.assertIn("`PIE_SIGNAL_V1`", text)
         self.assertIn("# PIE Signal", text)
 
-    def test_progressive_disclosure_uses_separate_compact_and_full_artifacts(self):
+    def test_progressive_disclosure_uses_separate_compact_full_and_calibration_artifacts(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("Upload compact GPT operational interface", text)
         self.assertIn("Upload replayable evidence capsule", text)
+        self.assertIn("Upload aggregate-ready calibration observation", text)
         self.assertIn('interface_artifact_name = f"{artifact_name}-interface"', text)
         self.assertIn('"interface_upload_path": str(interface_staging)', text)
         self.assertIn('"upload_path": str(staging)', text)
+        self.assertIn('"calibration_upload_path": str(calibration_staging)', text)
+        self.assertIn('"calibration_artifact_name": calibration_name', text)
+
+    def test_calibration_observation_is_exposed_without_new_authority(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        for output in (
+            "calibration_key_sha256",
+            "calibration_record_sha256",
+            "calibration_artifact_name",
+        ):
+            self.assertIn(f"      {output}:", text)
+        self.assertIn("build_calibration_record", text)
+        self.assertIn("calibration_artifact_name(calibration_record)", text)
+        self.assertIn("PIE_CALIBRATION_RECORD_V1", text)
+        self.assertIn('"pie_signal_match_status": signal.get("match_status") or "NONE"', text)
+        self.assertIn('"pie_level1_materialized": "true" if lazy_interface["level1_materialized"] else "false"', text)
+        self.assertIn('"pie_level2_item_count": str(lazy_interface["level2_item_count"])', text)
 
     def test_permissions_remain_read_only_and_no_comment_authority_is_added(self):
         text = WORKFLOW.read_text(encoding="utf-8")
