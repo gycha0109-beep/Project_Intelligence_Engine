@@ -134,6 +134,16 @@ class CalibrationBackfillTests(unittest.TestCase):
                 artifact_zip=_zip(),
             )
 
+    def test_artifact_head_prefix_mismatch_is_rejected(self):
+        with self.assertRaisesRegex(CalibrationBackfillError, "head prefix"):
+            build_historical_calibration_record(
+                repository="gycha0109-beep/BuildMap",
+                pie_revision=PIE,
+                run=_run(),
+                artifact=_artifact("pie-owner-repo-pr-42-aaaaaaaaaaaa-eeeeeeeeeeee-interface"),
+                artifact_zip=_zip(),
+            )
+
     def test_artifact_run_identity_mismatch_is_rejected(self):
         artifact = _artifact()
         artifact["workflow_run"] = {"id": 123456789, "head_sha": "f" * 40}
