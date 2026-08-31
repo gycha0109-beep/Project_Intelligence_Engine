@@ -55,7 +55,7 @@ jobs:
           REPOSITORY: ${{ inputs.repository }}
           SOURCE_PIE_REVISION: ${{ inputs.source_pie_revision }}
         run: |
-          pie-calibration-trust-gap \
+          python -m review_system.calibration_trust_gap_zero_cli \
             --repository "$REPOSITORY" \
             --pie-revision "$SOURCE_PIE_REVISION" \
             --output calibration-trust-gap
