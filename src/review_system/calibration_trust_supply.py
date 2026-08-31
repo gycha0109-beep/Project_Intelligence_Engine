@@ -3,9 +3,10 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
-from typing import Any, Mapping
+import re
+from typing import Any, Iterable, Mapping
 
-from .calibration_observation import build_calibration_ledger
+from .calibration_observation import CalibrationObservationError, build_calibration_ledger
 from .identity import canonical_json_sha256
 from .operational_trust_supply import (
     CONTRACT_VERSION as OPERATIONAL_TRUST_SUPPLY_CONTRACT_VERSION,
@@ -16,7 +17,9 @@ from .operational_trust_supply import (
 
 SCHEMA_VERSION = "1.0"
 CONTRACT_VERSION = "PIE_CALIBRATION_TRUST_FACTS_SUPPLY_V1"
+LEDGER_CONTRACT_VERSION = "PIE_CALIBRATION_TRUST_FACTS_SUPPLY_LEDGER_V1"
 FILENAME = "trust-facts-supply.json"
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 _AUTHORITY = {
     "calibration_only": True,
@@ -132,14 +135,25 @@ def verify_calibration_trust_supply_sidecar(value: Any) -> list[str]:
     elif canonical_json_sha256(dict(identity)) != value.get("calibration_key_sha256"):
         errors.append("calibration key does not match identity")
 
+    if not isinstance(value.get("calibration_semantic_sha256"), str) or _SHA256.fullmatch(
+        value.get("calibration_semantic_sha256", "")
+    ) is None:
+        errors.append("calibration_semantic_sha256 must be a lowercase SHA-256 digest")
+
     source = value.get("source_observation")
     if not isinstance(source, Mapping):
         errors.append("source_observation must contain an object")
     else:
+        if set(source) != {"schema_version", "contract_version", "observation_sha256"}:
+            errors.append("source_observation has unexpected fields")
         if source.get("schema_version") != OPERATIONAL_TRUST_SUPPLY_SCHEMA_VERSION:
             errors.append("source observation schema_version mismatch")
         if source.get("contract_version") != OPERATIONAL_TRUST_SUPPLY_CONTRACT_VERSION:
             errors.append("source observation contract_version mismatch")
+        if not isinstance(source.get("observation_sha256"), str) or _SHA256.fullmatch(
+            source.get("observation_sha256", "")
+        ) is None:
+            errors.append("source observation hash must be a lowercase SHA-256 digest")
 
     if value.get("authority") != _AUTHORITY:
         errors.append("authority boundary must remain calibration-only and explicitly false")
@@ -158,6 +172,27 @@ def verify_calibration_trust_supply_sidecar(value: Any) -> list[str]:
     return sorted(set(errors))
 
 
+def verify_calibration_trust_supply_binding(
+    calibration_record: Mapping[str, Any],
+    sidecar: Mapping[str, Any],
+) -> list[str]:
+    errors = list(verify_calibration_trust_supply_sidecar(sidecar))
+    try:
+        ledger = build_calibration_ledger([calibration_record])
+    except CalibrationObservationError as exc:
+        errors.append(f"invalid calibration record: {exc}")
+        return sorted(set(errors))
+
+    entry = ledger["entries"][0]
+    if sidecar.get("identity") != entry["identity"]:
+        errors.append("sidecar identity does not match calibration record")
+    if sidecar.get("calibration_key_sha256") != entry["calibration_key_sha256"]:
+        errors.append("sidecar calibration key does not match calibration record")
+    if sidecar.get("calibration_semantic_sha256") != entry["semantic_sha256"]:
+        errors.append("sidecar semantic hash does not match calibration record")
+    return sorted(set(errors))
+
+
 def write_calibration_trust_supply_sidecar(
     root: str | Path,
     value: Mapping[str, Any],
@@ -170,3 +205,80 @@ def write_calibration_trust_supply_sidecar(
     path = target / FILENAME
     path.write_text(json.dumps(dict(value), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return path
+
+
+def build_calibration_trust_supply_ledger(
+    sidecars: Iterable[Mapping[str, Any]],
+) -> dict[str, Any]:
+    values: list[dict[str, Any]] = []
+    for sidecar in sidecars:
+        errors = verify_calibration_trust_supply_sidecar(sidecar)
+        if errors:
+            raise CalibrationTrustSupplyError("invalid calibration Trust supply sidecar: " + "; ".join(errors))
+        values.append(deepcopy(dict(sidecar)))
+    if not values:
+        raise CalibrationTrustSupplyError("at least one calibration Trust supply sidecar is required")
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for sidecar in values:
+        grouped.setdefault(sidecar["calibration_key_sha256"], []).append(sidecar)
+
+    entries: list[dict[str, Any]] = []
+    for key, items in sorted(grouped.items()):
+        sidecar_hashes = {item["sidecar_sha256"] for item in items}
+        if len(sidecar_hashes) != 1:
+            raise CalibrationTrustSupplyError(
+                f"same calibration key produced conflicting Trust supply observations: {key}"
+            )
+        first = items[0]
+        entries.append(
+            {
+                "calibration_key_sha256": key,
+                "calibration_semantic_sha256": first["calibration_semantic_sha256"],
+                "identity": deepcopy(first["identity"]),
+                "source_observation": deepcopy(first["source_observation"]),
+                "supply": deepcopy(first["supply"]),
+                "sidecar_sha256": first["sidecar_sha256"],
+                "observation_count": len(items),
+            }
+        )
+
+    def histogram(selector: Any) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for entry in entries:
+            raw = selector(entry)
+            if isinstance(raw, bool):
+                label = "true" if raw else "false"
+            elif raw is None:
+                label = "NONE"
+            else:
+                label = str(raw)
+            counts[label] = counts.get(label, 0) + 1
+        return dict(sorted(counts.items(), key=lambda item: item[0].encode("utf-8")))
+
+    body = {
+        "contract_version": LEDGER_CONTRACT_VERSION,
+        "input_sidecar_count": len(values),
+        "unique_calibration_count": len(entries),
+        "duplicate_observation_count": len(values) - len(entries),
+        "histograms": {
+            "status": histogram(lambda entry: entry["supply"]["status"]),
+            "producer_mode": histogram(lambda entry: entry["supply"]["producer_mode"]),
+            "operational_policy_requested": histogram(
+                lambda entry: entry["supply"]["transport"]["operational_policy_requested"]
+            ),
+            "explicit_input_declared": histogram(
+                lambda entry: entry["supply"]["transport"]["explicit_input_declared"]
+            ),
+            "explicit_input_available": histogram(
+                lambda entry: entry["supply"]["transport"]["explicit_input_available"]
+            ),
+            "binder_attempted": histogram(lambda entry: entry["supply"]["binder"]["attempted"]),
+            "binding_status": histogram(lambda entry: entry["supply"]["binder"]["binding_status"]),
+            "match_status": histogram(lambda entry: entry["supply"]["binder"]["match_status"]),
+            "facts_consumed": histogram(lambda entry: entry["supply"]["binder"]["facts_consumed"]),
+        },
+        "entries": entries,
+        "authority": deepcopy(_AUTHORITY),
+    }
+    return {**body, "ledger_sha256": canonical_json_sha256(body)}
