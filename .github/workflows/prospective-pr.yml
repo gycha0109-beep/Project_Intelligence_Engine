@@ -266,6 +266,10 @@ jobs:
               calibration_artifact_name,
               write_calibration_record,
           )
+          from review_system.calibration_trust_supply import (
+              build_calibration_trust_supply_sidecar,
+              write_calibration_trust_supply_sidecar,
+          )
           from review_system.operational_lazy_interface import (
               build_operational_lazy_interface,
               write_operational_lazy_interface,
@@ -321,6 +325,19 @@ jobs:
           if calibration_staging.exists():
               shutil.rmtree(calibration_staging)
           write_calibration_record(calibration_staging, calibration_record)
+
+          trust_supply_path = bundle / "operational" / "trust-facts-supply.json"
+          if not trust_supply_path.is_file():
+              raise SystemExit("EVIDENCE_HASH_MISMATCH: operational Trust supply observation is missing")
+          trust_supply_observation = json.loads(trust_supply_path.read_text(encoding="utf-8"))
+          calibration_trust_supply = build_calibration_trust_supply_sidecar(
+              calibration_record=calibration_record,
+              trust_supply_observation=trust_supply_observation,
+          )
+          write_calibration_trust_supply_sidecar(
+              calibration_staging,
+              calibration_trust_supply,
+          )
           calibration_name = calibration_artifact_name(calibration_record)
 
           staging = Path(os.environ["RUNNER_TEMP"]) / "pie-upload"
@@ -391,6 +408,10 @@ jobs:
           print(
               "PIE_CALIBRATION_RECORD_V1 "
               + json.dumps(calibration_record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+          )
+          print(
+              "PIE_CALIBRATION_TRUST_FACTS_SUPPLY_V1 "
+              + json.dumps(calibration_trust_supply, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
           )
 
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
