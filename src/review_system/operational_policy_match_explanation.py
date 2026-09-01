@@ -4,8 +4,7 @@ from pathlib import PurePosixPath
 from typing import Any, Iterable
 
 from .identity import canonical_json_sha256
-from .operational_policy import CONTRACT_VERSION as POLICY_CONTRACT_VERSION
-from .operational_policy import POLICY_AUTHORITY
+from .operational_policy import OperationalPolicyError, normalize_operational_policy_data
 from .operational_policy_binder import _matches_path
 
 
@@ -47,39 +46,18 @@ def _normalize_changed_files(changed_files: Iterable[str]) -> list[str]:
 def _validate_policy(policy: Any) -> dict[str, Any]:
     if not isinstance(policy, dict):
         raise OperationalPolicyMatchExplanationError("policy must contain an object")
-    if policy.get("contract_version") != POLICY_CONTRACT_VERSION:
+    body = {key: value for key, value in policy.items() if key != "policy_sha256"}
+    try:
+        normalized = normalize_operational_policy_data(body)
+    except OperationalPolicyError as exc:
         raise OperationalPolicyMatchExplanationError(
-            f"policy contract must be {POLICY_CONTRACT_VERSION}"
-        )
-    if policy.get("policy_authority") != POLICY_AUTHORITY:
+            f"policy must be a valid normalized operational policy: {exc}"
+        ) from exc
+    if normalized != policy:
         raise OperationalPolicyMatchExplanationError(
-            f"policy authority must be {POLICY_AUTHORITY}"
+            "policy must exactly match its canonical normalized form and policy_sha256"
         )
-    if not isinstance(policy.get("project_id"), str) or not policy["project_id"].strip():
-        raise OperationalPolicyMatchExplanationError("policy project_id must be non-empty")
-    if not isinstance(policy.get("policy_sha256"), str) or len(policy["policy_sha256"]) != 64:
-        raise OperationalPolicyMatchExplanationError(
-            "policy must be normalized and include policy_sha256"
-        )
-    classes = policy.get("operational_classes")
-    if not isinstance(classes, dict) or not classes:
-        raise OperationalPolicyMatchExplanationError(
-            "policy operational_classes must be a non-empty object"
-        )
-    for class_id, item in classes.items():
-        if not isinstance(class_id, str) or not class_id:
-            raise OperationalPolicyMatchExplanationError(
-                "operational class ids must be non-empty strings"
-            )
-        if not isinstance(item, dict) or not isinstance(item.get("paths"), list):
-            raise OperationalPolicyMatchExplanationError(
-                f"operational class {class_id!r} must contain paths"
-            )
-        if not item["paths"] or any(not isinstance(pattern, str) or not pattern for pattern in item["paths"]):
-            raise OperationalPolicyMatchExplanationError(
-                f"operational class {class_id!r} paths must contain non-empty strings"
-            )
-    return policy
+    return normalized
 
 
 def _mechanism(path_matches: list[dict[str, Any]], matched_classes: list[str]) -> str:
