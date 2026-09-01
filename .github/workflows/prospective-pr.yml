@@ -443,6 +443,11 @@ jobs:
           )
           PY
 
+          python -m review_system.calibration_policy_match_materialize \
+            --result "${result_file}" \
+            --calibration-root "${RUNNER_TEMP}/pie-calibration" \
+            --workspace "${GITHUB_WORKSPACE}"
+
       - name: Upload compact GPT operational interface
         uses: actions/upload-artifact@v4
         with:
