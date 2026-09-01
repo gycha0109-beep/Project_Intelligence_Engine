@@ -168,6 +168,12 @@ class OperationalPolicyMatchExplanationTests(unittest.TestCase):
                 ["app/page.tsx", "app\\page.tsx"],
             )
 
+    def test_policy_provenance_must_match_canonical_hash(self):
+        policy = _policy({"application-runtime": _class(["app/**"])})
+        policy["operational_classes"]["application-runtime"]["paths"] = ["other/**"]
+        with self.assertRaises(OperationalPolicyMatchExplanationError):
+            explain_operational_policy_matches(policy, ["other/page.tsx"])
+
 
 if __name__ == "__main__":
     unittest.main()
