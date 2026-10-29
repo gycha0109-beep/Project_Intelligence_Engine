@@ -50,3 +50,12 @@ Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evid
 - All files claimed as preserved have recorded on-disk ZIP integrity and hash/ID evidence.
 - PR #105 status and exact CI diagnosis documented.
 - No change to Trust/Outcome authority or cross-project evidence promotion.
+
+## Progress checkpoint — 2026-10-29 (local audited files)
+
+- Confirmed PR #105 advanced to head `d11b216cba02293f1e5c6959683bff7480577255`; GitHub CI run `40819794723` finished `success`. PR is still open/unmerged; previous Python 3.14 failure belongs to an older head.
+- Resumed read-only, bounded local GitHub artifact-page captures with `stage17_bounded_acquisition.py`; raw metadata page files and per-page hashes retained only on Windows PC.
+- Reconciled local captures using `stage17_reconcile.py` into `inventory/stage17-reconciliation.json`. K_beauty: 7,245 unique observed IDs, 168 observed pre-Nov-27 due candidates, 0 conflicting duplicate metadata, unqueried pages 2–21 (20). Saju: 6,363 unique observed IDs, 270 due candidates, 0 conflicting duplicates, unqueried pages 2–55 (54). These are snapshot-scoped observations, not repository-wide exhaustive coverage.
+- Observed differing GitHub artifact total counts across snapshots (especially Saju). Reconcile by Artifact IDs and capture timestamps, not page position alone.
+- Archived ZIP file count/integrity and original storage location remain **unverified**. Previous 1,084 ZIP claim must not be promoted to confirmed status.
+- Next action: continue rate-limited metadata acquisition from K_beauty page 21 / Saju page 55, then rerun exact ID/expiry reconciliation. Preserve missing/unknown and archival evidence separately.
