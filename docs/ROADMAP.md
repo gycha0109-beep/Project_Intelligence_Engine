@@ -5,6 +5,24 @@
 > Baseline verified: `main` at `7368fc01206158b69825eef787b9c6be8381d7ed`.  
 > Scope: repository operating roadmap plus separate non-authoritative evidence-retention audit. This document must not overrule implemented contracts or source-code authority.
 
+## Active execution state — 2026-10-30 (supersedes earlier recovery to-dos)
+
+- **Evidence recovery**: All **1,084** original Artifact IDs from the historical Stage12 preservation cohort have been individually recovered as GitHub source ZIPs to the authorized Windows PC and fresh ZIP SHA-256/size/CRC verified. Of these, **997** match recovered historical Stage12 SHA-256 values; **87** lack an available historical SHA-256 comparator. The original 2026-10-27 Stage12 consolidated container bytes remain unavailable, so **historical byte-for-byte container equivalence is NOT proven**.
+- **Reconstructed full historical cohort**: `verified/PIE_EVIDENCE_1084_RECONSTRUCTED_2026-10-30.zip`, **21,908,593 bytes**, SHA-256 `492d06b2708356e56aa666e77b26c76d7224f4e1c49308e29d508206827e80b6`, with all 1,084 embedded source ZIP hashes independently validated. Local reports: `inventory/stage30-historical-eight-identification.json`, `stage31-eight-archive-recovery.json`, `stage32-full-source-zip-audit.json`, `stage33-reconstructed-full-bundle-verified.json`.
+- **Fresh seven-repository census**: Authenticated GitHub read-only bounded sequential/parallel sweeps on 2026-10-30 captured **24,483** currently listed Artifacts in total, with per-page counts matching API totals, no duplicate IDs, and opening/closing page-1 IDs and total counts stable within each sweep. This is **not a server-atomic snapshot**. Reports: `stage35-live-artifact-census-reconciliation.json`, `stage37-all-seven-current-census-reconciled.json`.
+- **Extended preservation**: Recovered a separate **764** additional PIE ZIPs expiring from **2026-11-27 00:00 UTC (inclusive)** to **2026-12-01 00:00 UTC (exclusive)**, excluding historical cohort members already archived. Independently verified their fresh SHA-256/size/ZIP CRC; historical SHA comparator is not available. New separate bundle: `verified/PIE_EVIDENCE_2026-11-27_TO_2026-12-01_2026-10-30.zip`, **19,873,960 bytes**, SHA-256 `91c22e1c096cc5767cf769c8b84a2569999f2896e3d621c975566f7056537175`. Local report `stage40-next-expiry-bundle-validation.json`.
+- **Current coverage**: **1,848** distinct original ZIPs on the Windows PC (historical 1,084 + next-window 764). Among 7 repos' fresh snapshot, **1,833** currently listed PIE Artifacts expiring before **2026-12-01 00:00 UTC** are all present on disk and each local SHA/size matches; missing **0**, size conflicts **0**, SHA conflicts **0**. The difference of 15 represents additionally archived historical IDs outside this cutoff cohort; do not conflate inventory coverage with safety/Outcome authority. Report: `inventory/stage41-predec1-retention-coverage-verified.json`.
+- **Future exposure (metadata only, not yet preserved)**: For 2026-12-01 to 2026-12-08 UTC there are **1,473** unarchived PIE Artifact IDs (API size total 70,793,828 bytes) in the current snapshot; later windows are recorded in `stage38-future-retention-exposure.json`. These are future retention candidates, not authorized Outcomes or a mandate to expand project authority.
+- **Other operational gates**: PR #105 remains open/unmerged with latest checked CI SUCCESS; PR #106 is a draft docs-only recovery PR and must stay unmerged without approval. Four official PIE human-review/outcome workflows had zero GitHub runs in the Stage29 check, which does **not** exclude independent human Outcome records elsewhere. Continue `REPORT_ONLY` and `DEFER_ORL7_INSUFFICIENT_VERIFIED_OUTCOMES`; do not auto-merge/deploy or mutate Trust/Outcome policy.
+
+### Next active actions
+
+1. Re-verify the two local preservation bundles on subsequent checks; preserve hashes, source-ID mapping, and the distinction between 997 historical SHA matches and 87 fresh-only verified original-cohort ZIPs. Do not upload raw evidence ZIPs to GitHub.
+2. When selecting the next retention horizon, prioritize 2026-12-01 to 2026-12-08 exposure with the existing bounded `gh api` read-only and fail-closed ZIP validation methodology. Retention tracking is not Outcome scoring.
+3. Periodically compare a refreshed bounded seven-repo census with the local manifest; treat changes/drift as explicit deltas rather than claiming permanent global exhaustiveness.
+4. Seek only source-reconcilable authorized project-local Human Review/Outcome records for any ORL-7 eligibility. No evidence means defer, never synthetic truth labels.
+5. Keep PR #105/#106 status and exact-head CI current, but no merge, deployment, or authority promotion without explicit approval.
+
 ## Current implementation and governance
 
 - PIE is a project-local technical intelligence and evidence control plane. Factory Intelligence and BuildMap-specific runtime coupling are outside current PIE authority.
@@ -13,7 +31,7 @@
 - Current `main` has merged PR #104. PR #105 is open at recorded head `55116f7bc1df7f959916c4d2dd101c0f963d9717`; its observed CI run 33504417761 failed on Python 3.14; Python 3.11/3.13 jobs were cancelled. Recheck current PR head/CI before any PR action.
 - `docs/architecture/README.md` is a historical architecture index with an older snapshot; actual code and schemas remain authoritative.
 
-## Immediate track A: Evidence preservation and census (external audit)
+## Historical track A: Evidence preservation and census (baseline, superseded by active state)
 
 Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evidence-Audit`. This directory is external, not an authoritative PIE Outcome Ledger.
 
@@ -25,7 +43,7 @@ Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evid
 - Original handoff reports 1,084 valid ZIPs and complete preservation of 1,055 identified expiry candidates. This has **not** been independently verified against local ZIP files/hashes during this recovery. Treat those totals as claims pending on-disk verification.
 - Due to time-dependent GitHub pagination and deletions, a page-number sweep is a snapshot of observations, not proof of complete cross-time capture.
 
-### Next actions
+### Original recovery actions (historical; superseded by active state)
 
 1. Run read-only on-disk ZIP count, archive integrity, ID-to-file mapping, and SHA-256 verification; publish a redacted manifest of found/missing IDs. Do not export raw ZIP content to GitHub.
 2. Merge Stage15 page captures into the local inventory; verify duplicate ID metadata consistency, source timestamps, and revised unqueried range (provisionally K_beauty 2–48 = 47; Saju 2–82 = 81), then write a current reconciliation.
@@ -33,7 +51,7 @@ Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evid
 4. For any newly found unexpired PIE Artifact before the cutoff, download and hash only if not already archived and permitted. Mark unverified/missing as such.
 5. Never declare seven-repository full backup unless the chosen time/window coverage and on-disk ZIP verification are actually exhaustive.
 
-## Immediate track B: Repository PR health
+## Historical track B: Repository PR health (baseline, superseded by active state)
 
 1. Inspect PR #105 at its live head, collect Python 3.14 failing test diagnostics, and classify whether failure is attributable to the proposed diff or baseline.
 2. Propose focused fix and tests on a feature branch only after evidence supports a specific change; open PR and let CI verify.
