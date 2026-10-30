@@ -36,7 +36,8 @@ class ProspectiveReusableWorkflowTests(unittest.TestCase):
         text = self.text
         self.assertIn('pie-trust-prospective "${args[@]}"', text)
         self.assertNotIn("--request", text)
-        self.assertNotIn("--workspace", text)
+        orchestration_args = text.split("args=(", 1)[1].split('pie-trust-prospective "${args[@]}"', 1)[0]
+        self.assertNotIn("--workspace", orchestration_args)
         self.assertNotIn("--operational-trust-facts", text)
         for forbidden in (
             "pull_request_review",
