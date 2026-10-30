@@ -351,9 +351,11 @@ def verify_calibration_policy_match_explanation_sidecar(value: Any) -> list[str]
 
 def verify_calibration_policy_match_explanation_binding(
     calibration_record: Mapping[str, Any],
-    sidecar: Mapping[str, Any],
+    sidecar: Any,
 ) -> list[str]:
     errors = list(verify_calibration_policy_match_explanation_sidecar(sidecar))
+    if not isinstance(sidecar, Mapping):
+        return sorted(set(errors))
     try:
         ledger = build_calibration_ledger([calibration_record])
     except CalibrationObservationError as exc:
