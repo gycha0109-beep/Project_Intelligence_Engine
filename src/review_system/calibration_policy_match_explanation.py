@@ -64,7 +64,7 @@ def _sha256(value: Any, *, label: str) -> str:
 def _normalized_path(value: Any, *, label: str) -> str:
     raw = _string(value, label=label).replace("\\", "/")
     path = PurePosixPath(raw)
-    if path.is_absolute() or ".." in path.parts:
+    if path.is_absolute() or ".." in path.parts or re.match(r"^[A-Za-z]:", raw):
         raise CalibrationPolicyMatchExplanationError(
             f"{label} must remain project-relative"
         )
