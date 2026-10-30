@@ -260,6 +260,30 @@ class CalibrationPolicyMatchExplanationTests(unittest.TestCase):
         ):
             build_calibration_policy_match_explanation_ledger([first, second])
 
+    def test_rejects_windows_drive_prefix_in_changed_files(self):
+        for path in ("C:/private/policy.txt", "D:relative-policy.txt"):
+            with self.subTest(path=path):
+                source = _source(
+                    changed_files=[path],
+                    path_matches=[
+                        {
+                            "path": path,
+                            "matched_operational_classes": [
+                                "engine-runtime",
+                                "verifier-boundary",
+                            ],
+                        }
+                    ],
+                )
+                with self.assertRaisesRegex(
+                    CalibrationPolicyMatchExplanationError,
+                    "project-relative",
+                ):
+                    build_calibration_policy_match_explanation_sidecar(
+                        calibration_record=_record(),
+                        policy_match_explanation=source,
+                    )
+
     def test_binding_returns_errors_for_non_object_sidecar(self):
         record = _record()
         for value in (None, [], "invalid", 17):
