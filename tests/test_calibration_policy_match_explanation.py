@@ -260,6 +260,15 @@ class CalibrationPolicyMatchExplanationTests(unittest.TestCase):
         ):
             build_calibration_policy_match_explanation_ledger([first, second])
 
+    def test_binding_returns_errors_for_non_object_sidecar(self):
+        record = _record()
+        for value in (None, [], "invalid", 17):
+            with self.subTest(value=value):
+                errors = verify_calibration_policy_match_explanation_binding(
+                    record, value
+                )
+                self.assertIn("sidecar must contain an object", errors)
+
     def test_tampered_calibration_authority_is_rejected(self):
         sidecar = build_calibration_policy_match_explanation_sidecar(
             calibration_record=_record(),
