@@ -81,3 +81,10 @@ Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evid
 - Remaining Saju middle-page collection 2–27 (26 pages) is not yet complete; anonymous GitHub REST API core budget was 12 requests remaining, preserving the rate guard. Resume after reset, without unauthorized credential use.
 - GitHub REST Artifact listing supports `per_page` up to 100 and repository Actions read access for authenticated access; all current page captures remain read-only, partial and susceptible to page movement between timestamps.
 - No Trust assessment, policy, human Review, authoritative Outcome, merge, deployment, or production action was changed. `DEFER_ORL7_INSUFFICIENT_VERIFIED_OUTCOMES` remains in force.
+
+## Progress checkpoint — 2026-10-30 (Stage20 local archive preflight)
+
+- Created `C:\Users\M\Documents\PIE-Evidence-Audit\stage20_verify_archive.py`, a syntax-checked, read-only verifier for the historical Stage12 consolidated ZIP once its actual bytes are made available on the authorized Windows PC.
+- It checks exact expected filename, 21,647,697 byte size, historical SHA-256 `a9598f971eec6b0c44941781868cf404217213091b81aff6b892318e183cbe77`, archive member path safety, outer ZIP CRC, count of 1,084 nested Artifact ZIPs, and nested ZIP CRC. This lightweight verifier does not independently recreate PIE internal evidence manifest/authority validation; use original Stage12 verifier for that.
+- Ran syntax compilation and the preflight, producing `inventory/stage20-archive-zip-reverification.json` with `status=ARCHIVE_UNAVAILABLE`. The archive is indexed in ChatGPT Library but its raw bytes could not be materialized in this execution and no local Windows copy has been found.
+- Therefore **current fresh ZIP byte-level verification remains incomplete**, although the historically generated package, Stage12 report and ID reconciliation support an earlier preservation claim. No expired-vs-preserved inference or authority promotion is permitted.
