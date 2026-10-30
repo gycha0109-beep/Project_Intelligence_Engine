@@ -1,7 +1,7 @@
 # Project Intelligence Engine — Execution Roadmap
 
 > Status: RECOVERY / VERIFICATION REQUIRED  
-> Updated: 2026-10-27  
+> Updated: 2026-10-30  
 > Baseline verified: `main` at `7368fc01206158b69825eef787b9c6be8381d7ed`.  
 > Scope: repository operating roadmap plus separate non-authoritative evidence-retention audit. This document must not overrule implemented contracts or source-code authority.
 
@@ -59,3 +59,15 @@ Source location on the authorized Windows device: `C:\Users\M\Documents\PIE-Evid
 - Observed differing GitHub artifact total counts across snapshots (especially Saju). Reconcile by Artifact IDs and capture timestamps, not page position alone.
 - Archived ZIP file count/integrity and original storage location remain **unverified**. Previous 1,084 ZIP claim must not be promoted to confirmed status.
 - Next action: continue rate-limited metadata acquisition from K_beauty page 21 / Saju page 55, then rerun exact ID/expiry reconciliation. Preserve missing/unknown and archival evidence separately.
+
+## Progress checkpoint — 2026-10-30 (verified local audit)
+
+- GitHub PR #105 exact head `d11b216cba02293f1e5c6959683bff7480577255`: CI run `40819794723` SUCCESS; PR remains open/unmerged. PR #106 preceding head `667d005c1c80b49340231a40ca1a351b583b1c50`: CI run `40824803364` SUCCESS.
+- Resumed collection at K_beauty page 21 and Saju page 55. Captured 48 further pages (4,800 metadata rows) via bounded read-only GitHub requests with no overwrites; verified all 48 newly captured files against their SHA-256 receipt.
+- Saved `inventory/stage18-collection.ndjson` and `inventory/stage18-reconciliation.json` on the authorized Windows PC under `C:\Users\M\Documents\PIE-Evidence-Audit`.
+- K_beauty: 9,227 distinct observed Artifact IDs across time-varying snapshots, 0 name/size/expiry metadata conflicts, 168 observed pre-Nov-27 due PIE artifacts. Designated middle pages 2–71 have all been captured; this is *not* an exhaustive point-in-time repository census.
+- Saju: 9,033 distinct observed Artifact IDs, 0 name/size/expiry conflicts, 270 observed pre-Nov-27 due PIE artifacts. Still unqueried: pages 2–27 (26 pages).
+- No additional PIE Artifact with expiry before 2026-11-27 was found in the newly captured 48 pages. Different GitHub API total counts between collection times demonstrate pagination drift; do not equate page coverage with absolute completeness.
+- Stopped when anonymous GitHub core API budget reached 12 remaining. Do not bypass the limit guard; resume Saju page 27 when the limit renews or a properly authorized read-only method is available.
+- Original 1,084 ZIP / 1,055 protected Artifact claims still lack verified local ZIP path, file integrity, and ID-to-file reconciliation. Keep archive preservation status UNKNOWN, distinct from verified metadata captures.
+- Continue `DEFER_ORL7_INSUFFICIENT_VERIFIED_OUTCOMES`: GitHub CI, PR, and retention metadata are not verified project-local technical Outcomes.
